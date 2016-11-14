@@ -1,10 +1,12 @@
 package login
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/lib-compose/logging"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -63,8 +65,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			(strings.HasPrefix(contentType, "application/json") ||
 				strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
 				strings.HasPrefix(contentType, "multipart/form-data")))) {
-		w.WriteHeader(400)
-		fmt.Fprintf(w, "Bad Request: Method or content-type not supported")
+		h.respondBadRequest(w, r)
 		return
 	}
 
@@ -79,7 +80,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		username, password := getCredentials(r)
+		username, password, err := getCredentials(r)
+		if err != nil {
+			h.respondBadRequest(w, r)
+			return
+		}
 		authenticated, userInfo, err := h.authenticate(username, password)
 		if err != nil {
 			logging.Application(r.Header).WithError(err).Error()
@@ -130,7 +135,7 @@ func (h *Handler) createToken(userInfo UserInfo) (string, error) {
 
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
-		username, _ := getCredentials(r)
+		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			map[string]interface{}{
 				"path":     r.URL.Path,
@@ -144,9 +149,14 @@ func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Internal Server Error")
 }
 
+func (h *Handler) respondBadRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(400)
+	fmt.Fprintf(w, "Bad Request: Method or content-type not supported")
+}
+
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
-		username, _ := getCredentials(r)
+		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			map[string]interface{}{
 				"path":    r.URL.Path,
@@ -165,6 +175,18 @@ func wantHtml(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept"), "text/html")
 }
 
-func getCredentials(r *http.Request) (string, string) {
-	return r.PostForm.Get("username"), r.PostForm.Get("password")
+func getCredentials(r *http.Request) (string, string, error) {
+	if r.Header.Get("Content-Type") == "application/json" {
+		m := map[string]string{}
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return "", "", err
+		}
+		err = json.Unmarshal(body, &m)
+		if err != nil {
+			return "", "", err
+		}
+		return m["username"], m["password"], nil
+	}
+	return r.PostForm.Get("username"), r.PostForm.Get("password"), nil
 }

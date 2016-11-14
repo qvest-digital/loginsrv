@@ -56,18 +56,35 @@ Does the login and returns the JWT. Depending on the content-type, and parameter
 
 Hint: The status `401 Unauthorized` is not used as a return code to not conflict with an Http BasicAuth Authentication.
 
-#### Example for classical REST call
+#### Example:
+Default is to return the token as Content-Type application/jwt within the body.
 ```
-curl -I -X POST -H "Accept: application/jwt" -H "Content-Type: application/json" --data '{"username": "bob", "password": "secret"}' http://example.com/login
+curl -i --data "username=bob&password=secret" http://127.0.0.1:6789/login
 HTTP/1.1 200 OK
+Content-Type: application/jwt
+Date: Mon, 14 Nov 2016 21:35:42 GMT
+Content-Length: 100
 
-xxxxx.yyyyy.zzzzz
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU
 ```
 
-#### Example for form based web flow
+#### Example: Credentials as JSON
+The Credentials also could be send as JSON encoded.
 ```
-curl -I -X POST --data "username=bob&password=secret" http://example.com/login
-HTTP/1.1 303 Moved Temporary
-Set-Cookie: jwt_token=xxxxx.yyyyy.zzzzz
-Location: /startpage
+curl -i -H 'Content-Type: application/json'  --data '{"username": "bob", "password": "secret"}' http://127.0.0.1:6789/login
+HTTP/1.1 200 OK
+Content-Type: application/jwt
+Date: Mon, 14 Nov 2016 21:35:42 GMT
+Content-Length: 100
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU
+```
+
+#### Example: web based flow with 'Accept: text/html'
+Sets the jwt token as cookie and redirects to a web page.
+```
+curl -i -H 'Accept: text/html' --data "username=bob&password=secret" http://127.0.0.1:6789/login
+HTTP/1.1 303 See Other
+Location: /
+Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU; HttpOnly
 ```

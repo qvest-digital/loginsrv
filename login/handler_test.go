@@ -74,6 +74,21 @@ func TestHandler_HEAD(t *testing.T) {
 	assert.Equal(t, recorder.Code, 400)
 }
 
+func TestHandler_LoginJson(t *testing.T) {
+	// success
+	recorder := call(req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptJwt))
+	assert.Equal(t, 200, recorder.Code)
+	assert.Equal(t, recorder.Header().Get("Content-Type"), "application/jwt")
+	assert.True(t, recorder.Body.Len() > 30)
+
+	// TODO: verify the jwt token
+
+	// wrong credentials
+	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
+	assert.Equal(t, 403, recorder.Code)
+	assert.Equal(t, "Wrong credentials", recorder.Body.String())
+}
+
 func TestHandler_LoginWeb(t *testing.T) {
 	// redirectSuccess
 	recorder := call(req("POST", "/context/login", "username=bob&password=secret", TypeForm, AcceptHtml))
