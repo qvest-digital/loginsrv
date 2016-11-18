@@ -88,6 +88,7 @@ func parseBackendOptions(b string) (map[string]string, error) {
 	}
 	return opts, nil
 }
+
 func randStringBytes(n int) string {
 	b := make([]byte, n)
 	for i := range b {

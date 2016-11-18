@@ -6,53 +6,64 @@ import (
 	"testing"
 )
 
-func TestConfig_GetBackendOptions(t *testing.T) {
+func TestConfig_ParseBackendOptions(t *testing.T) {
 	testCases := []struct {
-		backends      []string
-		parsedOptions BackendOptions
-		expectError   bool
+		input       []string
+		expected    BackendOptions
+		expectError bool
 	}{
 		{
 			[]string{},
-			[]map[string]string{},
+			BackendOptions{},
 			false,
 		},
 		{
+			[]string{"name=p1,key1=value1,key2=value2"},
+			BackendOptions{},
+			true, // no provider name specified
+		},
+		{
 			[]string{
-				"name=p1,key1=value1,key2=value2",
-				"name=p2,key3=value3,key4=value4",
+				"provider=simple,name=p1,key1=value1,key2=value2",
+				"provider=simple,name=p2,key3=value3,key4=value4",
 			},
-			[]map[string]string{
+			BackendOptions{
 				map[string]string{
-					"name": "p1",
-					"key1": "value1",
-					"key2": "value2",
+					"provider": "simple",
+					"name":     "p1",
+					"key1":     "value1",
+					"key2":     "value2",
 				},
 				map[string]string{
-					"name": "p2",
-					"key3": "value3",
-					"key4": "value4",
+					"provider": "simple",
+					"name":     "p2",
+					"key3":     "value3",
+					"key4":     "value4",
 				},
 			},
 			false,
 		},
 		{
 			[]string{"foo"},
-			nil,
+			BackendOptions{},
 			true,
 		},
 	}
 	for i, test := range testCases {
 		t.Run(fmt.Sprintf("test %v", i), func(t *testing.T) {
-			cfg := &Config{}
-			cfg.Backends = test.backends
-			opts, err := cfg.GetBackendOptions()
-			if test.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, opts, test.parsedOptions)
+			options := &BackendOptions{}
+			for _, input := range test.input {
+				err := options.Set(input)
+				if test.expectError {
+					assert.Error(t, err)
+				} else {
+					if err != nil {
+						assert.NoError(t, err)
+						continue
+					}
+				}
 			}
+			assert.Equal(t, test.expected, *options)
 		})
 	}
 }
