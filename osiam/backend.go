@@ -8,15 +8,13 @@ import (
 )
 
 type OsiamBackend struct {
-	endpoint     string
-	clientId     string
-	clientSecret string
+	client *Client
 }
 
 // NewOsiamBackend creates a new OSIAM Backend and verifies the parameters.
 func NewOsiamBackend(endpoint, clientId, clientSecret string) (*OsiamBackend, error) {
 	if _, err := url.Parse(endpoint); err != nil {
-		return nil, fmt.Errorf("osiam endpoint hast to be a valid url: %v: %v", endpoint, err)
+		return nil, fmt.Errorf("osiam endpoint has to be a valid url: %v: %v", endpoint, err)
 	}
 
 	if clientId == "" {
@@ -25,13 +23,19 @@ func NewOsiamBackend(endpoint, clientId, clientSecret string) (*OsiamBackend, er
 	if clientSecret == "" {
 		return nil, errors.New("No osiam clientSecret provided.")
 	}
+	client := NewClient(endpoint, clientId, clientSecret)
 	return &OsiamBackend{
-		endpoint:     endpoint,
-		clientId:     clientId,
-		clientSecret: clientSecret,
+		client: client,
 	}, nil
 }
 
-func (ob *OsiamBackend) Authenticate(username, password string) (bool, login.UserInfo, error) {
-	return false, login.UserInfo{}, errors.New("Not implemented yet")
+func (b *OsiamBackend) Authenticate(username, password string) (bool, login.UserInfo, error) {
+	authenticated, _, err := b.client.GetTokenByPassword(username, password)
+	if !authenticated || err != nil {
+		return authenticated, login.UserInfo{}, err
+	}
+	userInfo := login.UserInfo{
+		Username: username,
+	}
+	return true, userInfo, nil
 }

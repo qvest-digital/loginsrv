@@ -1,12 +1,11 @@
 package login
 
 import (
-//"fmt"
-//"github.com/stretchr/testify/assert"
-//"testing"
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-/**
 func TestConfig_GetBackendOptions(t *testing.T) {
 	testCases := []struct {
 		backends      []string
@@ -57,4 +56,3 @@ func TestConfig_GetBackendOptions(t *testing.T) {
 		})
 	}
 }
-**/

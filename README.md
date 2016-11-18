@@ -13,6 +13,7 @@ The following providers (login backends) are supported.
 - (OSIAM)[http://osiam.org/]
 OSIAM is a secure identity management solution providing REST based services for authentication and authorization.
 It implements the multplie OAuth2 flows, as well as SCIM for managing the user data.
+- Simple (user/password pairs by configuration)
 
 ## Future Planed Features
 - Support for 3-leged-Oauth2 flow (OSIAM, Google, Facebook login)
@@ -88,3 +89,16 @@ HTTP/1.1 303 See Other
 Location: /
 Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU; HttpOnly
 ```
+
+
+## Provider
+
+### Osiam
+To start loginsrv against the default osiam configuration on the same machine, use the following example.
+```
+loginsrv --jwt-secret=jwtsecret --text-logging -backend 'provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret'
+```
+
+Then go to http://127.0.0.1:6789/login and login with `admin/koala`.
+
+
