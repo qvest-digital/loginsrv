@@ -1,0 +1,27 @@
+language: go
+
+go:
+  - tip
+
+services:
+  - docker
+
+before_install:
+  - go get github.com/wadey/gocovmerge
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+
+script:
+  - go test -v ./...
+  - go vet ./...
+
+after_success:
+  - ./.generate_coverage.sh
+  - goveralls -coverprofile=full_cov.out -service=travis-ci
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      GOOS=linux go build -a --ldflags '-linkmode external -extldflags "-static"' . ;
+      docker build -t tarent/loginsrv . ;
+      docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" ;
+      docker push tarent/loginsrv ;
+    fi
+
