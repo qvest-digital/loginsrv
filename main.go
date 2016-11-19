@@ -41,7 +41,7 @@ func logShutdownEvent() {
 	}()
 }
 
-func exit(signal os.Signal, err error) {
+var exit = func(signal os.Signal, err error) {
 	logging.LifecycleStop(applicationName, signal, err)
 	if err == nil {
 		os.Exit(0)
