@@ -41,7 +41,3 @@ func (timestamp *Timestamp) MarshalJSON() ([]byte, error) {
 }
 
 var nilTime = (time.Time{}).UnixNano()
-
-func (timestamp *Timestamp) IsSet() bool {
-	return timestamp.T.UnixNano() != nilTime
-}

@@ -11,9 +11,7 @@ func init() {
 		&login.ProviderDescription{
 			Name: OsiamProviderName,
 		},
-		OsiamBackendFactory)
-}
-
-func OsiamBackendFactory(config map[string]string) (login.Backend, error) {
-	return NewOsiamBackend(config["endpoint"], config["clientId"], config["clientSecret"])
+		func(config map[string]string) (login.Backend, error) {
+			return NewBackend(config["endpoint"], config["clientId"], config["clientSecret"])
+		})
 }

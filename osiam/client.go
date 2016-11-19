@@ -45,13 +45,17 @@ func (c *Client) GetTokenByPassword(username, password string, scopes ...string)
 		return false, nil, err
 	}
 
-	if !isJson(res.Header.Get("Content-Type")) {
-		return false, nil, fmt.Errorf("Expected a token in json format, but got Content-Type: %v", res.Header.Get("Content-Type"))
-	}
-
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return false, nil, err
+	}
+
+	if !isJson(res.Header.Get("Content-Type")) {
+		bodyStart := string(body)
+		if len(bodyStart) > 50 {
+			bodyStart = bodyStart[0:50]
+		}
+		return false, nil, fmt.Errorf("Expected a token in json format, but got Content-Type: %q and message starting with %q", res.Header.Get("Content-Type"), bodyStart)
 	}
 
 	if res.StatusCode == 200 {
