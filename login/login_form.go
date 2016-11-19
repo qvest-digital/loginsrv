@@ -23,7 +23,7 @@ const loginForm = `<!DOCTYPE html>
     		<div class="panel panel-default">
 			  	<div class="panel-heading">
   			    	  <h3 class="panel-title">Please sign in</h3>
-                                  {{ if .error}}Internal error. Please try again later{{end}} 
+                                  {{ if .error}}Internal Error. Please try again later{{end}} 
                                   {{ if .failure}}Wrong credentials{{end}} 
 			 	</div>
 			  	<div class="panel-body">

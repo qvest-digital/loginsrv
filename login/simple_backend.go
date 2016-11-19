@@ -1,5 +1,9 @@
 package login
 
+import (
+	"errors"
+)
+
 const SimpleProviderName = "simple"
 
 func init() {
@@ -16,6 +20,9 @@ func SimpleBackendFactory(config map[string]string) (Backend, error) {
 		if k != "provider" && k != "name" {
 			userPassword[k] = v
 		}
+	}
+	if len(userPassword) == 0 {
+		return nil, errors.New("no users provided for simple backend")
 	}
 	return NewSimpleBackend(userPassword), nil
 }

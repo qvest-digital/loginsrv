@@ -18,10 +18,3 @@ func GetProvider(providerName string) (Provider, bool) {
 	p, exist := provider[providerName]
 	return p, exist
 }
-
-// GetProviderDescription returns the description of a registered provider by its name.
-// The bool return parameter indicated, if there was such a provider.
-func GetProviderDescription(providerName string) (*ProviderDescription, bool) {
-	pd, exist := providerDescription[providerName]
-	return pd, exist
-}

@@ -1,10 +1,57 @@
 package login
 
 import (
+	"flag"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
+
+func TestConfig_ReadConfigDefaults(t *testing.T) {
+	originalArgs := os.Args
+	defer func() { os.Args = originalArgs }()
+
+	assert.Equal(t, &DefaultConfig, ReadConfig())
+}
+
+func TestConfig_ReadConfig(t *testing.T) {
+	input := []string{
+		"--host=host",
+		"--port=port",
+		"--log-level=loglevel",
+		"--text-logging=true",
+		"--jwt-secret=jwtsecret",
+		"--success-url=successurl",
+		"--cookie-name=cookiename",
+		"--cookie-http-only=false",
+		"--backend=provider=simple",
+		"--backend=provider=foo",
+	}
+
+	expected := &Config{
+		Host:           "host",
+		Port:           "port",
+		LogLevel:       "loglevel",
+		TextLogging:    true,
+		JwtSecret:      "jwtsecret",
+		SuccessUrl:     "successurl",
+		CookieName:     "cookiename",
+		CookieHttpOnly: false,
+		Backends: BackendOptions{
+			map[string]string{
+				"provider": "simple",
+			},
+			map[string]string{
+				"provider": "foo",
+			},
+		},
+	}
+
+	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, cfg)
+}
 
 func TestConfig_ParseBackendOptions(t *testing.T) {
 	testCases := []struct {

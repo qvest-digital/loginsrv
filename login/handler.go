@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const ContentTypeHtml = "text/html; charset=utf-8"
+const ContentTypeJWT = "application/jwt"
+const ContentTypePlain = "text/plain"
+
 type Handler struct {
 	backends []Backend
 	config   *Config
@@ -123,18 +127,20 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/jwt")
+	w.Header().Set("Content-Type", ContentTypeJWT)
 	w.WriteHeader(200)
 	fmt.Fprintf(w, "%s\n", token)
 }
 
 func (h *Handler) createToken(userInfo UserInfo) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userInfo)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, userInfo)
 	return token.SignedString([]byte(h.config.JwtSecret))
 }
 
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
+		w.Header().Set("Content-Type", ContentTypeHtml)
+		w.WriteHeader(500)
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			map[string]interface{}{
@@ -145,6 +151,7 @@ func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 			})
 		return
 	}
+	w.Header().Set("Content-Type", ContentTypePlain)
 	w.WriteHeader(500)
 	fmt.Fprintf(w, "Internal Server Error")
 }
@@ -156,6 +163,8 @@ func (h *Handler) respondBadRequest(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
+		w.Header().Set("Content-Type", ContentTypeHtml)
+		w.WriteHeader(403)
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			map[string]interface{}{
@@ -167,6 +176,7 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 			})
 		return
 	}
+	w.Header().Set("Content-Type", ContentTypePlain)
 	w.WriteHeader(403)
 	fmt.Fprintf(w, "Wrong credentials")
 }

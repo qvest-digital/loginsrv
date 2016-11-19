@@ -1,6 +1,7 @@
 package login
 
 import (
+	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -27,6 +28,12 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			false,
 		},
 		// error cases
+		{
+			// init error because no users are provided
+			&Config{Backends: BackendOptions{map[string]string{"provider": "simple"}}},
+			1,
+			true,
+		},
 		{
 			&Config{},
 			0,
@@ -96,13 +103,36 @@ func TestHandler_LoginWeb(t *testing.T) {
 	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=")
 	assert.Equal(t, "/", recorder.Header().Get("Location"))
 
-	// show the login after error
+	// show the login form again after authentication failed
 	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
-	assert.Equal(t, 200, recorder.Code)
+	assert.Equal(t, 403, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), "form")
 	assert.Contains(t, recorder.Body.String(), `method="POST"`)
 	assert.Contains(t, recorder.Body.String(), `action="/context/login"`)
 	assert.Equal(t, recorder.Header().Get("Set-Cookie"), "")
+}
+
+func TestHandler_LoginError(t *testing.T) {
+	h := testHandlerWithError()
+
+	// backend returning an error with result type == jwt
+	request := req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptJwt)
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, request)
+
+	assert.Equal(t, 500, recorder.Code)
+	assert.Equal(t, recorder.Header().Get("Content-Type"), "text/plain")
+	assert.Equal(t, recorder.Body.String(), "Internal Server Error")
+
+	// backend returning an error with result type == html
+	request = req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptHtml)
+	recorder = httptest.NewRecorder()
+	h.ServeHTTP(recorder, request)
+
+	assert.Equal(t, 500, recorder.Code)
+	assert.Contains(t, recorder.Header().Get("Content-Type"), "text/html")
+	assert.Contains(t, recorder.Body.String(), "form")
+	assert.Contains(t, recorder.Body.String(), "Internal Error")
 }
 
 func testHandler() *Handler {
@@ -110,7 +140,16 @@ func testHandler() *Handler {
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
 		},
-		config: DefaultConfig(),
+		config: &DefaultConfig,
+	}
+}
+
+func testHandlerWithError() *Handler {
+	return &Handler{
+		backends: []Backend{
+			errorTestBackend("test error"),
+		},
+		config: &DefaultConfig,
 	}
 }
 
@@ -131,4 +170,10 @@ func req(method string, url string, body string, header ...string) *http.Request
 		r.Header.Add(pair[0], pair[1])
 	}
 	return r
+}
+
+type errorTestBackend string
+
+func (h errorTestBackend) Authenticate(username, password string) (bool, UserInfo, error) {
+	return false, UserInfo{}, errors.New(string(h))
 }
