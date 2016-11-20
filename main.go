@@ -21,7 +21,9 @@ func main() {
 
 	logShutdownEvent()
 
-	logging.LifecycleStart(applicationName, config)
+	configToLog := *config
+	configToLog.JwtSecret = "..."
+	logging.LifecycleStart(applicationName, configToLog)
 
 	h, err := login.NewHandler(config)
 	if err != nil {

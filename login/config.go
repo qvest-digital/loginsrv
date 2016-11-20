@@ -49,7 +49,17 @@ func ReadConfig() *Config {
 func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 	config := DefaultConfig
 
-	env.Parse(&config)
+	err := env.Parse(&config)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range os.Environ() {
+		pair := strings.SplitN(v, "=", 2)
+		if len(pair) == 2 && strings.HasPrefix(pair[0], "LOGINSRV_BACKEND") {
+			(&config.Backends).Set(pair[1])
+		}
+	}
 
 	f.StringVar(&config.Host, "host", config.Host, "The host to listen on")
 	f.StringVar(&config.Port, "port", config.Port, "The port to listen on")
@@ -61,13 +71,18 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 	f.StringVar(&config.SuccessUrl, "success-url", config.SuccessUrl, "The url to redirect after login")
 	f.Var(&config.Backends, "backend", "Backend configuration in form 'provider=name,key=val,key=...', can be declared multiple times")
 
-	err := f.Parse(args)
+	err = f.Parse(args)
 	if err != nil {
 		return nil, err
 	}
 
 	if config.JwtSecret == "random key" {
-		config.JwtSecret = DefaultConfig.JwtSecret
+		if s, set := os.LookupEnv("LOGINSRV_JWT_SECRET"); set {
+			config.JwtSecret = s
+
+		} else {
+			config.JwtSecret = DefaultConfig.JwtSecret
+		}
 	}
 
 	return &config, err

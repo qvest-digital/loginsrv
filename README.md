@@ -1,6 +1,6 @@
 # loginsrv
 
-loginsrv is a standalone minimalistic login server providing a (JWT)[https://jwt.io/] login for multiple login backends.
+loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt.io/) login for multiple login backends.
 
 [![Docker](https://img.shields.io/docker/pulls/tarent/loginsrv.svg)](https://hub.docker.com/r/tarent/loginsrv/)
 [![Build Status](https://api.travis-ci.org/tarent/loginsrv.svg?branch=master)](https://travis-ci.org/tarent/loginsrv)
@@ -9,13 +9,12 @@ loginsrv is a standalone minimalistic login server providing a (JWT)[https://jwt
 
 ## Abstract
 
-Loginsrv provides a minimal endpoint for authentication. The login is
-then performed against the providers and returned as Json Web Token.
+Loginsrv provides a minimal endpoint for authentication. The login is performed against the providers and returned as Json Web Token.
 
 ## Supported Provider
 The following providers (login backends) are supported.
 
-- (OSIAM)[http://osiam.org/]
+- [OSIAM](http://osiam.org/)
 OSIAM is a secure identity management solution providing REST based services for authentication and authorization.
 It implements the multplie OAuth2 flows, as well as SCIM for managing the user data.
 - Simple (user/password pairs by configuration)
@@ -24,6 +23,51 @@ It implements the multplie OAuth2 flows, as well as SCIM for managing the user d
 - Support for 3-leged-Oauth2 flow (OSIAM, Google, Facebook login)
 - Backend for checking agains .htaccess file
 - Caddyserver middleware
+
+## Configuration and Startup
+### Config Options
+The configuration parameters are as follows.
+```
+ -backend value
+        Backend configuration in form 'provider=name,key=val,key=...', can be declared multiple times
+  -cookie-http-only
+        Set the cookie with the http only flag (default true)
+  -cookie-name string
+        The name of the jwt cookie (default "jwt_token")
+  -host string
+        The host to listen on (default "localhost")
+  -jwt-secret string
+        The secret to sign the jwt token (default "random key")
+  -log-level string
+        The log level (default "info")
+  -port string
+        The port to listen on (default "6789")
+  -success-url string
+        The url to redirect after login (default "/")
+  -text-logging
+        Log in text format instead of json
+```
+
+### Environment Variables
+All of the above Config Options can also be applied as environment variable, where the options name ist written in the way: `LOGINSRV_OPTION_NAME`.
+So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
+To configure multiple backends by environment variable, they can be named in the way: `LOGINSRV_BACKEND, LOGINSRV_BACKEND_FOO, LOGINSRV_BACKEND_BAR, ..`
+
+### Startup examples
+The most simple way to use loginsrv is by the provided docker container.
+E.g. configured with the simple provider:
+```
+$ docker run -d -p 80:80 tarent/loginsrv -jwt-secret my_secret -backend provider=simple,bob=secret
+
+$ curl --data "username=bob&password=secret" 127.0.0.1:3000/login
+eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4CyxQNxe5_Ovw-N5wfQwkzXz2enbhA9JZf8MmTp9n-TTDcWdY3Fd1SA72_M20G9lQ
+```
+
+The same configuration could be written with enviroment variables in the way:
+```
+$ docker run -d -p 80:80 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
+```
+
 
 ## API
 
@@ -38,7 +82,7 @@ so it can be embedded into an existing layout.
 
 Does the login and returns the JWT. Depending on the content-type, and parameters a classical JSON-Rest or a redirect can be performed.
 
-#### Parameters
+#### Runtime Parameters
 
 | Parameter-Type    | Parameter                                        | Description                                               |          | 
 | ------------------|--------------------------------------------------|-----------------------------------------------------------|----------|
@@ -48,7 +92,6 @@ Does the login and returns the JWT. Depending on the content-type, and parameter
 | Http-Header       | Content-Type: application/json                   | Take the credentials from the provided json object.       |          |
 | Post-Parameter    | username                                         | The username                                              |          |
 | Post-Parameter    | password                                         | The password                                              |          |
-| Config-Parameter  | success-url                                      | The url to redirect on success                            | (default /) |
 
 #### Possible Return Codes
 
