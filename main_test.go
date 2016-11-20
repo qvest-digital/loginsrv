@@ -1,10 +1,10 @@
 package main
 
 import (
-	//"github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
-	//"github.com/tarent/loginsrv/login"
-	//"io/ioutil"
+	"github.com/tarent/loginsrv/login"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -33,20 +33,17 @@ func Test_BasicEndToEnd(t *testing.T) {
 	assert.Equal(t, 200, r.StatusCode)
 	assert.Equal(t, r.Header.Get("Content-Type"), "application/jwt")
 
-	/**
-		b, err := ioutil.ReadAll(r.Body)
-	 	assert.NoError(t, err)
-			fmt.Println(login.DefaultConfig.JwtSecret)
-			fmt.Println(string(b))
-			token, err := jwt.Parse(string(b), func(*jwt.Token) (interface{}, error) {
-				return []byte(login.DefaultConfig.JwtSecret), nil
-			})
-			assert.NoError(t, err)
+	b, err := ioutil.ReadAll(r.Body)
+	assert.NoError(t, err)
 
-			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				assert.Equal(t, "bob", claims["sub"])
-			} else {
-				t.Fail()
-			}
-		**/
+	token, err := jwt.Parse(string(b), func(*jwt.Token) (interface{}, error) {
+		return []byte(login.DefaultConfig.JwtSecret), nil
+	})
+	assert.NoError(t, err)
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		assert.Equal(t, "bob", claims["sub"])
+	} else {
+		t.Fail()
+	}
 }

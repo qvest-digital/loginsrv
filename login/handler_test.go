@@ -3,6 +3,7 @@ package login
 import (
 	"errors"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -86,9 +87,11 @@ func TestHandler_LoginJson(t *testing.T) {
 	recorder := call(req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptJwt))
 	assert.Equal(t, 200, recorder.Code)
 	assert.Equal(t, recorder.Header().Get("Content-Type"), "application/jwt")
-	assert.True(t, recorder.Body.Len() > 30)
 
-	// TODO: verify the jwt token
+	// verify the token
+	claims, err := tokenAsMap(recorder.Body.String())
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]interface{}{"sub": "bob"}, claims)
 
 	// wrong credentials
 	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
@@ -100,8 +103,16 @@ func TestHandler_LoginWeb(t *testing.T) {
 	// redirectSuccess
 	recorder := call(req("POST", "/context/login", "username=bob&password=secret", TypeForm, AcceptHtml))
 	assert.Equal(t, 303, recorder.Code)
-	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=")
 	assert.Equal(t, "/", recorder.Header().Get("Location"))
+
+	// verify the token from the cookie
+	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=")
+	headerParts := strings.SplitN(recorder.Header().Get("Set-Cookie"), "=", 2)
+	assert.Equal(t, 2, len(headerParts))
+	assert.Equal(t, headerParts[0], "jwt_token")
+	claims, err := tokenAsMap(strings.SplitN(headerParts[1], ";", 2)[0])
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]interface{}{"sub": "bob"}, claims)
 
 	// show the login form again after authentication failed
 	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
@@ -170,6 +181,21 @@ func req(method string, url string, body string, header ...string) *http.Request
 		r.Header.Add(pair[0], pair[1])
 	}
 	return r
+}
+
+func tokenAsMap(tokenString string) (map[string]interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(*jwt.Token) (interface{}, error) {
+		return []byte(DefaultConfig.JwtSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return map[string]interface{}(claims), nil
+	} else {
+		return nil, errors.New("token not valid")
+	}
 }
 
 type errorTestBackend string

@@ -129,7 +129,7 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 
 	w.Header().Set("Content-Type", contentTypeJWT)
 	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s\n", token)
+	fmt.Fprintf(w, "%s", token)
 }
 
 func (h *Handler) createToken(userInfo UserInfo) (string, error) {
