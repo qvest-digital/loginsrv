@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
+	"github.com/tarent/lib-compose/logging"
 	"github.com/tarent/loginsrv/login"
 	"os"
 	"strconv"
@@ -19,6 +20,7 @@ func init() {
 
 // setup configures a new loginsrv instance.
 func setup(c *caddy.Controller) error {
+	logging.Set("info", true)
 
 	for c.Next() {
 		args := c.RemainingArgs()
