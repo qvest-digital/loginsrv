@@ -5,8 +5,7 @@ loginsrv is a standalone minimalistic login server providing a (JWT)[https://jwt
 [![Docker](https://img.shields.io/docker/pulls/tarent/loginsrv.svg)](https://hub.docker.com/r/tarent/loginsrv/)
 [![Build Status](https://api.travis-ci.org/tarent/loginsrv.svg?branch=master)](https://travis-ci.org/tarent/loginsrv)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tarent/loginsrv)](https://goreportcard.com/report/github.com/tarent/loginsrv)
-[![Coverage Status](https://coveralls.io/repos/tarent/loginsrv/badge.svg?branch=master&service=github)](https://coveralls.io/github/tarent/loginsrv?branch=master)
-
+[![Coverage Status](https://coveralls.io/repos/github/tarent/loginsrv/badge.svg?branch=master)](https://coveralls.io/github/tarent/loginsrv?branch=master)
 
 ## Abstract
 
