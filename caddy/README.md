@@ -27,3 +27,20 @@ loginsrv / {
     backend provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret
 }
 ```
+
+### Example caddyfile
+```
+127.0.0.1
+
+root {$PWD}
+browse
+
+jwt {
+    path /
+    allow sub bob
+}
+
+loginsrv / {
+         backend provider=simple,bob=secret,alice=secret
+}
+```
