@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/tarent/loginsrv/login"
+	_ "github.com/tarent/loginsrv/htpasswd"
 	_ "github.com/tarent/loginsrv/osiam"
+
+	"github.com/tarent/loginsrv/login"
 
 	"github.com/tarent/lib-compose/logging"
 	"net/http"

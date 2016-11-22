@@ -14,10 +14,9 @@ Loginsrv provides a minimal endpoint for authentication. The login is performed 
 ## Supported Provider
 The following providers (login backends) are supported.
 
-- [OSIAM](http://osiam.org/)
-OSIAM is a secure identity management solution providing REST based services for authentication and authorization.
-It implements the multplie OAuth2 flows, as well as SCIM for managing the user data.
-- Simple (user/password pairs by configuration)
+- [Htpasswd](Htpasswd) 
+- [Osiam](#Osiam)
+- [Simple](#Simple) (user/password pairs by configuration)
 
 ## Future Planed Features
 - Support for 3-leged-Oauth2 flow (OSIAM, Google, Facebook login)
@@ -141,7 +140,24 @@ Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-5
 
 ## Provider
 
+### Htpasswd
+Authentication against htpasswd file. MD5, SHA1 and Bcrypt are supported. But we recommend to only use bcrypt for security reasons (e.g. `htpasswd -B -C 15`).
+
+Parameters for the provider:
+
+| Parameter-Name    | Description                |
+| ------------------|----------------------------|
+| file              | Path to the password file  |
+
+Example:
+```
+loginsrv -backend 'provider=htpasswd,file=users
+```
+
 ### Osiam
+[OSIAM](http://osiam.org/) is a secure identity management solution providing REST based services for authentication and authorization.
+It implements the multplie OAuth2 flows, as well as SCIM for managing the user data.
+
 To start loginsrv against the default osiam configuration on the same machine, use the following example.
 ```
 loginsrv --jwt-secret=jwtsecret --text-logging -backend 'provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret'
@@ -149,4 +165,10 @@ loginsrv --jwt-secret=jwtsecret --text-logging -backend 'provider=osiam,endpoint
 
 Then go to http://127.0.0.1:6789/login and login with `admin/koala`.
 
+## Simple
+Simple is a demo provider for testing only. It holds a user/password table in memory.
 
+Example
+```
+loginsrv -backend provider=simple,bob=secret
+```
