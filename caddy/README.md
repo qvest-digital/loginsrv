@@ -25,6 +25,7 @@ loginsrv / {
     cookie-http-only true
     backend provider=simple,bob=secret
     backend provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret
+    backend provider=htpasswd,file=users
 }
 ```
 

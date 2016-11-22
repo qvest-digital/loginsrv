@@ -14,9 +14,9 @@ Loginsrv provides a minimal endpoint for authentication. The login is performed 
 ## Supported Provider
 The following providers (login backends) are supported.
 
-- [Htpasswd](Htpasswd) 
-- [Osiam](#Osiam)
-- [Simple](#Simple) (user/password pairs by configuration)
+- [Htpasswd](#htpasswd)
+- [Osiam](#osiam)
+- [Simple](#simple) (user/password pairs by configuration)
 
 ## Future Planed Features
 - Support for 3-leged-Oauth2 flow (OSIAM, Google, Facebook login)
