@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"io"
 	"os"
 	"strings"
 )
@@ -23,22 +24,24 @@ func NewAuth(filename string) (*Auth, error) {
 func (a *Auth) parse(filename string) error {
 	r, err := os.Open(filename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	cr := csv.NewReader(r)
 	cr.Comma = ':'
 	cr.Comment = '#'
 	cr.TrimLeadingSpace = true
 
-	records, err := cr.ReadAll()
-	if err != nil {
-		return err
-	}
-
 	a.userHash = map[string]string{}
-	for _, record := range records {
-		if len(record) < 2 {
-			continue
+	for {
+		record, err := cr.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if len(record) != 2 {
+			return fmt.Errorf("password file in wrong format (%v)", filename)
 		}
 		a.userHash[record[0]] = record[1]
 	}

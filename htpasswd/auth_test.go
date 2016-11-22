@@ -8,13 +8,18 @@ import (
 
 // password for all of them is 'secret'
 const testfile = `bob-md5:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.
+
 bob-bcrypt:$2y$05$Hw6y1sFwh6CdwiPOKFMYj..xVSQWI3wzyQvt5th392ig8RLmeLU.6
-bob-sha:{SHA}5en6G6MezRroT3XKqkdPOmY/BfQ=
+bob-sha:{SHA}5en6G6MezRroT3XKqkdPOmY/BfQ= # a comment
+
+# a comment
 bob-foo:{fooo}sdcsdcsdc/BfQ=
+
+
 `
 
 func TestClient_Hashes(t *testing.T) {
-	auth, err := NewAuth(writeTestfile())
+	auth, err := NewAuth(writeTmpfile(testfile))
 	assert.NoError(t, err)
 
 	//testUsers := []string{"bob-md5", "bob-bcrypt", "bob-sha"}
@@ -32,8 +37,30 @@ func TestClient_Hashes(t *testing.T) {
 	}
 }
 
+func TestClient_UnknownUser(t *testing.T) {
+	auth, err := NewAuth(writeTmpfile(testfile))
+	assert.NoError(t, err)
+
+	authenticated, err := auth.Authenticate("unknown", "secret")
+	assert.NoError(t, err)
+	assert.False(t, authenticated)
+}
+
+func TestClient_ErrorOnMissingFile(t *testing.T) {
+	_, err := NewAuth("/tmp/foo/bar/nothing")
+	assert.Error(t, err)
+}
+
+func TestClient_ErrorOnInvalidFileContents(t *testing.T) {
+	_, err := NewAuth(writeTmpfile("foo bar bazz"))
+	assert.Error(t, err)
+
+	_, err = NewAuth(writeTmpfile("foo:bar\nfoo:bar:bazz"))
+	assert.Error(t, err)
+}
+
 func TestClient_Hashes_UnknownAlgoError(t *testing.T) {
-	auth, err := NewAuth(writeTestfile())
+	auth, err := NewAuth(writeTmpfile(testfile))
 	assert.NoError(t, err)
 
 	authenticated, err := auth.Authenticate("bob-foo", "secret")
@@ -41,13 +68,13 @@ func TestClient_Hashes_UnknownAlgoError(t *testing.T) {
 	assert.False(t, authenticated)
 }
 
-func writeTestfile() string {
+func writeTmpfile(contents string) string {
 	f, err := ioutil.TempFile("", "loginsrv_htpasswdtest")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	_, err = f.WriteString(testfile)
+	_, err = f.WriteString(contents)
 	if err != nil {
 		panic(err)
 	}
