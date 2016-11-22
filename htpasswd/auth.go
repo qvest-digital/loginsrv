@@ -1,8 +1,13 @@
 package htpasswd
 
 import (
+	"bytes"
+	"crypto/sha1"
+	"crypto/subtle"
+	"encoding/base64"
 	"encoding/csv"
 	"fmt"
+	"github.com/abbot/go-http-auth"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"os"
@@ -50,11 +55,35 @@ func (a *Auth) parse(filename string) error {
 
 func (a *Auth) Authenticate(username, password string) (bool, error) {
 	if hash, exist := a.userHash[username]; exist {
-		if strings.HasPrefix(hash, "$2y$") {
-			matchErr := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+		h := []byte(hash)
+		p := []byte(password)
+		if strings.HasPrefix(hash, "$2y$") || strings.HasPrefix(hash, "$2b$") {
+			matchErr := bcrypt.CompareHashAndPassword(h, p)
 			return (matchErr == nil), nil
+		}
+		if strings.HasPrefix(hash, "{SHA}") {
+			return compareSha(h, p), nil
+		}
+		if strings.HasPrefix(hash, "$apr1$") {
+			return compareMD5(h, p), nil
 		}
 		return false, fmt.Errorf("unknown algorythm for user %q", username)
 	}
 	return false, nil
+}
+
+func compareSha(hashedPassword, password []byte) bool {
+	d := sha1.New()
+	d.Write(password)
+	return 1 == subtle.ConstantTimeCompare(hashedPassword[5:], []byte(base64.StdEncoding.EncodeToString(d.Sum(nil))))
+}
+
+func compareMD5(hashedPassword, password []byte) bool {
+	parts := bytes.SplitN(hashedPassword, []byte("$"), 4)
+	if len(parts) != 4 {
+		return false
+	}
+	magic := []byte("$" + string(parts[1]) + "$")
+	salt := parts[2]
+	return 1 == subtle.ConstantTimeCompare(hashedPassword, auth.MD5Crypt(password, salt, magic))
 }
