@@ -10,6 +10,12 @@ loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt
 ## Abstract
 
 Loginsrv provides a minimal endpoint for authentication. The login is performed against the providers and returned as Json Web Token.
+It van be used as:
+
+* standalone microservice
+* docker container
+* golang library
+* or as [caddyserver](http://caddyserver.com/) plugin.
 
 ## Supported Provider
 The following providers (login backends) are supported.
@@ -20,8 +26,6 @@ The following providers (login backends) are supported.
 
 ## Future Planed Features
 - Support for 3-leged-Oauth2 flow (OSIAM, Google, Facebook login)
-- Backend for checking agains .htaccess file
-- Caddyserver middleware
 
 ## Configuration and Startup
 ### Config Options
