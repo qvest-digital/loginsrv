@@ -10,7 +10,7 @@ loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt
 ## Abstract
 
 Loginsrv provides a minimal endpoint for authentication. The login is performed against the providers and returned as Json Web Token.
-It van be used as:
+It can be used as:
 
 * standalone microservice
 * docker container
