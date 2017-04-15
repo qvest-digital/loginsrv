@@ -30,7 +30,7 @@ func TestSetup(t *testing.T) {
 				SuccessUrl:     "/",
 				CookieName:     "jwt_token",
 				CookieHttpOnly: true,
-				Backends: login.BackendOptions{
+				Backends: login.Options{
 					map[string]string{
 						"provider": "simple",
 						"bob":      "secret",
@@ -52,7 +52,7 @@ func TestSetup(t *testing.T) {
 				SuccessUrl:     "successurl",
 				CookieName:     "cookiename",
 				CookieHttpOnly: false,
-				Backends: login.BackendOptions{
+				Backends: login.Options{
 					map[string]string{
 						"provider": "simple",
 						"bob":      "secret",

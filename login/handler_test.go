@@ -24,14 +24,14 @@ func TestHandler_NewFromConfig(t *testing.T) {
 		expectError  bool
 	}{
 		{
-			&Config{Backends: BackendOptions{map[string]string{"provider": "simple", "bob": "secret"}}},
+			&Config{Backends: Options{map[string]string{"provider": "simple", "bob": "secret"}}},
 			1,
 			false,
 		},
 		// error cases
 		{
 			// init error because no users are provided
-			&Config{Backends: BackendOptions{map[string]string{"provider": "simple"}}},
+			&Config{Backends: Options{map[string]string{"provider": "simple"}}},
 			1,
 			true,
 		},
@@ -41,12 +41,12 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			true,
 		},
 		{
-			&Config{Backends: BackendOptions{map[string]string{"foo": ""}}},
+			&Config{Backends: Options{map[string]string{"foo": ""}}},
 			1,
 			true,
 		},
 		{
-			&Config{Backends: BackendOptions{map[string]string{"provider": "simpleFoo", "bob": "secret"}}},
+			&Config{Backends: Options{map[string]string{"provider": "simpleFoo", "bob": "secret"}}},
 			1,
 			true,
 		},

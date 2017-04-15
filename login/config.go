@@ -22,7 +22,8 @@ func init() {
 		SuccessUrl:     "/",
 		CookieName:     "jwt_token",
 		CookieHttpOnly: true,
-		Backends:       BackendOptions{},
+		Backends:       Options{},
+		Oauth:          Options{},
 	}
 }
 
@@ -35,7 +36,8 @@ type Config struct {
 	SuccessUrl     string `env:"LOGINSRV_SUCCESS_URL"`
 	CookieName     string `env:"LOGINSRV_COOKIE_NAME"`
 	CookieHttpOnly bool   `env:"LOGINSRV_COOKIE_HTTP_ONLY"`
-	Backends       BackendOptions
+	Backends       Options
+	Oauth          Options
 }
 
 func ReadConfig() *Config {
@@ -59,6 +61,9 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 		if len(pair) == 2 && strings.HasPrefix(pair[0], "LOGINSRV_BACKEND") {
 			(&config.Backends).Set(pair[1])
 		}
+		if len(pair) == 2 && strings.HasPrefix(pair[0], "LOGINSRV_OAUTH") {
+			(&config.Oauth).Set(pair[1])
+		}
 	}
 
 	f.StringVar(&config.Host, "host", config.Host, "The host to listen on")
@@ -70,6 +75,7 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 	f.BoolVar(&config.CookieHttpOnly, "cookie-http-only", config.CookieHttpOnly, "Set the cookie with the http only flag")
 	f.StringVar(&config.SuccessUrl, "success-url", config.SuccessUrl, "The url to redirect after login")
 	f.Var(&config.Backends, "backend", "Backend configuration in form 'provider=name,key=val,key=...', can be declared multiple times")
+	f.Var(&config.Oauth, "oauth", "Oauth provider configuration in form 'provider=name,key=val,key=...', can be declared multiple times")
 
 	err = f.Parse(args)
 	if err != nil {
@@ -88,7 +94,7 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 	return &config, err
 }
 
-func parseBackendOptions(b string) (map[string]string, error) {
+func parseOptions(b string) (map[string]string, error) {
 	opts := map[string]string{}
 	pairs := strings.Split(b, ",")
 	for _, p := range pairs {
@@ -97,9 +103,6 @@ func parseBackendOptions(b string) (map[string]string, error) {
 			return nil, fmt.Errorf("provider configuration has to be in form 'provider=name,key1=value1,key2=..', but was %v", p)
 		}
 		opts[pair[0]] = pair[1]
-	}
-	if _, exist := opts["provider"]; !exist {
-		return nil, fmt.Errorf("no provider name specified in %v", b)
 	}
 	return opts, nil
 }
@@ -114,14 +117,14 @@ func randStringBytes(n int) string {
 	return string(b)
 }
 
-type BackendOptions []map[string]string
+type Options []map[string]string
 
-func (bo *BackendOptions) String() string {
+func (bo *Options) String() string {
 	return fmt.Sprintf("%v", *bo)
 }
 
-func (bo *BackendOptions) Set(value string) error {
-	optionMap, err := parseBackendOptions(value)
+func (bo *Options) Set(value string) error {
+	optionMap, err := parseOptions(value)
 	if err != nil {
 		return err
 	}

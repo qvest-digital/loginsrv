@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/oauth2"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -17,11 +18,16 @@ const contentTypePlain = "text/plain"
 
 type Handler struct {
 	backends []Backend
+	oauth    *Oauth
 	config   *Config
 }
 
 // NewHandler creates a login handler based on the supplied configuration.
 func NewHandler(config *Config) (*Handler, error) {
+	if len(config.Backends) == 0 && len(config.Oauth) {
+		return nil, errors.New("No login backends or oauth provider configured!")
+	}
+
 	backends := []Backend{}
 	for _, opt := range config.Backends {
 		p, exist := GetProvider(opt["provider"])
@@ -34,9 +40,15 @@ func NewHandler(config *Config) (*Handler, error) {
 		}
 		backends = append(backends, b)
 	}
-	if len(backends) == 0 {
-		return nil, errors.New("No login backends configured!")
+
+	oauth := NewOauth()
+	for _, opt := range config.Oauth {
+		err := oauth.AddConfig(opt)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return &Handler{
 		backends: backends,
 		config:   config,

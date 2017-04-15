@@ -27,6 +27,8 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--cookie-http-only=false",
 		"--backend=provider=simple",
 		"--backend=provider=foo",
+		"--oauth=provider=github",
+		"--oauth=foo=bar",
 	}
 
 	expected := &Config{
@@ -38,12 +40,20 @@ func TestConfig_ReadConfig(t *testing.T) {
 		SuccessUrl:     "successurl",
 		CookieName:     "cookiename",
 		CookieHttpOnly: false,
-		Backends: BackendOptions{
+		Backends: Options{
 			map[string]string{
 				"provider": "simple",
 			},
 			map[string]string{
 				"provider": "foo",
+			},
+		},
+		Oauth: Options{
+			map[string]string{
+				"provider": "github",
+			},
+			map[string]string{
+				"foo": "bar",
 			},
 		},
 	}
@@ -65,6 +75,8 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	assert.NoError(t, os.Setenv("LOGINSRV_BACKEND", "provider=simple,foo=bar"))
 	assert.NoError(t, os.Setenv("LOGINSRV_BACKEND_FOO", "provider=foo"))
 	assert.NoError(t, os.Setenv("LOGINSRV_BACKEND_BAR", "provider=bar"))
+	assert.NoError(t, os.Setenv("LOGINSRV_OAUTH_GITHUB", "provider=github"))
+	assert.NoError(t, os.Setenv("LOGINSRV_OAUTH_GENERIC", "foo=bar"))
 
 	expected := &Config{
 		Host:           "host",
@@ -75,7 +87,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 		SuccessUrl:     "successurl",
 		CookieName:     "cookiename",
 		CookieHttpOnly: false,
-		Backends: BackendOptions{
+		Backends: Options{
 			map[string]string{
 				"provider": "simple",
 				"foo":      "bar",
@@ -87,6 +99,14 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 				"provider": "bar",
 			},
 		},
+		Oauth: Options{
+			map[string]string{
+				"provider": "github",
+			},
+			map[string]string{
+				"foo": "bar",
+			},
+		},
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
@@ -94,28 +114,23 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	assert.Equal(t, expected, cfg)
 }
 
-func TestConfig_ParseBackendOptions(t *testing.T) {
+func TestConfig_ParseOptions(t *testing.T) {
 	testCases := []struct {
 		input       []string
-		expected    BackendOptions
+		expected    Options
 		expectError bool
 	}{
 		{
 			[]string{},
-			BackendOptions{},
+			Options{},
 			false,
-		},
-		{
-			[]string{"name=p1,key1=value1,key2=value2"},
-			BackendOptions{},
-			true, // no provider name specified
 		},
 		{
 			[]string{
 				"provider=simple,name=p1,key1=value1,key2=value2",
 				"provider=simple,name=p2,key3=value3,key4=value4",
 			},
-			BackendOptions{
+			Options{
 				map[string]string{
 					"provider": "simple",
 					"name":     "p1",
@@ -133,13 +148,13 @@ func TestConfig_ParseBackendOptions(t *testing.T) {
 		},
 		{
 			[]string{"foo"},
-			BackendOptions{},
+			Options{},
 			true,
 		},
 	}
 	for i, test := range testCases {
 		t.Run(fmt.Sprintf("test %v", i), func(t *testing.T) {
-			options := &BackendOptions{}
+			options := &Options{}
 			for _, input := range test.input {
 				err := options.Set(input)
 				if test.expectError {
