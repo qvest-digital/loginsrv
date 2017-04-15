@@ -18,13 +18,13 @@ const contentTypePlain = "text/plain"
 
 type Handler struct {
 	backends []Backend
-	oauth    *Oauth
+	oauth    *oauth2.Manager
 	config   *Config
 }
 
 // NewHandler creates a login handler based on the supplied configuration.
 func NewHandler(config *Config) (*Handler, error) {
-	if len(config.Backends) == 0 && len(config.Oauth) {
+	if len(config.Backends) == 0 && len(config.Oauth) == 0 {
 		return nil, errors.New("No login backends or oauth provider configured!")
 	}
 
@@ -41,7 +41,7 @@ func NewHandler(config *Config) (*Handler, error) {
 		backends = append(backends, b)
 	}
 
-	oauth := NewOauth()
+	oauth := oauth2.NewManager()
 	for _, opt := range config.Oauth {
 		err := oauth.AddConfig(opt)
 		if err != nil {

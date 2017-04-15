@@ -36,6 +36,7 @@ func TestSetup(t *testing.T) {
 						"bob":      "secret",
 					},
 				},
+				Oauth: login.Options{},
 			}},
 		{
 			input: `loginsrv / {
@@ -64,6 +65,7 @@ func TestSetup(t *testing.T) {
 						"clientSecret": "secret",
 					},
 				},
+				Oauth: login.Options{},
 			}},
 		// error cases
 		{input: "loginsrv {\n}", shouldErr: true},

@@ -117,12 +117,16 @@ func getAccessToken(cfg Config, state, code string) (TokenInfo, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return TokenInfo{}, fmt.Errorf("error: non 200er http status on token exchange: %v", resp.StatusCode)
+		return TokenInfo{}, fmt.Errorf("error: expected http status 200 on token exchange, but got %v", resp.StatusCode)
 	}
 
 	decoder := json.NewDecoder(resp.Body)
 	tokenInfo := TokenInfo{}
-	return tokenInfo, decoder.Decode(&tokenInfo)
+	err = decoder.Decode(&tokenInfo)
+	if err != nil {
+		return TokenInfo{}, fmt.Errorf("error on parsing oauth token: %v", err)
+	}
+	return tokenInfo, nil
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
