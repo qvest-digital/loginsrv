@@ -43,7 +43,7 @@ func NewHandler(config *Config) (*Handler, error) {
 
 	oauth := oauth2.NewManager()
 	for _, opt := range config.Oauth {
-		err := oauth.AddConfig(opt)
+		err := oauth.AddConfig(opt["provider"], opt)
 		if err != nil {
 			return nil, err
 		}
@@ -52,29 +52,54 @@ func NewHandler(config *Config) (*Handler, error) {
 	return &Handler{
 		backends: backends,
 		config:   config,
+		oauth:    oauth2.DefaultManager,
 	}, nil
 }
 
-func (h *Handler) authenticate(username, password string) (bool, UserInfo, error) {
-	for _, b := range h.backends {
-		authenticated, userInfo, err := b.Authenticate(username, password)
-		if err != nil {
-			return false, UserInfo{}, err
-		}
-		if authenticated {
-			return authenticated, userInfo, nil
-		}
-	}
-	return false, UserInfo{}, nil
-}
-
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasSuffix(r.URL.Path, "/login") {
-		w.WriteHeader(404)
-		fmt.Fprintf(w, "404 Ressource not found")
+	if strings.HasSuffix(r.URL.Path, "/login") {
+		h.handleLogin(w, r)
 		return
 	}
 
+	if strings.Contains(r.URL.Path, "/oauth") {
+		h.handleOauth(w, r)
+		return
+	}
+
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "404 Ressource not found")
+	return
+}
+
+func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
+	startedFlow, authenticated, userInfo, err := h.oauth.Handle(w, r)
+
+	if startedFlow {
+		// the oauth flow started
+		return
+	}
+
+	if err != nil {
+		logging.Application(r.Header).WithError(err).Error()
+		h.respondError(w, r)
+		return
+	}
+
+	if authenticated {
+		logging.Application(r.Header).
+			WithField("username", userInfo.Username).Info("sucessfully authenticated")
+		h.respondAuthenticated(w, r, userInfo)
+		return
+	}
+	logging.Application(r.Header).
+		WithField("username", userInfo.Username).Info("failed authentication")
+
+	h.respondAuthFailure(w, r)
+	return
+}
+
+func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	contentType := r.Header.Get("Content-Type")
 	if !(r.Method == "GET" ||
 		(r.Method == "POST" &&
@@ -122,7 +147,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo UserInfo) {
+func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo jwt.Claims) {
 	token, err := h.createToken(userInfo)
 	if err != nil {
 		logging.Application(r.Header).WithError(err).Error()
@@ -130,7 +155,6 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	if wantHtml(r) {
-
 		// TODO: set livetime
 		cookie := &http.Cookie{Name: h.config.CookieName, Value: token, HttpOnly: true}
 		http.SetCookie(w, cookie)
@@ -144,7 +168,7 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 	fmt.Fprintf(w, "%s", token)
 }
 
-func (h *Handler) createToken(userInfo UserInfo) (string, error) {
+func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, userInfo)
 	return token.SignedString([]byte(h.config.JwtSecret))
 }
@@ -211,4 +235,17 @@ func getCredentials(r *http.Request) (string, string, error) {
 		return m["username"], m["password"], nil
 	}
 	return r.PostForm.Get("username"), r.PostForm.Get("password"), nil
+}
+
+func (h *Handler) authenticate(username, password string) (bool, UserInfo, error) {
+	for _, b := range h.backends {
+		authenticated, userInfo, err := b.Authenticate(username, password)
+		if err != nil {
+			return false, UserInfo{}, err
+		}
+		if authenticated {
+			return authenticated, userInfo, nil
+		}
+	}
+	return false, UserInfo{}, nil
 }

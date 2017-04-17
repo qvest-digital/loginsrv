@@ -7,6 +7,6 @@ import (
 
 func Test_Manager(t *testing.T) {
 	m := NewManager()
-	m.AddConfig(nil)
+	m.AddConfig("github", nil)
 	assert.Equal(t, true, true)
 }
