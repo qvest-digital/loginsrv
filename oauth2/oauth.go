@@ -32,10 +32,13 @@ type Config struct {
 
 	// RedirectURL is the URL to redirect users going through
 	// the OAuth flow, after the resource owner's URLs.
-	RedirectURL string
+	RedirectURI string
 
-	// Scope specifies optional requested permissions.
-	Scopes []string
+	// Scope specifies optional requested permissions, this is a *space* separated list.
+	Scope string
+
+	// The oauth provider
+	Provider Provider
 }
 
 // Token represents the crendentials used to authorize
@@ -61,8 +64,8 @@ const defaultTimeout = 5 * time.Second
 func StartFlow(cfg Config, w http.ResponseWriter) {
 	values := make(url.Values)
 	values.Set("client_id", cfg.ClientID)
-	values.Set("scope", strings.Join(cfg.Scopes, " "))
-	values.Set("redirect_uri", cfg.RedirectURL)
+	values.Set("scope", cfg.Scope)
+	values.Set("redirect_uri", cfg.RedirectURI)
 	values.Set("response_type", "code")
 
 	// set and store the state param

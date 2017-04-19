@@ -9,30 +9,11 @@ import (
 
 const callbackPathSuffix = "/callback"
 
-// Oauth provider configuration
-type Provider struct {
-	// The name to access the provider in the configuration
-	Name string
-
-	// The oauth authentication url to redirect to
-	AuthURL string
-
-	// The url for token exchange
-	TokenURL string
-
-	// GetUserInfo is a provider specific Implementation
-	// for fetching the user information.
-	// Possible keys in the returned map are:
-	// username, email, name
-	GetUserInfo func(token TokenInfo) (map[string]string, error)
-}
-
 var DefaultManager = NewManager()
 
-// The manager has the responsibility to pick the right configuration
-// and start the oauth habdling.
+// The manager has the responsibility to handle the user user requests in an oauth flow.
+// It has to pick the right configuration and start the oauth redirecting.
 type Manager struct {
-	provider     map[string]Provider
 	configs      map[string]Config
 	startFlow    func(cfg Config, w http.ResponseWriter)
 	authenticate func(cfg Config, r *http.Request) (TokenInfo, error)
@@ -41,13 +22,20 @@ type Manager struct {
 // NewManager creates a new Manager
 func NewManager() *Manager {
 	return &Manager{
-		provider:     map[string]Provider{},
 		configs:      map[string]Config{},
 		startFlow:    StartFlow,
 		authenticate: Authenticate,
 	}
 }
 
+// Handle is managing the oauth flow.
+// Dependent on the suffix of the url, the oauth flow is started or
+// the call is interpreted as the redirect callback and the token exchange is done.
+// Return parameters:
+//   startedFlow - true, if this was the initial call to start the oauth flow
+//   authenticated - if the authentication was successful or not
+//   userInfo - the user info from the provider in case of a succesful authentication
+//   err - an error
 func (manager *Manager) Handle(w http.ResponseWriter, r *http.Request) (
 	startedFlow bool,
 	authenticated bool,
@@ -64,8 +52,13 @@ func (manager *Manager) Handle(w http.ResponseWriter, r *http.Request) (
 		if err != nil {
 			return false, false, UserInfo{}, err
 		}
+
+		ui, err := cfg.Provider.GetUserInfo(tokenInfo)
+		if err != nil {
+			return false, false, UserInfo{}, err
+		}
 		userInfo = UserInfo{
-			Username: tokenInfo.AccessToken,
+			Username: ui["username"],
 		}
 		return false, true, userInfo, err
 	}
@@ -81,35 +74,53 @@ func (manager *Manager) getConfig(r *http.Request) (Config, error) {
 		return Config{}, fmt.Errorf("no oauth configuration for %v", configName)
 	}
 
-	if cfg.RedirectURL == "" {
-		cfg.RedirectURL = redirectUriFromRequest(r)
+	if cfg.RedirectURI == "" {
+		cfg.RedirectURI = redirectUriFromRequest(r)
 	}
 
 	return cfg, nil
 }
 
 func (manager *Manager) getConfigNameFromPath(path string) string {
-	path = strings.TrimSuffix(path, "/"+callbackPathSuffix)
+	path = strings.TrimSuffix(path, callbackPathSuffix)
 	parts := strings.Split(path, "/")
 	return parts[len(parts)-1]
 }
 
-// Register an Oauth provider
-func (manager *Manager) RegisterProvider(provider Provider) {
-	manager.provider[provider.Name] = provider
-}
-
-// ProviderList returns the names of all registered providre
-func (manager *Manager) ProviderList() []string {
-	list := make([]string, 0, len(manager.provider))
-	for k, _ := range manager.provider {
-		list = append(list, k)
-	}
-	return list
-}
-
 // Add a configuration for a provider
 func (manager *Manager) AddConfig(providerName string, opts map[string]string) error {
+	p, exist := GetProvider(providerName)
+	if !exist {
+		return fmt.Errorf("no provider for name %v", providerName)
+	}
+
+	cfg := Config{
+		Provider: p,
+		AuthURL:  p.AuthURL,
+		TokenURL: p.TokenURL,
+	}
+
+	if clientId, exist := opts["client_id"]; !exist {
+		return fmt.Errorf("missing parameter client_id")
+	} else {
+		cfg.ClientID = clientId
+	}
+
+	if clientSecret, exist := opts["client_secret"]; !exist {
+		return fmt.Errorf("missing parameter client_secret")
+	} else {
+		cfg.ClientSecret = clientSecret
+	}
+
+	if scope, exist := opts["scope"]; exist {
+		cfg.Scope = scope
+	}
+
+	if redirectURI, exist := opts["redirect_uri"]; exist {
+		cfg.RedirectURI = redirectURI
+	}
+
+	manager.configs[providerName] = cfg
 	return nil
 }
 

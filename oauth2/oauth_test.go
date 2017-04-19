@@ -16,8 +16,8 @@ var testConfig = Config{
 	ClientSecret: "secret",
 	AuthURL:      "http://auth-provider/auth",
 	TokenURL:     "http://auth-provider/token",
-	RedirectURL:  "http://localhost/callback",
-	Scopes:       []string{"email", "other"},
+	RedirectURI:  "http://localhost/callback",
+	Scope:        "email other",
 }
 
 func Test_StartFlow(t *testing.T) {
@@ -34,7 +34,7 @@ func Test_StartFlow(t *testing.T) {
 	expectedLocation := fmt.Sprintf("%v?client_id=%v&redirect_uri=%v&response_type=code&scope=%v&state=%v",
 		testConfig.AuthURL,
 		testConfig.ClientID,
-		url.QueryEscape(testConfig.RedirectURL),
+		url.QueryEscape(testConfig.RedirectURI),
 		"email+other",
 		state,
 	)
@@ -60,7 +60,7 @@ func Test_Authenticate(t *testing.T) {
 	testConfigCopy := testConfig
 	testConfigCopy.TokenURL = server.URL
 
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
 	request.URL, _ = url.Parse("http://localhost/callback?code=theCode&state=theState")
 
@@ -73,7 +73,7 @@ func Test_Authenticate(t *testing.T) {
 }
 
 func Test_Authentication_ProviderError(t *testing.T) {
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.URL, _ = url.Parse("http://localhost/callback?error=provider_login_error")
 
 	_, err := Authenticate(testConfig, request)
@@ -83,7 +83,7 @@ func Test_Authentication_ProviderError(t *testing.T) {
 }
 
 func Test_Authentication_StateError(t *testing.T) {
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=XXXXXXX")
 	request.URL, _ = url.Parse("http://localhost/callback?code=theCode&state=theState")
 
@@ -94,7 +94,7 @@ func Test_Authentication_StateError(t *testing.T) {
 }
 
 func Test_Authentication_NoCodeError(t *testing.T) {
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
 	request.URL, _ = url.Parse("http://localhost/callback?state=theState")
 
@@ -114,7 +114,7 @@ func Test_Authentication_Provider500(t *testing.T) {
 	testConfigCopy := testConfig
 	testConfigCopy.TokenURL = server.URL
 
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
 	request.URL, _ = url.Parse("http://localhost/callback?code=theCode&state=theState")
 
@@ -129,7 +129,7 @@ func Test_Authentication_ProviderNetworkError(t *testing.T) {
 	testConfigCopy := testConfig
 	testConfigCopy.TokenURL = "http://localhost:12345678"
 
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
 	request.URL, _ = url.Parse("http://localhost/callback?code=theCode&state=theState")
 
@@ -152,7 +152,7 @@ func Test_Authentication_TokenParseError(t *testing.T) {
 	testConfigCopy := testConfig
 	testConfigCopy.TokenURL = server.URL
 
-	request, _ := http.NewRequest("GET", testConfig.RedirectURL, nil)
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
 	request.URL, _ = url.Parse("http://localhost/callback?code=theCode&state=theState")
 
