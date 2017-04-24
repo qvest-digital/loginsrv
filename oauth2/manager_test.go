@@ -1,6 +1,7 @@
 package oauth2
 
 import (
+	"crypto/tls"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -82,6 +83,126 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	assertEqualConfig(t, expectedConfig, authenticateReceivedConfig)
 
 	assert.True(t, getUserInfoCalled)
+}
+
+func Test_Manager_getConfig_ErrorCase(t *testing.T) {
+	r, _ := http.NewRequest("GET", "http://example.com/login", nil)
+
+	m := NewManager()
+	m.AddConfig("github", map[string]string{
+		"client_id":     "foo",
+		"client_secret": "bar",
+	})
+
+	_, err := m.getConfig(r)
+	assert.EqualError(t, err, "no oauth configuration for login")
+}
+
+func Test_Manager_AddConfig_ErrorCases(t *testing.T) {
+	m := NewManager()
+
+	assert.NoError(t,
+		m.AddConfig("github", map[string]string{
+			"client_id":     "foo",
+			"client_secret": "bar",
+		}))
+
+	assert.EqualError(t,
+		m.AddConfig("FOOOO", map[string]string{
+			"client_id":     "foo",
+			"client_secret": "bar",
+		}),
+		"no provider for name FOOOO",
+	)
+
+	assert.EqualError(t,
+		m.AddConfig("github", map[string]string{
+			"client_secret": "bar",
+		}),
+		"missing parameter client_id",
+	)
+
+	assert.EqualError(t,
+		m.AddConfig("github", map[string]string{
+			"client_id": "foo",
+		}),
+		"missing parameter client_secret",
+	)
+
+}
+
+func Test_Manager_redirectUriFromRequest(t *testing.T) {
+	tests := []struct {
+		url      string
+		tls      bool
+		header   http.Header
+		expected string
+	}{
+		{
+			"http://example.com/login/github",
+			false,
+			http.Header{},
+			"http://example.com/login/github/callback",
+		},
+		{
+			"http://localhost/login/github",
+			false,
+			http.Header{
+				"X-Forwarded-Host": {"example.com"},
+			},
+			"http://example.com/login/github/callback",
+		},
+		{
+			"http://localhost/login/github",
+			true,
+			http.Header{
+				"X-Forwarded-Host": {"example.com"},
+			},
+			"https://example.com/login/github/callback",
+		},
+		{
+			"http://localhost/login/github",
+			false,
+			http.Header{
+				"X-Forwarded-Host":  {"example.com"},
+				"X-Forwarded-Proto": {"https"},
+			},
+			"https://example.com/login/github/callback",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.url, func(t *testing.T) {
+			r, _ := http.NewRequest("GET", test.url, nil)
+			r.Header = test.header
+			if test.tls {
+				r.TLS = &tls.ConnectionState{}
+			}
+			uri := redirectUriFromRequest(r)
+			assert.Equal(t, test.expected, uri)
+		})
+	}
+}
+
+func Test_Manager_RedirectURI_Generation(t *testing.T) {
+	var startFlowReceivedConfig Config
+
+	m := NewManager()
+	m.AddConfig("github", map[string]string{
+		"client_id":     "foo",
+		"client_secret": "bar",
+		"scope":         "bazz",
+	})
+
+	m.startFlow = func(cfg Config, w http.ResponseWriter) {
+		startFlowReceivedConfig = cfg
+	}
+
+	callUrl := "http://example.com/login/github"
+	r, _ := http.NewRequest("GET", callUrl, nil)
+
+	_, _, _, err := m.Handle(httptest.NewRecorder(), r)
+	assert.NoError(t, err)
+	assert.Equal(t, callUrl+"/callback", startFlowReceivedConfig.RedirectURI)
 }
 
 func assertEqualConfig(t *testing.T, c1, c2 Config) {
