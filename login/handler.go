@@ -57,18 +57,14 @@ func NewHandler(config *Config) (*Handler, error) {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if strings.HasSuffix(r.URL.Path, "/login") {
-		h.handleLogin(w, r)
-		return
-	}
 
-	if strings.Contains(r.URL.Path, "/oauth") {
+	_, err := h.oauth.GetConfigFromRequest(r)
+	if err == nil {
 		h.handleOauth(w, r)
 		return
 	}
 
-	w.WriteHeader(404)
-	fmt.Fprintf(w, "404 Ressource not found")
+	h.handleLogin(w, r)
 	return
 }
 

@@ -33,7 +33,7 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 		ClientSecret: "secret",
 		AuthURL:      exampleProvider.AuthURL,
 		TokenURL:     exampleProvider.TokenURL,
-		RedirectURI:  "http://localhost/callback",
+		RedirectURI:  "http://localhost",
 		Scope:        "email other",
 		Provider:     exampleProvider,
 	}
@@ -72,7 +72,7 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	assertEqualConfig(t, expectedConfig, startFlowReceivedConfig)
 
 	// callback
-	r, _ = http.NewRequest("GET", "http://example.com/login/"+exampleProvider.Name+callbackPathSuffix, nil)
+	r, _ = http.NewRequest("GET", "http://example.com/login/"+exampleProvider.Name+"?code=xyz", nil)
 
 	startedFlow, authenticated, userInfo, err = m.Handle(httptest.NewRecorder(), r)
 	assert.NoError(t, err)
@@ -94,7 +94,7 @@ func Test_Manager_getConfig_ErrorCase(t *testing.T) {
 		"client_secret": "bar",
 	})
 
-	_, err := m.getConfig(r)
+	_, err := m.GetConfigFromRequest(r)
 	assert.EqualError(t, err, "no oauth configuration for login")
 }
 
@@ -142,7 +142,7 @@ func Test_Manager_redirectUriFromRequest(t *testing.T) {
 			"http://example.com/login/github",
 			false,
 			http.Header{},
-			"http://example.com/login/github/callback",
+			"http://example.com/login/github",
 		},
 		{
 			"http://localhost/login/github",
@@ -150,7 +150,7 @@ func Test_Manager_redirectUriFromRequest(t *testing.T) {
 			http.Header{
 				"X-Forwarded-Host": {"example.com"},
 			},
-			"http://example.com/login/github/callback",
+			"http://example.com/login/github",
 		},
 		{
 			"http://localhost/login/github",
@@ -158,7 +158,7 @@ func Test_Manager_redirectUriFromRequest(t *testing.T) {
 			http.Header{
 				"X-Forwarded-Host": {"example.com"},
 			},
-			"https://example.com/login/github/callback",
+			"https://example.com/login/github",
 		},
 		{
 			"http://localhost/login/github",
@@ -167,7 +167,7 @@ func Test_Manager_redirectUriFromRequest(t *testing.T) {
 				"X-Forwarded-Host":  {"example.com"},
 				"X-Forwarded-Proto": {"https"},
 			},
-			"https://example.com/login/github/callback",
+			"https://example.com/login/github",
 		},
 	}
 	for _, test := range tests {
@@ -202,7 +202,7 @@ func Test_Manager_RedirectURI_Generation(t *testing.T) {
 
 	_, _, _, err := m.Handle(httptest.NewRecorder(), r)
 	assert.NoError(t, err)
-	assert.Equal(t, callUrl+"/callback", startFlowReceivedConfig.RedirectURI)
+	assert.Equal(t, callUrl, startFlowReceivedConfig.RedirectURI)
 }
 
 func assertEqualConfig(t *testing.T, c1, c2 Config) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/oauth2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -62,11 +63,6 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestHandler_404(t *testing.T) {
-	recorder := call(req("GET", "/foo", ""))
-	assert.Equal(t, recorder.Code, 404)
 }
 
 func TestHandler_LoginForm(t *testing.T) {
@@ -151,6 +147,7 @@ func testHandler() *Handler {
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
 		},
+		oauth:  oauth2.NewManager(),
 		config: &DefaultConfig,
 	}
 }
@@ -160,6 +157,7 @@ func testHandlerWithError() *Handler {
 		backends: []Backend{
 			errorTestBackend("test error"),
 		},
+		oauth:  oauth2.NewManager(),
 		config: &DefaultConfig,
 	}
 }

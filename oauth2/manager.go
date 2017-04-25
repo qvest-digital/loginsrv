@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const callbackPathSuffix = "/callback"
-
 // The manager has the responsibility to handle the user user requests in an oauth flow.
 // It has to pick the right configuration and start the oauth redirecting.
 type Manager struct {
@@ -27,7 +25,7 @@ func NewManager() *Manager {
 }
 
 // Handle is managing the oauth flow.
-// Dependent on the suffix of the url, the oauth flow is started or
+// Dependent on the code parameter of the url, the oauth flow is started or
 // the call is interpreted as the redirect callback and the token exchange is done.
 // Return parameters:
 //   startedFlow - true, if this was the initial call to start the oauth flow
@@ -40,12 +38,16 @@ func (manager *Manager) Handle(w http.ResponseWriter, r *http.Request) (
 	userInfo UserInfo,
 	err error) {
 
-	cfg, err := manager.getConfig(r)
+	if r.FormValue("error") != "" {
+		return false, false, UserInfo{}, fmt.Errorf("error: %v", r.FormValue("error"))
+	}
+
+	cfg, err := manager.GetConfigFromRequest(r)
 	if err != nil {
 		return false, false, UserInfo{}, err
 	}
 
-	if strings.HasSuffix(r.URL.Path, callbackPathSuffix) {
+	if r.FormValue("code") != "" {
 		tokenInfo, err := manager.authenticate(cfg, r)
 		if err != nil {
 			return false, false, UserInfo{}, err
@@ -65,7 +67,7 @@ func (manager *Manager) Handle(w http.ResponseWriter, r *http.Request) (
 	return true, false, UserInfo{}, nil
 }
 
-func (manager *Manager) getConfig(r *http.Request) (Config, error) {
+func (manager *Manager) GetConfigFromRequest(r *http.Request) (Config, error) {
 	configName := manager.getConfigNameFromPath(r.URL.Path)
 	cfg, exist := manager.configs[configName]
 	if !exist {
@@ -80,7 +82,6 @@ func (manager *Manager) getConfig(r *http.Request) (Config, error) {
 }
 
 func (manager *Manager) getConfigNameFromPath(path string) string {
-	path = strings.TrimSuffix(path, callbackPathSuffix)
 	parts := strings.Split(path, "/")
 	return parts[len(parts)-1]
 }
@@ -124,7 +125,7 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 
 func redirectUriFromRequest(r *http.Request) string {
 	u := url.URL{}
-	u.Path = r.URL.Path + callbackPathSuffix
+	u.Path = r.URL.Path
 
 	if ffh := r.Header.Get("X-Forwarded-Host"); ffh == "" {
 		u.Host = r.Host
