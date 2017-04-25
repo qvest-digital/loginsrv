@@ -9,8 +9,6 @@ import (
 
 const callbackPathSuffix = "/callback"
 
-var DefaultManager = NewManager()
-
 // The manager has the responsibility to handle the user user requests in an oauth flow.
 // It has to pick the right configuration and start the oauth redirecting.
 type Manager struct {

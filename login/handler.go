@@ -52,7 +52,7 @@ func NewHandler(config *Config) (*Handler, error) {
 	return &Handler{
 		backends: backends,
 		config:   config,
-		oauth:    oauth2.DefaultManager,
+		oauth:    oauth,
 	}, nil
 }
 

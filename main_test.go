@@ -13,6 +13,7 @@ import (
 )
 
 func Test_BasicEndToEnd(t *testing.T) {
+
 	originalArgs := os.Args
 
 	os.Args = []string{"loginsrv", "-host=localhost", "-port=3000", "-backend=provider=simple,bob=secret"}
