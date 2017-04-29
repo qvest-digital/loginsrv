@@ -69,9 +69,7 @@ func TestHandler_NewFromConfig(t *testing.T) {
 func TestHandler_LoginForm(t *testing.T) {
 	recorder := call(req("GET", "/context/login", ""))
 	assert.Equal(t, recorder.Code, 200)
-	assert.Contains(t, recorder.Body.String(), "form")
-	assert.Contains(t, recorder.Body.String(), `method="POST"`)
-	assert.Contains(t, recorder.Body.String(), `action="/context/login"`)
+	assert.Contains(t, recorder.Body.String(), `class="container`)
 	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
@@ -116,9 +114,7 @@ func TestHandler_LoginWeb(t *testing.T) {
 	// show the login form again after authentication failed
 	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
 	assert.Equal(t, 403, recorder.Code)
-	assert.Contains(t, recorder.Body.String(), "form")
-	assert.Contains(t, recorder.Body.String(), `method="POST"`)
-	assert.Contains(t, recorder.Body.String(), `action="/context/login"`)
+	assert.Contains(t, recorder.Body.String(), `class="container"`)
 	assert.Equal(t, recorder.Header().Get("Set-Cookie"), "")
 }
 
@@ -160,7 +156,7 @@ func TestHandler_LoginError(t *testing.T) {
 
 	assert.Equal(t, 500, recorder.Code)
 	assert.Contains(t, recorder.Header().Get("Content-Type"), "text/html")
-	assert.Contains(t, recorder.Body.String(), "form")
+	assert.Contains(t, recorder.Body.String(), `class="container"`)
 	assert.Contains(t, recorder.Body.String(), "Internal Error")
 }
 
