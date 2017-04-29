@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -54,6 +55,11 @@ type TokenInfo struct {
 
 	// The scopes for this tolen
 	Scope string `json:"scope,omitempty"`
+}
+
+// JsonError represents an oauth error response in json form.
+type JsonError struct {
+	Error string `json:"error"`
 }
 
 const stateCookieName = "oauthState"
@@ -122,12 +128,25 @@ func getAccessToken(cfg Config, state, code string) (TokenInfo, error) {
 	if resp.StatusCode != 200 {
 		return TokenInfo{}, fmt.Errorf("error: expected http status 200 on token exchange, but got %v", resp.StatusCode)
 	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return TokenInfo{}, fmt.Errorf("error reading token exchange response: %q", err)
+	}
 
-	decoder := json.NewDecoder(resp.Body)
+	jsonError := JsonError{}
+	json.Unmarshal(body, &jsonError)
+	if jsonError.Error != "" {
+		return TokenInfo{}, fmt.Errorf("error: got %q on token exchange", jsonError.Error)
+	}
+
 	tokenInfo := TokenInfo{}
-	err = decoder.Decode(&tokenInfo)
+	err = json.Unmarshal(body, &tokenInfo)
 	if err != nil {
 		return TokenInfo{}, fmt.Errorf("error on parsing oauth token: %v", err)
+	}
+
+	if tokenInfo.AccessToken == "" {
+		return TokenInfo{}, fmt.Errorf("error: no access_token on token exchange")
 	}
 	return tokenInfo, nil
 }

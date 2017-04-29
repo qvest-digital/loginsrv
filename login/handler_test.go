@@ -71,6 +71,7 @@ func TestHandler_LoginForm(t *testing.T) {
 	assert.Contains(t, recorder.Body.String(), "form")
 	assert.Contains(t, recorder.Body.String(), `method="POST"`)
 	assert.Contains(t, recorder.Body.String(), `action="/context/login"`)
+	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
 func TestHandler_HEAD(t *testing.T) {
@@ -135,6 +136,8 @@ func TestHandler_Logout(t *testing.T) {
 	recorder = call(req("POST", "/context/login", "logout=true", TypeForm))
 	assert.Equal(t, 200, recorder.Code)
 	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+
+	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
 func TestHandler_LoginError(t *testing.T) {

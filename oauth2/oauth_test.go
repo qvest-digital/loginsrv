@@ -72,6 +72,45 @@ func Test_Authenticate(t *testing.T) {
 	assert.Equal(t, "bearer", tokenInfo.TokenType)
 }
 
+func Test_Authenticate_CodeExchangeError(t *testing.T) {
+	var testReturnCode int
+	testResponseJson := `{"error":"bad_verification_code","error_description":"The code passed is incorrect or expired.","error_uri":"https://developer.github.com/v3/oauth/#bad-verification-code"}`
+	// mock a server for token exchange
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(testReturnCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(testResponseJson))
+	}))
+	defer server.Close()
+
+	testConfigCopy := testConfig
+	testConfigCopy.TokenURL = server.URL
+
+	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
+	request.Header.Set("Cookie", "oauthState=theState")
+	request.URL, _ = url.Parse("http://localhost/callback?code=theCode&state=theState")
+
+	testReturnCode = 500
+	tokenInfo, err := Authenticate(testConfigCopy, request)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "error: expected http status 200 on token exchange, but got 500")
+	assert.Equal(t, "", tokenInfo.AccessToken)
+
+	testReturnCode = 200
+	tokenInfo, err = Authenticate(testConfigCopy, request)
+	assert.Error(t, err)
+	assert.EqualError(t, err, `error: got "bad_verification_code" on token exchange`)
+	assert.Equal(t, "", tokenInfo.AccessToken)
+
+	testReturnCode = 200
+	testResponseJson = `{"foo": "bar"}`
+	tokenInfo, err = Authenticate(testConfigCopy, request)
+	assert.Error(t, err)
+	assert.EqualError(t, err, `error: no access_token on token exchange`)
+	assert.Equal(t, "", tokenInfo.AccessToken)
+
+}
+
 func Test_Authentication_ProviderError(t *testing.T) {
 	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.URL, _ = url.Parse("http://localhost/callback?error=provider_login_error")
@@ -159,5 +198,5 @@ func Test_Authentication_TokenParseError(t *testing.T) {
 	_, err := Authenticate(testConfigCopy, request)
 
 	assert.Error(t, err)
-	assert.Equal(t, "error on parsing oauth token: unexpected EOF", err.Error())
+	assert.Equal(t, "error on parsing oauth token: unexpected end of JSON input", err.Error())
 }

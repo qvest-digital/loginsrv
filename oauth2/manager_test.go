@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"crypto/tls"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -83,6 +84,44 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	assertEqualConfig(t, expectedConfig, authenticateReceivedConfig)
 
 	assert.True(t, getUserInfoCalled)
+}
+
+func Test_Manager_NoAauthOnWrongCode(t *testing.T) {
+	var authenticateCalled, getUserInfoCalled bool
+
+	exampleProvider := Provider{
+		Name:     "example",
+		AuthURL:  "https://example.com/login/oauth/authorize",
+		TokenURL: "https://example.com/login/oauth/access_token",
+		GetUserInfo: func(token TokenInfo) (map[string]string, error) {
+			getUserInfoCalled = true
+			return map[string]string{}, nil
+		},
+	}
+	RegisterProvider(exampleProvider)
+	defer UnRegisterProvider(exampleProvider.Name)
+
+	m := NewManager()
+	m.AddConfig(exampleProvider.Name, map[string]string{
+		"client_id":     "foo",
+		"client_secret": "bar",
+	})
+
+	m.authenticate = func(cfg Config, r *http.Request) (TokenInfo, error) {
+		authenticateCalled = true
+		return TokenInfo{}, errors.New("code not valid")
+	}
+
+	// callback
+	r, _ := http.NewRequest("GET", "http://example.com/login/"+exampleProvider.Name+"?code=xyz", nil)
+
+	startedFlow, authenticated, userInfo, err := m.Handle(httptest.NewRecorder(), r)
+	assert.EqualError(t, err, "code not valid")
+	assert.False(t, startedFlow)
+	assert.False(t, authenticated)
+	assert.Equal(t, UserInfo{}, userInfo)
+	assert.True(t, authenticateCalled)
+	assert.False(t, getUserInfoCalled)
 }
 
 func Test_Manager_getConfig_ErrorCase(t *testing.T) {
