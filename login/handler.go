@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const contentTypeHtml = "text/html; charset=utf-8"
@@ -97,7 +98,7 @@ func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	contentType := r.Header.Get("Content-Type")
-	if !(r.Method == "GET" ||
+	if !(r.Method == "GET" || r.Method == "DELETE" ||
 		(r.Method == "POST" &&
 			(strings.HasPrefix(contentType, "application/json") ||
 				strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
@@ -107,11 +108,24 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	if r.Method == "GET" {
+	if r.Method == "DELETE" || r.FormValue("logout") == "true" {
+		h.deleteToken(w)
 		writeLoginForm(w,
-			map[string]interface{}{
-				"path":   r.URL.Path,
-				"config": h.config,
+			loginFormData{
+				Path:   r.URL.Path,
+				Config: h.config,
+			})
+		return
+	}
+
+	if r.Method == "GET" {
+		userInfo, valid := h.getToken(r)
+		writeLoginForm(w,
+			loginFormData{
+				Path:          r.URL.Path,
+				Config:        h.config,
+				Authenticated: valid,
+				UserInfo:      userInfo,
 			})
 		return
 	}
@@ -143,6 +157,17 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) deleteToken(w http.ResponseWriter) {
+	cookie := &http.Cookie{
+		Name:     h.config.CookieName,
+		Value:    "delete",
+		HttpOnly: true,
+		Expires:  time.Unix(0, 0),
+		Path:     "/",
+	}
+	http.SetCookie(w, cookie)
+}
+
 func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo jwt.Claims) {
 	token, err := h.createToken(userInfo)
 	if err != nil {
@@ -152,7 +177,12 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 	}
 	if wantHtml(r) {
 		// TODO: set livetime
-		cookie := &http.Cookie{Name: h.config.CookieName, Value: token, HttpOnly: true}
+		cookie := &http.Cookie{
+			Name:     h.config.CookieName,
+			Value:    token,
+			HttpOnly: true,
+			Path:     "/",
+		}
 		http.SetCookie(w, cookie)
 		w.Header().Set("Location", h.config.SuccessUrl)
 		w.WriteHeader(303)
@@ -169,17 +199,32 @@ func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
 	return token.SignedString([]byte(h.config.JwtSecret))
 }
 
+func (h *Handler) getToken(r *http.Request) (userInfo UserInfo, valid bool) {
+	c, err := r.Cookie(h.config.CookieName)
+	if err != nil {
+		return UserInfo{}, false
+	}
+
+	token, err := jwt.ParseWithClaims(c.Value, &UserInfo{}, func(*jwt.Token) (interface{}, error) {
+		return []byte(h.config.JwtSecret), nil
+	})
+	if err != nil {
+		return UserInfo{}, false
+	}
+
+	u, v := token.Claims.(*UserInfo)
+	return *u, v
+}
+
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
-		w.Header().Set("Content-Type", contentTypeHtml)
-		w.WriteHeader(500)
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
-			map[string]interface{}{
-				"path":     r.URL.Path,
-				"error":    true,
-				"config":   h.config,
-				"username": username,
+			loginFormData{
+				Path:     r.URL.Path,
+				Error:    true,
+				Config:   h.config,
+				UserInfo: UserInfo{Username: username},
 			})
 		return
 	}
@@ -199,12 +244,11 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(403)
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
-			map[string]interface{}{
-				"path":    r.URL.Path,
-				"failure": true,
-				"config":  h.config,
-
-				"username": username,
+			loginFormData{
+				Path:     r.URL.Path,
+				Failure:  true,
+				Config:   h.config,
+				UserInfo: UserInfo{Username: username},
 			})
 		return
 	}

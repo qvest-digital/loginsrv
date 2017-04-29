@@ -109,6 +109,7 @@ func TestHandler_LoginWeb(t *testing.T) {
 	claims, err := tokenAsMap(strings.SplitN(headerParts[1], ";", 2)[0])
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]interface{}{"sub": "bob"}, claims)
+	assert.Contains(t, headerParts[1]+";", "Path=/;")
 
 	// show the login form again after authentication failed
 	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
@@ -117,6 +118,23 @@ func TestHandler_LoginWeb(t *testing.T) {
 	assert.Contains(t, recorder.Body.String(), `method="POST"`)
 	assert.Contains(t, recorder.Body.String(), `action="/context/login"`)
 	assert.Equal(t, recorder.Header().Get("Set-Cookie"), "")
+}
+
+func TestHandler_Logout(t *testing.T) {
+	// DELETE
+	recorder := call(req("DELETE", "/context/login", ""))
+	assert.Equal(t, 200, recorder.Code)
+	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+
+	// GET  + param
+	recorder = call(req("GET", "/context/login?logout=true", ""))
+	assert.Equal(t, 200, recorder.Code)
+	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+
+	// POST + param
+	recorder = call(req("POST", "/context/login", "logout=true", TypeForm))
+	assert.Equal(t, 200, recorder.Code)
+	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
 }
 
 func TestHandler_LoginError(t *testing.T) {
@@ -140,6 +158,51 @@ func TestHandler_LoginError(t *testing.T) {
 	assert.Contains(t, recorder.Header().Get("Content-Type"), "text/html")
 	assert.Contains(t, recorder.Body.String(), "form")
 	assert.Contains(t, recorder.Body.String(), "Internal Error")
+}
+
+func TestHandler_getToken_Valid(t *testing.T) {
+	h := testHandler()
+	input := UserInfo{Username: "marvin"}
+	token, err := h.createToken(input)
+	assert.NoError(t, err)
+	r := &http.Request{
+		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+	}
+	userInfo, valid := h.getToken(r)
+	assert.True(t, valid)
+	assert.Equal(t, input, userInfo)
+}
+
+func TestHandler_getToken_InvalidSecret(t *testing.T) {
+	h := testHandler()
+	input := UserInfo{Username: "marvin"}
+	token, err := h.createToken(input)
+	assert.NoError(t, err)
+	r := &http.Request{
+		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+	}
+
+	// modify secret
+	h.config.JwtSecret = "foobar"
+
+	_, valid := h.getToken(r)
+	assert.False(t, valid)
+}
+
+func TestHandler_getToken_InvalidToken(t *testing.T) {
+	h := testHandler()
+	r := &http.Request{
+		Header: http.Header{"Cookie": {h.config.CookieName + "=asdcsadcsadc"}},
+	}
+
+	_, valid := h.getToken(r)
+	assert.False(t, valid)
+}
+
+func TestHandler_getToken_InvalidNoToken(t *testing.T) {
+	h := testHandler()
+	_, valid := h.getToken(&http.Request{})
+	assert.False(t, valid)
 }
 
 func testHandler() *Handler {

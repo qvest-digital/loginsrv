@@ -81,6 +81,10 @@ Returns a simple bootstrap styled login form.
 The returned html follows the ui composition conventions from (lib-compose)[https://github.com/tarent/lib-compose],
 so it can be embedded into an existing layout.
 
+### GET /login/<provider>
+
+Starts the Oauth Web Flow with the configured provider. E.g. `GET /login/github` redirects to the github login form.
+
 ### POST /login
 
 Does the login and returns the JWT. Depending on the content-type, and parameters a classical JSON-Rest or a redirect can be performed.
@@ -107,6 +111,12 @@ Does the login and returns the JWT. Depending on the content-type, and parameter
 | 303  | See Other             | Sets the JWT as a cookie, if the login succeeds and redirect to the urls provided in `redirectSuccess` or `redirectError` |
 
 Hint: The status `401 Unauthorized` is not used as a return code to not conflict with an Http BasicAuth Authentication.
+
+### DELETE /login
+
+Deletes the JWT Cookie.
+
+For simple usage in web applications, this can also be called by `GET|POST /login?logout=true`
 
 #### Example:
 Default is to return the token as Content-Type application/jwt within the body.
