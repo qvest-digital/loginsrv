@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
 	"io/ioutil"
 	"net/http"
@@ -85,12 +86,12 @@ func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
 
 	if authenticated {
 		logging.Application(r.Header).
-			WithField("username", userInfo.Username).Info("sucessfully authenticated")
+			WithField("username", userInfo.Sub).Info("sucessfully authenticated")
 		h.respondAuthenticated(w, r, userInfo)
 		return
 	}
 	logging.Application(r.Header).
-		WithField("username", userInfo.Username).Info("failed authentication")
+		WithField("username", userInfo.Sub).Info("failed authentication")
 
 	h.respondAuthFailure(w, r)
 	return
@@ -199,20 +200,20 @@ func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
 	return token.SignedString([]byte(h.config.JwtSecret))
 }
 
-func (h *Handler) getToken(r *http.Request) (userInfo UserInfo, valid bool) {
+func (h *Handler) getToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
 	c, err := r.Cookie(h.config.CookieName)
 	if err != nil {
-		return UserInfo{}, false
+		return model.UserInfo{}, false
 	}
 
-	token, err := jwt.ParseWithClaims(c.Value, &UserInfo{}, func(*jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(c.Value, &model.UserInfo{}, func(*jwt.Token) (interface{}, error) {
 		return []byte(h.config.JwtSecret), nil
 	})
 	if err != nil {
-		return UserInfo{}, false
+		return model.UserInfo{}, false
 	}
 
-	u, v := token.Claims.(*UserInfo)
+	u, v := token.Claims.(*model.UserInfo)
 	return *u, v
 }
 
@@ -224,7 +225,7 @@ func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 				Path:     r.URL.Path,
 				Error:    true,
 				Config:   h.config,
-				UserInfo: UserInfo{Username: username},
+				UserInfo: model.UserInfo{Sub: username},
 			})
 		return
 	}
@@ -248,7 +249,7 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 				Path:     r.URL.Path,
 				Failure:  true,
 				Config:   h.config,
-				UserInfo: UserInfo{Username: username},
+				UserInfo: model.UserInfo{Sub: username},
 			})
 		return
 	}
@@ -277,15 +278,15 @@ func getCredentials(r *http.Request) (string, string, error) {
 	return r.PostForm.Get("username"), r.PostForm.Get("password"), nil
 }
 
-func (h *Handler) authenticate(username, password string) (bool, UserInfo, error) {
+func (h *Handler) authenticate(username, password string) (bool, model.UserInfo, error) {
 	for _, b := range h.backends {
 		authenticated, userInfo, err := b.Authenticate(username, password)
 		if err != nil {
-			return false, UserInfo{}, err
+			return false, model.UserInfo{}, err
 		}
 		if authenticated {
 			return authenticated, userInfo, nil
 		}
 	}
-	return false, UserInfo{}, nil
+	return false, model.UserInfo{}, nil
 }

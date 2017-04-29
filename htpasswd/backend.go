@@ -3,6 +3,7 @@ package htpasswd
 import (
 	"errors"
 	"github.com/tarent/loginsrv/login"
+	"github.com/tarent/loginsrv/model"
 )
 
 const ProviderName = "htpasswd"
@@ -35,10 +36,10 @@ func NewBackend(filename string) (*Backend, error) {
 	}, err
 }
 
-func (sb *Backend) Authenticate(username, password string) (bool, login.UserInfo, error) {
+func (sb *Backend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	authenticated, err := sb.auth.Authenticate(username, password)
 	if authenticated && err == nil {
-		return authenticated, login.UserInfo{Username: username}, err
+		return authenticated, model.UserInfo{Sub: username}, err
 	}
-	return false, login.UserInfo{}, err
+	return false, model.UserInfo{}, err
 }

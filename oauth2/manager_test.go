@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,12 +19,12 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 		Name:     "example",
 		AuthURL:  "https://example.com/login/oauth/authorize",
 		TokenURL: "https://example.com/login/oauth/access_token",
-		GetUserInfo: func(token TokenInfo) (map[string]string, error) {
+		GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 			getUserInfoCalled = true
 			assert.Equal(t, token, expectedToken)
-			return map[string]string{
-				"username": "the-username",
-			}, nil
+			return model.UserInfo{
+				Sub: "the-username",
+			}, "", nil
 		},
 	}
 	RegisterProvider(exampleProvider)
@@ -65,7 +66,7 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, startedFlow)
 	assert.False(t, authenticated)
-	assert.Equal(t, UserInfo{}, userInfo)
+	assert.Equal(t, model.UserInfo{}, userInfo)
 
 	assert.True(t, startFlowCalled)
 	assert.False(t, authenticateCalled)
@@ -79,7 +80,7 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, startedFlow)
 	assert.True(t, authenticated)
-	assert.Equal(t, UserInfo{Username: "the-username"}, userInfo)
+	assert.Equal(t, model.UserInfo{Sub: "the-username"}, userInfo)
 	assert.True(t, authenticateCalled)
 	assertEqualConfig(t, expectedConfig, authenticateReceivedConfig)
 
@@ -93,9 +94,9 @@ func Test_Manager_NoAauthOnWrongCode(t *testing.T) {
 		Name:     "example",
 		AuthURL:  "https://example.com/login/oauth/authorize",
 		TokenURL: "https://example.com/login/oauth/access_token",
-		GetUserInfo: func(token TokenInfo) (map[string]string, error) {
+		GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 			getUserInfoCalled = true
-			return map[string]string{}, nil
+			return model.UserInfo{}, "", nil
 		},
 	}
 	RegisterProvider(exampleProvider)
@@ -119,7 +120,7 @@ func Test_Manager_NoAauthOnWrongCode(t *testing.T) {
 	assert.EqualError(t, err, "code not valid")
 	assert.False(t, startedFlow)
 	assert.False(t, authenticated)
-	assert.Equal(t, UserInfo{}, userInfo)
+	assert.Equal(t, model.UserInfo{}, userInfo)
 	assert.True(t, authenticateCalled)
 	assert.False(t, getUserInfoCalled)
 }

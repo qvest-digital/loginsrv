@@ -2,6 +2,7 @@ package login
 
 import (
 	"errors"
+	"github.com/tarent/loginsrv/model"
 )
 
 const SimpleProviderName = "simple"
@@ -39,9 +40,9 @@ func NewSimpleBackend(userPassword map[string]string) *SimpleBackend {
 	}
 }
 
-func (sb *SimpleBackend) Authenticate(username, password string) (bool, UserInfo, error) {
+func (sb *SimpleBackend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	if p, exist := sb.userPassword[username]; exist && p == password {
-		return true, UserInfo{Username: username}, nil
+		return true, model.UserInfo{Sub: username}, nil
 	}
-	return false, UserInfo{}, nil
+	return false, model.UserInfo{}, nil
 }

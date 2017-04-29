@@ -3,6 +3,7 @@ package login
 import (
 	"bytes"
 	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/model"
 	"html/template"
 	"net/http"
 )
@@ -39,6 +40,11 @@ const loginForm = `<!DOCTYPE html>
        padding: 10px;
        background-color: #FFF;
      }
+     .login-picture {
+       width: 120px;
+       height: 120px;
+       border-radius: 3px;
+     }
     </style>
   </head>
   <body>
@@ -54,8 +60,14 @@ const loginForm = `<!DOCTYPE html>
             {{end}}
 
             {{ if .Authenticated}}
-              <h3>Welcome {{.UserInfo.Username}}</h3>
-              <a href="login?logout=true">Logout</a>
+              {{with .UserInfo}}
+                <h1>Welcome {{.Sub}}!</h1>
+                <br/>
+                {{if .Picture}}<img class="login-picture" src="{{.Picture}}?s=120">{{end}}
+                {{if .Name}}<h3>{{.Name}}</h3>{{end}}
+                <br/>
+                <a class="btn btn-md btn-primary" href="login?logout=true">Logout</a>
+              {{end}}
             {{else}}
               <a class="btn btn-block btn-lg btn-social btn-github" href="login/github">
                 <span class="fa fa-github"></span> Sign in with Github
@@ -76,7 +88,7 @@ const loginForm = `<!DOCTYPE html>
 		  <form accept-charset="UTF-8" role="form" method="POST" action="{{.Path}}">
                     <fieldset>
 		      <div class="form-group">
-		        <input class="form-control" placeholder="Username" name="username" value="{{.UserInfo.Username}}" type="text">
+		        <input class="form-control" placeholder="Username" name="username" value="{{.UserInfo.Sub}}" type="text">
 		      </div>
 		      <div class="form-group">
 		        <input class="form-control" placeholder="Password" name="password" type="password" value="">
@@ -100,7 +112,7 @@ type loginFormData struct {
 	Failure       bool
 	Config        *Config
 	Authenticated bool
-	UserInfo      UserInfo
+	UserInfo      model.UserInfo
 }
 
 func writeLoginForm(w http.ResponseWriter, params loginFormData) {

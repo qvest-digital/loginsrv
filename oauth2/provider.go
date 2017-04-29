@@ -1,5 +1,9 @@
 package oauth2
 
+import (
+	"github.com/tarent/loginsrv/model"
+)
+
 // Oauth provider configuration
 type Provider struct {
 	// The name to access the provider in the configuration
@@ -15,7 +19,7 @@ type Provider struct {
 	// for fetching the user information.
 	// Possible keys in the returned map are:
 	// username, email, name
-	GetUserInfo func(token TokenInfo) (map[string]string, error)
+	GetUserInfo func(token TokenInfo) (u model.UserInfo, rawUserJson string, err error)
 }
 
 var provider = map[string]Provider{}

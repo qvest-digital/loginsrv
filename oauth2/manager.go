@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"fmt"
+	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/url"
 	"strings"
@@ -35,36 +36,33 @@ func NewManager() *Manager {
 func (manager *Manager) Handle(w http.ResponseWriter, r *http.Request) (
 	startedFlow bool,
 	authenticated bool,
-	userInfo UserInfo,
+	userInfo model.UserInfo,
 	err error) {
 
 	if r.FormValue("error") != "" {
-		return false, false, UserInfo{}, fmt.Errorf("error: %v", r.FormValue("error"))
+		return false, false, model.UserInfo{}, fmt.Errorf("error: %v", r.FormValue("error"))
 	}
 
 	cfg, err := manager.GetConfigFromRequest(r)
 	if err != nil {
-		return false, false, UserInfo{}, err
+		return false, false, model.UserInfo{}, err
 	}
 
 	if r.FormValue("code") != "" {
 		tokenInfo, err := manager.authenticate(cfg, r)
 		if err != nil {
-			return false, false, UserInfo{}, err
+			return false, false, model.UserInfo{}, err
 		}
 
-		ui, err := cfg.Provider.GetUserInfo(tokenInfo)
+		userInfo, _, err := cfg.Provider.GetUserInfo(tokenInfo)
 		if err != nil {
-			return false, false, UserInfo{}, err
-		}
-		userInfo = UserInfo{
-			Username: ui["username"],
+			return false, false, model.UserInfo{}, err
 		}
 		return false, true, userInfo, err
 	}
 
 	manager.startFlow(cfg, w)
-	return true, false, UserInfo{}, nil
+	return true, false, model.UserInfo{}, nil
 }
 
 func (manager *Manager) GetConfigFromRequest(r *http.Request) (Config, error) {

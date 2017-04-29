@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
 	"net/http"
 	"net/http/httptest"
@@ -165,7 +166,7 @@ func TestHandler_LoginError(t *testing.T) {
 
 func TestHandler_getToken_Valid(t *testing.T) {
 	h := testHandler()
-	input := UserInfo{Username: "marvin"}
+	input := model.UserInfo{Sub: "marvin"}
 	token, err := h.createToken(input)
 	assert.NoError(t, err)
 	r := &http.Request{
@@ -178,7 +179,7 @@ func TestHandler_getToken_Valid(t *testing.T) {
 
 func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	h := testHandler()
-	input := UserInfo{Username: "marvin"}
+	input := model.UserInfo{Sub: "marvin"}
 	token, err := h.createToken(input)
 	assert.NoError(t, err)
 	r := &http.Request{
@@ -264,6 +265,6 @@ func tokenAsMap(tokenString string) (map[string]interface{}, error) {
 
 type errorTestBackend string
 
-func (h errorTestBackend) Authenticate(username, password string) (bool, UserInfo, error) {
-	return false, UserInfo{}, errors.New(string(h))
+func (h errorTestBackend) Authenticate(username, password string) (bool, model.UserInfo, error) {
+	return false, model.UserInfo{}, errors.New(string(h))
 }
