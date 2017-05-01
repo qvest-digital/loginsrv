@@ -71,9 +71,9 @@ const loginForm = `<!DOCTYPE html>
               {{end}}
             {{else}}
 
-              {{ range $index, $oauth := .Config.Oauth }}
-                <a class="btn btn-block btn-lg btn-social btn-{{ $oauth.provider }}" href="login/{{ $oauth.provider }}">
-                  <span class="fa fa-{{ $oauth.provider }}"></span> Sign in with {{ $oauth.provider | ucfirst }}
+              {{ range $providerName, $opts := .Config.Oauth }}
+                <a class="btn btn-block btn-lg btn-social btn-{{ $providerName }}" href="login/{{ $providerName }}">
+                  <span class="fa fa-{{ $providerName }}"></span> Sign in with {{ $providerName | ucfirst }}
                 </a>
               {{end}}
 

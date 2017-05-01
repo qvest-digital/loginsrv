@@ -26,14 +26,14 @@ func TestHandler_NewFromConfig(t *testing.T) {
 		expectError  bool
 	}{
 		{
-			&Config{Backends: Options{map[string]string{"provider": "simple", "bob": "secret"}}},
+			&Config{Backends: Options{"simple": map[string]string{"bob": "secret"}}},
 			1,
 			false,
 		},
 		// error cases
 		{
 			// init error because no users are provided
-			&Config{Backends: Options{map[string]string{"provider": "simple"}}},
+			&Config{Backends: Options{"simple": map[string]string{}}},
 			1,
 			true,
 		},
@@ -43,12 +43,7 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			true,
 		},
 		{
-			&Config{Backends: Options{map[string]string{"foo": ""}}},
-			1,
-			true,
-		},
-		{
-			&Config{Backends: Options{map[string]string{"provider": "simpleFoo", "bob": "secret"}}},
+			&Config{Backends: Options{"simpleFoo": map[string]string{"bob": "secret"}}},
 			1,
 			true,
 		},
@@ -211,7 +206,7 @@ func testHandler() *Handler {
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
 		},
 		oauth:  oauth2.NewManager(),
-		config: &DefaultConfig,
+		config: DefaultConfig(),
 	}
 }
 
@@ -221,7 +216,7 @@ func testHandlerWithError() *Handler {
 			errorTestBackend("test error"),
 		},
 		oauth:  oauth2.NewManager(),
-		config: &DefaultConfig,
+		config: DefaultConfig(),
 	}
 }
 
@@ -246,7 +241,7 @@ func req(method string, url string, body string, header ...string) *http.Request
 
 func tokenAsMap(tokenString string) (map[string]interface{}, error) {
 	token, err := jwt.Parse(tokenString, func(*jwt.Token) (interface{}, error) {
-		return []byte(DefaultConfig.JwtSecret), nil
+		return []byte(DefaultConfig().JwtSecret), nil
 	})
 	if err != nil {
 		return nil, err

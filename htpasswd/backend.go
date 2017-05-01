@@ -11,7 +11,8 @@ const ProviderName = "htpasswd"
 func init() {
 	login.RegisterProvider(
 		&login.ProviderDescription{
-			Name: ProviderName,
+			Name:     ProviderName,
+			HelpText: "Htpasswd login backend opts: file=/path/to/pwdfile",
 		},
 		BackendFactory)
 }

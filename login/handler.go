@@ -31,12 +31,12 @@ func NewHandler(config *Config) (*Handler, error) {
 	}
 
 	backends := []Backend{}
-	for _, opt := range config.Backends {
-		p, exist := GetProvider(opt["provider"])
+	for pName, opts := range config.Backends {
+		p, exist := GetProvider(pName)
 		if !exist {
-			return nil, fmt.Errorf("No such provider: %v", opt["provider"])
+			return nil, fmt.Errorf("No such provider: %v", pName)
 		}
-		b, err := p(opt)
+		b, err := p(opts)
 		if err != nil {
 			return nil, err
 		}
@@ -44,8 +44,8 @@ func NewHandler(config *Config) (*Handler, error) {
 	}
 
 	oauth := oauth2.NewManager()
-	for _, opt := range config.Oauth {
-		err := oauth.AddConfig(opt["provider"], opt)
+	for providerName, opts := range config.Oauth {
+		err := oauth.AddConfig(providerName, opts)
 		if err != nil {
 			return nil, err
 		}

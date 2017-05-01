@@ -10,7 +10,8 @@ const SimpleProviderName = "simple"
 func init() {
 	RegisterProvider(
 		&ProviderDescription{
-			Name: SimpleProviderName,
+			Name:     SimpleProviderName,
+			HelpText: "Simple login backend opts: user1=password,user2=password,..",
 		},
 		SimpleBackendFactory)
 }
@@ -18,9 +19,7 @@ func init() {
 func SimpleBackendFactory(config map[string]string) (Backend, error) {
 	userPassword := map[string]string{}
 	for k, v := range config {
-		if k != "provider" && k != "name" {
-			userPassword[k] = v
-		}
+		userPassword[k] = v
 	}
 	if len(userPassword) == 0 {
 		return nil, errors.New("no users provided for simple backend")

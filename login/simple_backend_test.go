@@ -11,9 +11,7 @@ func TestSetup(t *testing.T) {
 	assert.NotNil(t, p)
 
 	backend, err := p(map[string]string{
-		"provider": "simple",
-		"name":     "myFooProvider",
-		"bob":      "secret",
+		"bob": "secret",
 	})
 
 	assert.NoError(t, err)

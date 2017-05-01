@@ -31,9 +31,8 @@ func TestSetup(t *testing.T) {
 				CookieName:     "jwt_token",
 				CookieHttpOnly: true,
 				Backends: login.Options{
-					map[string]string{
-						"provider": "simple",
-						"bob":      "secret",
+					"simple": map[string]string{
+						"bob": "secret",
 					},
 				},
 				Oauth: login.Options{},
@@ -54,12 +53,10 @@ func TestSetup(t *testing.T) {
 				CookieName:     "cookiename",
 				CookieHttpOnly: false,
 				Backends: login.Options{
-					map[string]string{
-						"provider": "simple",
-						"bob":      "secret",
+					"simple": map[string]string{
+						"bob": "secret",
 					},
-					map[string]string{
-						"provider":     "osiam",
+					"osiam": map[string]string{
 						"endpoint":     "http://localhost:8080",
 						"clientId":     "example-client",
 						"clientSecret": "secret",
