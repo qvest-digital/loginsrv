@@ -17,7 +17,7 @@ It can be used as:
 * golang library
 * or as [caddyserver](http://caddyserver.com/) plugin.
 
-![](.screenshot.png =250x)
+![](.screenshot.png)
 
 ## Supported Provider Backends
 The following providers (login backends) are supported.
@@ -26,8 +26,8 @@ The following providers (login backends) are supported.
 * [Osiam](#osiam)
 * [Simple](#simple) (user/password pairs by configuration)
 * [Oauth2](#oauth2)
-** Github Login
-** .. google and facebook will come soon ..
+  * Github Login
+  * .. google and facebook will come soon ..
 
 ## Planed Features
 
