@@ -17,6 +17,8 @@ It can be used as:
 * golang library
 * or as [caddyserver](http://caddyserver.com/) plugin.
 
+![](.screenshot.png =250x)
+
 ## Supported Provider Backends
 The following providers (login backends) are supported.
 
@@ -27,6 +29,16 @@ The following providers (login backends) are supported.
 ** Github Login
 ** .. google and facebook will come soon ..
 
+## Planed Features
+
+* Fix for URL Prefix handling (fix redirect on errors)
+* Configurable templates
+* Expiration date for tokens
+* User creation http callback
+* Remove uic-fragment Tags out of the template
+* Optional configuration by YAML-File
+* Improved usage/help message
+ 
 ## Configuration and Startup
 ### Config Options
 The configuration parameters are as follows.
@@ -122,6 +134,8 @@ Deletes the JWT Cookie.
 
 For simple usage in web applications, this can also be called by `GET|POST /login?logout=true`
 
+### API Examples
+
 #### Example:
 Default is to return the token as Content-Type application/jwt within the body.
 ```
@@ -156,7 +170,7 @@ Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-5
 ```
 
 
-## Provider
+## Provider Backends
 
 ### Htpasswd
 Authentication against htpasswd file. MD5, SHA1 and Bcrypt are supported. But we recommend to only use bcrypt for security reasons (e.g. `htpasswd -B -C 15`).
@@ -183,10 +197,35 @@ loginsrv --jwt-secret=jwtsecret --text-logging -backend 'provider=osiam,endpoint
 
 Then go to http://127.0.0.1:6789/login and login with `admin/koala`.
 
-## Simple
+### Simple
 Simple is a demo provider for testing only. It holds a user/password table in memory.
 
 Example
 ```
 loginsrv -backend provider=simple,bob=secret
+```
+
+## Oauth2
+
+The Oauth Web Flow (aka 3-leged-Oauth flow) is also supported.
+Currently the following oauth Provider are supported:
+
+* github
+
+An Oauth Provider supports the following parameters:
+
+| Parameter-Name    | Description                            |
+| ------------------|----------------------------------------|
+| client_id         | Oauth Client ID                        |
+| client_secret     | Oauth Client Secret                    |
+| scope             | Space separated scope List (optional)  |
+| redirect_uri      | Alternative Redirect URI (optional)    |
+
+When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
+If not supplied, the oauth redirect uri is caclulated out of the current url. This should work in most cases and should even work
+if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host` and `X-Forwarded-Proto` are set correctly.
+
+### Github Startup Example
+```
+$ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```

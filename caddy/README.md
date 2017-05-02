@@ -26,6 +26,7 @@ login / {
     simple bob=secret
     osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
     htpasswd file=users
+    github client_id=xxx,client_secret=yyy
 }
 ```
 
