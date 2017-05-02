@@ -17,34 +17,40 @@ It can be used as:
 * golang library
 * or as [caddyserver](http://caddyserver.com/) plugin.
 
-## Supported Provider
+## Supported Provider Backends
 The following providers (login backends) are supported.
 
-- [Htpasswd](#htpasswd)
-- [Osiam](#osiam)
-- [Simple](#simple) (user/password pairs by configuration)
-
-## Future Planed Features
-- Support for 3-leged-Oauth2 flow (OSIAM, Google, Facebook login)
+* [Htpasswd](#htpasswd)
+* [Osiam](#osiam)
+* [Simple](#simple) (user/password pairs by configuration)
+* [Oauth2](#oauth2)
+** Github Login
+** .. google and facebook will come soon ..
 
 ## Configuration and Startup
 ### Config Options
 The configuration parameters are as follows.
 ```
- -backend value
-        Backend configuration in form 'provider=name,key=val,key=...', can be declared multiple times
   -cookie-http-only
         Set the cookie with the http only flag (default true)
   -cookie-name string
         The name of the jwt cookie (default "jwt_token")
+  -github value
+        Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]
   -host string
         The host to listen on (default "localhost")
+  -htpasswd value
+        Htpasswd login backend opts: file=/path/to/pwdfile
   -jwt-secret string
         The secret to sign the jwt token (default "random key")
   -log-level string
         The log level (default "info")
+  -osiam value
+        Osiam login backend opts: endpoint=..,client_id=..,client_secret=..
   -port string
         The port to listen on (default "6789")
+  -simple value
+        Simple login backend opts: user1=password,user2=password,..
   -success-url string
         The url to redirect after login (default "/")
   -text-logging
@@ -52,17 +58,16 @@ The configuration parameters are as follows.
 ```
 
 ### Environment Variables
-All of the above Config Options can also be applied as environment variable, where the options name ist written in the way: `LOGINSRV_OPTION_NAME`.
+All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
 So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
-To configure multiple backends by environment variable, they can be named in the way: `LOGINSRV_BACKEND, LOGINSRV_BACKEND_FOO, LOGINSRV_BACKEND_BAR, ..`
 
 ### Startup examples
 The most simple way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
 ```
-$ docker run -d -p 80:80 tarent/loginsrv -jwt-secret my_secret -backend provider=simple,bob=secret
+$ docker run -d -p 80:80 tarent/loginsrv -jwt-secret my_secret -simple bob=secret
 
-$ curl --data "username=bob&password=secret" 127.0.0.1:3000/login
+$ curl --data "username=bob&password=secret" 127.0.0.1/login
 eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4CyxQNxe5_Ovw-N5wfQwkzXz2enbhA9JZf8MmTp9n-TTDcWdY3Fd1SA72_M20G9lQ
 ```
 
@@ -70,7 +75,6 @@ The same configuration could be written with enviroment variables in the way:
 ```
 $ docker run -d -p 80:80 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
 ```
-
 
 ## API
 
@@ -87,7 +91,7 @@ Starts the Oauth Web Flow with the configured provider. E.g. `GET /login/github`
 
 ### POST /login
 
-Does the login and returns the JWT. Depending on the content-type, and parameters a classical JSON-Rest or a redirect can be performed.
+Perfoms the login and returns the JWT. Depending on the content-type, and parameters a classical JSON-Rest or a redirect can be performed.
 
 #### Runtime Parameters
 

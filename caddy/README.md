@@ -1,7 +1,7 @@
 # loginsrv caddy middleware
 
 Login plugin for caddy, based on [tarent/loginsrv](https://github.com/tarent/loginsrv).
-The login is checked against a middleware and then returned as JWT token.
+The login is checked against a backend and then returned as JWT token.
 This middleware is designed to play together with the [caddy-jwt](https://github.com/BTBurke/caddy-jwt) plugin.
 
 ## Configuration
@@ -13,19 +13,19 @@ so that caddy-jwt looks up the same shared secret.
 Providing a login resource unter /login, for user bob with password secret:
 ```
 loginsrv / {
-    backend provider=simple,bob=secret
+    simple bob=secret
 }
 ```
 
 ### Full configuration example
 ```
-loginsrv / {
+login / {
     success-url /after/login
     cookie-name alternativeName
     cookie-http-only true
-    backend provider=simple,bob=secret
-    backend provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret
-    backend provider=htpasswd,file=users
+    simple bob=secret
+    osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
+    htpasswd file=users
 }
 ```
 
@@ -41,7 +41,7 @@ jwt {
     allow sub bob
 }
 
-loginsrv / {
-         backend provider=simple,bob=secret,alice=secret
+login / {
+         simple bob=secret,alice=secret
 }
 ```
