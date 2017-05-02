@@ -102,19 +102,24 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 
 	// One option for each oauth provider
 	for _, pName := range oauth2.ProviderList() {
-		setter := setFunc(func(optsKvList string) error {
-			return c.addOauthOpts(pName, optsKvList)
-		})
-		f.Var(setter, pName, "Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]")
+		func(pName string) {
+			setter := setFunc(func(optsKvList string) error {
+				return c.addOauthOpts(pName, optsKvList)
+			})
+			f.Var(setter, pName, "Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]")
+		}(pName)
 	}
 
 	// One option for each backend provider
 	for _, pName := range ProviderList() {
-		setter := setFunc(func(optsKvList string) error {
-			return c.addBackendOpts(pName, optsKvList)
-		})
-		desc, _ := GetProviderDescription(pName)
-		f.Var(setter, pName, desc.HelpText)
+		func(pName string) {
+			setter := setFunc(func(optsKvList string) error {
+				fmt.Printf("set %v\n", pName)
+				return c.addBackendOpts(pName, optsKvList)
+			})
+			desc, _ := GetProviderDescription(pName)
+			f.Var(setter, pName, desc.HelpText)
+		}(pName)
 	}
 }
 
