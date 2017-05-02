@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/login"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -16,7 +15,8 @@ func Test_BasicEndToEnd(t *testing.T) {
 
 	originalArgs := os.Args
 
-	os.Args = []string{"loginsrv", "-host=localhost", "-port=3000", "-backend=provider=simple,bob=secret"}
+	secret := "theSecret"
+	os.Args = []string{"loginsrv", "-jwt-secret", secret, "-host=localhost", "-port=3000", "-backend=provider=simple,bob=secret"}
 	defer func() { os.Args = originalArgs }()
 
 	go main()
@@ -38,7 +38,7 @@ func Test_BasicEndToEnd(t *testing.T) {
 	assert.NoError(t, err)
 
 	token, err := jwt.Parse(string(b), func(*jwt.Token) (interface{}, error) {
-		return []byte(login.DefaultConfig.JwtSecret), nil
+		return []byte(secret), nil
 	})
 	assert.NoError(t, err)
 
