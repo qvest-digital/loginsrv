@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	caddy.RegisterPlugin("loginsrv", caddy.Plugin{
+	caddy.RegisterPlugin("login", caddy.Plugin{
 		ServerType: "http",
 		Action:     setup,
 	})
-	httpserver.RegisterDevDirective("loginsrv", "jwt")
+	httpserver.RegisterDevDirective("login", "jwt")
 }
 
 // setup configures a new loginsrv instance.
