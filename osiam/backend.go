@@ -3,7 +3,7 @@ package osiam
 import (
 	"errors"
 	"fmt"
-	"github.com/tarent/loginsrv/login"
+	"github.com/tarent/loginsrv/model"
 	"net/url"
 )
 
@@ -29,13 +29,13 @@ func NewBackend(endpoint, clientId, clientSecret string) (*Backend, error) {
 	}, nil
 }
 
-func (b *Backend) Authenticate(username, password string) (bool, login.UserInfo, error) {
+func (b *Backend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	authenticated, _, err := b.client.GetTokenByPassword(username, password)
 	if !authenticated || err != nil {
-		return authenticated, login.UserInfo{}, err
+		return authenticated, model.UserInfo{}, err
 	}
-	userInfo := login.UserInfo{
-		Username: username,
+	userInfo := model.UserInfo{
+		Sub: username,
 	}
 	return true, userInfo, nil
 }

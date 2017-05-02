@@ -2,7 +2,7 @@ package osiam
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/login"
+	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,8 +20,8 @@ func TestBackend_Authenticate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, authenticated)
 	assert.Equal(t,
-		login.UserInfo{
-			Username: "admin",
+		model.UserInfo{
+			Sub: "admin",
 		},
 		userInfo)
 

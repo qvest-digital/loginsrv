@@ -30,12 +30,12 @@ func TestSetup(t *testing.T) {
 				SuccessUrl:     "/",
 				CookieName:     "jwt_token",
 				CookieHttpOnly: true,
-				Backends: login.BackendOptions{
-					map[string]string{
-						"provider": "simple",
-						"bob":      "secret",
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
 					},
 				},
+				Oauth: login.Options{},
 			}},
 		{
 			input: `loginsrv / {
@@ -52,18 +52,17 @@ func TestSetup(t *testing.T) {
 				SuccessUrl:     "successurl",
 				CookieName:     "cookiename",
 				CookieHttpOnly: false,
-				Backends: login.BackendOptions{
-					map[string]string{
-						"provider": "simple",
-						"bob":      "secret",
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
 					},
-					map[string]string{
-						"provider":     "osiam",
+					"osiam": map[string]string{
 						"endpoint":     "http://localhost:8080",
 						"clientId":     "example-client",
 						"clientSecret": "secret",
 					},
 				},
+				Oauth: login.Options{},
 			}},
 		// error cases
 		{input: "loginsrv {\n}", shouldErr: true},

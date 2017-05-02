@@ -1,21 +1,21 @@
 package caddy
 
 import (
+	"flag"
 	"fmt"
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/lib-compose/logging"
 	"github.com/tarent/loginsrv/login"
 	"os"
-	"strconv"
 )
 
 func init() {
-	caddy.RegisterPlugin("loginsrv", caddy.Plugin{
+	caddy.RegisterPlugin("login", caddy.Plugin{
 		ServerType: "http",
 		Action:     setup,
 	})
-	httpserver.RegisterDevDirective("loginsrv", "jwt")
+	httpserver.RegisterDevDirective("login", "jwt")
 }
 
 // setup configures a new loginsrv instance.
@@ -43,25 +43,28 @@ func setup(c *caddy.Controller) error {
 		} else {
 			os.Setenv("JWT_SECRET", config.JwtSecret)
 		}
-
-		loginHandler, err := login.NewHandler(&config)
+		fmt.Printf("config %+v\n", config)
+		loginHandler, err := login.NewHandler(config)
 		if err != nil {
 			return err
 		}
 
 		httpserver.GetConfig(c).AddMiddleware(func(next httpserver.Handler) httpserver.Handler {
-			return NewCaddyHandler(next, args[0], loginHandler, &config)
+			return NewCaddyHandler(next, args[0], loginHandler, config)
 		})
 	}
 
 	return nil
 }
 
-func parseConfig(c *caddy.Controller) (login.Config, error) {
-	cfg := login.DefaultConfig
+func parseConfig(c *caddy.Controller) (*login.Config, error) {
+	cfg := login.DefaultConfig()
 	cfg.Host = ""
 	cfg.Port = ""
 	cfg.LogLevel = ""
+
+	fs := flag.NewFlagSet("loginsrv-config", flag.ContinueOnError)
+	cfg.ConfigureFlagSet(fs)
 
 	for c.NextBlock() {
 		name := c.Val()
@@ -71,25 +74,12 @@ func parseConfig(c *caddy.Controller) (login.Config, error) {
 		}
 		value := args[0]
 
-		switch name {
-		case "success-url":
-			cfg.SuccessUrl = value
-		case "cookie-name":
-			cfg.CookieName = value
-		case "cookie-http-only":
-			b, err := strconv.ParseBool(value)
-			if err != nil {
-				return cfg, fmt.Errorf("error parsing bool value %v: %v (%v:%v)", name, value, c.File(), c.Line())
-			}
-			cfg.CookieHttpOnly = b
-		case "backend":
-			err := (&cfg.Backends).Set(value)
-			if err != nil {
-				return cfg, fmt.Errorf("error parsing backend configuration %v: %v (%v:%v)", name, value, c.File(), c.Line())
-			}
-		default:
-			return cfg, fmt.Errorf("Unknown option within loginsrv: %v (%v:%v)", name, c.File(), c.Line())
+		f := fs.Lookup(name)
+		if f == nil {
+			c.ArgErr()
+			continue
 		}
+		f.Value.Set(value)
 	}
 
 	return cfg, nil

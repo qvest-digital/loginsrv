@@ -11,9 +11,7 @@ func TestSetup(t *testing.T) {
 	assert.NotNil(t, p)
 
 	backend, err := p(map[string]string{
-		"provider": "simple",
-		"name":     "myFooProvider",
-		"bob":      "secret",
+		"bob": "secret",
 	})
 
 	assert.NoError(t, err)
@@ -31,16 +29,16 @@ func TestSimpleBackend_Authenticate(t *testing.T) {
 
 	authenticated, userInfo, err := backend.Authenticate("bob", "secret")
 	assert.True(t, authenticated)
-	assert.Equal(t, "bob", userInfo.Username)
+	assert.Equal(t, "bob", userInfo.Sub)
 	assert.NoError(t, err)
 
 	authenticated, userInfo, err = backend.Authenticate("bob", "fooo")
 	assert.False(t, authenticated)
-	assert.Equal(t, "", userInfo.Username)
+	assert.Equal(t, "", userInfo.Sub)
 	assert.NoError(t, err)
 
 	authenticated, userInfo, err = backend.Authenticate("", "")
 	assert.False(t, authenticated)
-	assert.Equal(t, "", userInfo.Username)
+	assert.Equal(t, "", userInfo.Sub)
 	assert.NoError(t, err)
 }
