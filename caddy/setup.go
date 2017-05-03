@@ -6,7 +6,10 @@ import (
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/lib-compose/logging"
+	_ "github.com/tarent/loginsrv/htpasswd"
 	"github.com/tarent/loginsrv/login"
+	_ "github.com/tarent/loginsrv/oauth2"
+	_ "github.com/tarent/loginsrv/osiam"
 	"os"
 )
 
