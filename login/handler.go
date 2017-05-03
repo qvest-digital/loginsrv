@@ -169,7 +169,8 @@ func (h *Handler) deleteToken(w http.ResponseWriter) {
 	http.SetCookie(w, cookie)
 }
 
-func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo jwt.Claims) {
+func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo model.UserInfo) {
+	userInfo.Expiry = time.Now().Add(time.Hour * 24).Unix()
 	token, err := h.createToken(userInfo)
 	if err != nil {
 		logging.Application(r.Header).WithError(err).Error()
@@ -177,7 +178,6 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	if wantHtml(r) {
-		// TODO: set livetime
 		cookie := &http.Cookie{
 			Name:     h.config.CookieName,
 			Value:    token,

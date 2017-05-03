@@ -45,7 +45,9 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
 * Remove uic-fragment Tags out of the template
 * Optional configuration by YAML-File
 * Improved usage/help message
- 
+* Set Token TTL
+* Configurable Expiry Time
+
 ## Configuration and Startup
 ### Config Options
 The configuration parameters are as follows.
