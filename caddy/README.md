@@ -12,7 +12,7 @@ so that caddy-jwt looks up the same shared secret.
 ### Basic configuration
 Providing a login resource unter /login, for user bob with password secret:
 ```
-loginsrv / {
+login / {
     simple bob=secret
 }
 ```
