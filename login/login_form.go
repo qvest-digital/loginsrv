@@ -66,13 +66,12 @@ const loginForm = `<!DOCTYPE html>
                 <br/>
                 {{if .Picture}}<img class="login-picture" src="{{.Picture}}?s=120">{{end}}
                 {{if .Name}}<h3>{{.Name}}</h3>{{end}}
-                <br/>
-                <a class="btn btn-md btn-primary" href="login?logout=true">Logout</a>
               {{end}}
+                <br/>
+                <a class="btn btn-md btn-primary" href="{{ .Config.LoginPath }}?logout=true">Logout</a>
             {{else}}
-
               {{ range $providerName, $opts := .Config.Oauth }}
-                <a class="btn btn-block btn-lg btn-social btn-{{ $providerName }}" href="login/{{ $providerName }}">
+                <a class="btn btn-block btn-lg btn-social btn-{{ $providerName }}" href="{{ $.Config.LoginPath }}/{{ $providerName }}">
                   <span class="fa fa-{{ $providerName }}"></span> Sign in with {{ $providerName | ucfirst }}
                 </a>
               {{end}}
@@ -93,7 +92,7 @@ const loginForm = `<!DOCTYPE html>
 		    </div>
 	          </div>
 	          <div class="panel-body">
-		    <form accept-charset="UTF-8" role="form" method="POST" action="{{.Path}}">
+		    <form accept-charset="UTF-8" role="form" method="POST" action="{{.Config.LoginPath}}">
                       <fieldset>
 		        <div class="form-group">
 		          <input class="form-control" placeholder="Username" name="username" value="{{.UserInfo.Sub}}" type="text">
@@ -116,7 +115,6 @@ const loginForm = `<!DOCTYPE html>
 </html>`
 
 type loginFormData struct {
-	Path          string
 	Error         bool
 	Failure       bool
 	Config        *Config

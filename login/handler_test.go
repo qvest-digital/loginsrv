@@ -63,14 +63,24 @@ func TestHandler_NewFromConfig(t *testing.T) {
 
 func TestHandler_LoginForm(t *testing.T) {
 	recorder := call(req("GET", "/context/login", ""))
-	assert.Equal(t, recorder.Code, 200)
+	assert.Equal(t, 200, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), `class="container`)
 	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
 func TestHandler_HEAD(t *testing.T) {
 	recorder := call(req("HEAD", "/context/login", ""))
-	assert.Equal(t, recorder.Code, 400)
+	assert.Equal(t, 400, recorder.Code)
+}
+
+func TestHandler_404(t *testing.T) {
+	recorder := call(req("GET", "/context/", ""))
+	assert.Equal(t, 404, recorder.Code)
+
+	recorder = call(req("GET", "/", ""))
+	assert.Equal(t, 404, recorder.Code)
+
+	assert.Equal(t, "Not Found: The requested page does not exist", recorder.Body.String())
 }
 
 func TestHandler_LoginJson(t *testing.T) {
@@ -201,22 +211,26 @@ func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 }
 
 func testHandler() *Handler {
+	cfg := DefaultConfig()
+	cfg.LoginPath = "/context/login"
 	return &Handler{
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
 		},
 		oauth:  oauth2.NewManager(),
-		config: DefaultConfig(),
+		config: cfg,
 	}
 }
 
 func testHandlerWithError() *Handler {
+	cfg := DefaultConfig()
+	cfg.LoginPath = "/context/login"
 	return &Handler{
 		backends: []Backend{
 			errorTestBackend("test error"),
 		},
 		oauth:  oauth2.NewManager(),
-		config: DefaultConfig(),
+		config: cfg,
 	}
 }
 

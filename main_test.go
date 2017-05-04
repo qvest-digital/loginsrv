@@ -24,7 +24,7 @@ func Test_BasicEndToEnd(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// success
-	req, err := http.NewRequest("POST", "http://localhost:3000/context/login", strings.NewReader(`{"username": "bob", "password": "secret"}`))
+	req, err := http.NewRequest("POST", "http://localhost:3000/login", strings.NewReader(`{"username": "bob", "password": "secret"}`))
 	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/jwt")
