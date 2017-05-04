@@ -68,7 +68,7 @@ func TestSetup(t *testing.T) {
 			// * login path as argument
 			// * '-' in parameter names
 			// * backend config by 'backend provider='
-			input: `loginsrv /foo {
+			input: `loginsrv /context {
                                         backend provider=simple,bob=secret
                                         cookie-name cookiename
                                 }`,
@@ -76,7 +76,7 @@ func TestSetup(t *testing.T) {
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
 				SuccessUrl:     "/",
-				LoginPath:      "/foo",
+				LoginPath:      "/context/login",
 				CookieName:     "cookiename",
 				CookieHttpOnly: true,
 				Backends: login.Options{
