@@ -11,6 +11,7 @@ import (
 	_ "github.com/tarent/loginsrv/oauth2"
 	_ "github.com/tarent/loginsrv/osiam"
 	"os"
+	"strings"
 )
 
 func init() {
@@ -69,7 +70,10 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 	cfg.ConfigureFlagSet(fs)
 
 	for c.NextBlock() {
-		name := c.Val()
+		// caddy preferes '_' in parameter names,
+		// so we map them to the '-' from the command line flags
+		// the replacement supports both, for backwards compatibility
+		name := strings.Replace(c.Val(), "_", "-", -1)
 		args := c.RemainingArgs()
 		if len(args) != 1 {
 			return cfg, fmt.Errorf("Wrong number of arguments for %v: %v (%v:%v)", name, args, c.File(), c.Line())
