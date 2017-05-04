@@ -34,7 +34,7 @@ func setup(c *caddy.Controller) error {
 		}
 
 		if len(args) == 1 {
-			logging.Logger.Warn("DEPRECATED: Please set the loing path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
+			logging.Logger.Warnf("DEPRECATED: Please set the loing path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
 			config.LoginPath = args[0]
 		}
 
