@@ -35,16 +35,6 @@ The following providers (login backends) are supported.
 For questions and support please use the [Gitter chat room](https://gitter.im/tarent/loginsrv).
 
 [![Join the chat at https://gitter.im/tarent/loginsrv](https://badges.gitter.im/tarent/loginsrv.svg)](https://gitter.im/tarent/loginsrv?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-## Planed Features
-
-* Fix for URL Prefix handling (fix redirect on errors)
-* Configurable templates
-* Expiration date for tokens
-* User creation http callback
-* Remove uic-fragment Tags out of the template
-* Optional configuration by YAML-File
-* Improved usage/help message
  
 ## Configuration and Startup
 ### Config Options
