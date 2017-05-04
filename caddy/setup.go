@@ -18,7 +18,6 @@ func init() {
 		ServerType: "http",
 		Action:     setup,
 	})
-	httpserver.RegisterDevDirective("login", "jwt")
 }
 
 // setup configures a new loginsrv instance.
