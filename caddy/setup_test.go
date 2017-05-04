@@ -86,6 +86,28 @@ func TestSetup(t *testing.T) {
 				},
 				Oauth: login.Options{},
 			}},
+		{ // backwards compatibility
+			// * login path as argument
+			// * '-' in parameter names
+			// * backend config by 'backend provider='
+			input: `loginsrv / {
+                                        backend provider=simple,bob=secret
+                                        cookie-name cookiename
+                                }`,
+			shouldErr: false,
+			config: login.Config{
+				JwtSecret:      "jwtsecret",
+				SuccessUrl:     "/",
+				LoginPath:      "/login",
+				CookieName:     "cookiename",
+				CookieHttpOnly: true,
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
+					},
+				},
+				Oauth: login.Options{},
+			}},
 
 		// error cases
 		{input: "loginsrv {\n}", shouldErr: true},

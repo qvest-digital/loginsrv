@@ -11,6 +11,7 @@ import (
 	_ "github.com/tarent/loginsrv/oauth2"
 	_ "github.com/tarent/loginsrv/osiam"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -35,7 +36,7 @@ func setup(c *caddy.Controller) error {
 
 		if len(args) == 1 {
 			logging.Logger.Warnf("DEPRECATED: Please set the loing path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
-			config.LoginPath = args[0] + "/login"
+			config.LoginPath = path.Join(args[0], "/login")
 		}
 
 		if e, isset := os.LookupEnv("JWT_SECRET"); isset {
