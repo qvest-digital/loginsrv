@@ -87,6 +87,7 @@ func (manager *Manager) getConfigNameFromPath(path string) string {
 // Add a configuration for a provider
 func (manager *Manager) AddConfig(providerName string, opts map[string]string) error {
 	p, exist := GetProvider(providerName)
+
 	if !exist {
 		return fmt.Errorf("no provider for name %v", providerName)
 	}

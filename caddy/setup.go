@@ -11,6 +11,7 @@ import (
 	_ "github.com/tarent/loginsrv/oauth2"
 	_ "github.com/tarent/loginsrv/osiam"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -28,17 +29,14 @@ func setup(c *caddy.Controller) error {
 	for c.Next() {
 		args := c.RemainingArgs()
 
-		if len(args) < 1 {
-			return fmt.Errorf("Missing path argument for loginsrv directive (%v:%v)", c.File(), c.Line())
-		}
-
-		if len(args) > 1 {
-			return fmt.Errorf("To many arguments for loginsrv directive %q (%v:%v)", args, c.File(), c.Line())
-		}
-
 		config, err := parseConfig(c)
 		if err != nil {
 			return err
+		}
+
+		if len(args) == 1 {
+			logging.Logger.Warnf("DEPRECATED: Please set the loing path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
+			config.LoginPath = path.Join(args[0], "/login")
 		}
 
 		if e, isset := os.LookupEnv("JWT_SECRET"); isset {
@@ -46,14 +44,14 @@ func setup(c *caddy.Controller) error {
 		} else {
 			os.Setenv("JWT_SECRET", config.JwtSecret)
 		}
-		fmt.Printf("config %+v\n", config)
+
 		loginHandler, err := login.NewHandler(config)
 		if err != nil {
 			return err
 		}
 
 		httpserver.GetConfig(c).AddMiddleware(func(next httpserver.Handler) httpserver.Handler {
-			return NewCaddyHandler(next, args[0], loginHandler, config)
+			return NewCaddyHandler(next, loginHandler, config)
 		})
 	}
 

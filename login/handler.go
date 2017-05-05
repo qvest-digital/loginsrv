@@ -59,6 +59,10 @@ func NewHandler(config *Config) (*Handler, error) {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
+		h.respondNotFound(w, r)
+		return
+	}
 
 	_, err := h.oauth.GetConfigFromRequest(r)
 	if err == nil {
@@ -113,7 +117,6 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		h.deleteToken(w)
 		writeLoginForm(w,
 			loginFormData{
-				Path:   r.URL.Path,
 				Config: h.config,
 			})
 		return
@@ -123,7 +126,6 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		userInfo, valid := h.getToken(r)
 		writeLoginForm(w,
 			loginFormData{
-				Path:          r.URL.Path,
 				Config:        h.config,
 				Authenticated: valid,
 				UserInfo:      userInfo,
@@ -222,7 +224,6 @@ func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			loginFormData{
-				Path:     r.URL.Path,
 				Error:    true,
 				Config:   h.config,
 				UserInfo: model.UserInfo{Sub: username},
@@ -239,6 +240,11 @@ func (h *Handler) respondBadRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Bad Request: Method or content-type not supported")
 }
 
+func (h *Handler) respondNotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "Not Found: The requested page does not exist")
+}
+
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
 		w.Header().Set("Content-Type", contentTypeHtml)
@@ -246,7 +252,6 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			loginFormData{
-				Path:     r.URL.Path,
 				Failure:  true,
 				Config:   h.config,
 				UserInfo: model.UserInfo{Sub: username},

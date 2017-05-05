@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/tarent/lib-compose/logging"
 	"github.com/tarent/loginsrv/oauth2"
 	"math/rand"
 	"os"
@@ -25,6 +26,7 @@ func DefaultConfig() *Config {
 		LogLevel:       "info",
 		JwtSecret:      jwtDefaultSecret,
 		SuccessUrl:     "/",
+		LoginPath:      "/login",
 		CookieName:     "jwt_token",
 		CookieHttpOnly: true,
 		Backends:       Options{},
@@ -41,6 +43,7 @@ type Config struct {
 	TextLogging    bool
 	JwtSecret      string
 	SuccessUrl     string
+	LoginPath      string
 	CookieName     string
 	CookieHttpOnly bool
 	Backends       Options
@@ -83,9 +86,11 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
 	f.BoolVar(&c.CookieHttpOnly, "cookie-http-only", c.CookieHttpOnly, "Set the cookie with the http only flag")
 	f.StringVar(&c.SuccessUrl, "success-url", c.SuccessUrl, "The url to redirect after login")
+	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {
+		logging.Logger.Warn("DEPRECATED: '-backend' is no loger supported. Please set the backends by explicit paramters")
 		opts, err := parseOptions(optsKvList)
 		if err != nil {
 			return err
