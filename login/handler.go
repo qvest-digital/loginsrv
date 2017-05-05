@@ -183,7 +183,7 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		cookie := &http.Cookie{
 			Name:     h.config.CookieName,
 			Value:    token,
-			HttpOnly: true,
+			HttpOnly: h.config.CookieHttpOnly,
 			Path:     "/",
 		}
 		http.SetCookie(w, cookie)
