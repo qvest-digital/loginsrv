@@ -6,6 +6,8 @@ This middleware is designed to play together with the [caddy-jwt](https://github
 
 For a full documentation of loginsrv configuration and usage, visit the [loginsrv README.md](https://github.com/tarent/loginsrv).
 
+A small demo can also be found in the [./demo](https://github.com/tarent/loginsrv/tree/master/caddy/demo) directory.
+
 ## Configuration
 To be compatible with caddy-jwt, the jwt secret is taken from the enviroment variable `JWT_SECRET`
 if such a variable is set. Otherwise, a random token is generated and set as enviroment variable JWT_SECRET,
