@@ -166,6 +166,17 @@ Location: /
 Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU; HttpOnly
 ```
 
+## The JWT Token
+Depending on the provider, the token my look as follows:
+```
+{
+  "sub": "smancke",
+  "picture": "https://avatars2.githubusercontent.com/u/4291379?v=3",
+  "name": "Sebastian Mancke",
+  "email": "s.mancke@tarent.de",
+  "origin": "github"
+}
+```
 
 ## Provider Backends
 
