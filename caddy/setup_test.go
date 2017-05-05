@@ -21,7 +21,7 @@ func TestSetup(t *testing.T) {
 	}{
 		{ //defaults
 			input: `loginsrv / {
-                                        backend provider=simple,bob=secret
+                                        simple bob=secret
                                 }`,
 			shouldErr: false,
 			path:      "/",
@@ -39,11 +39,11 @@ func TestSetup(t *testing.T) {
 			}},
 		{
 			input: `loginsrv / {
-                                        success-url successurl
-                                        cookie-name cookiename
-                                        cookie-http-only false
-                                        backend provider=simple,bob=secret
-                                        backend provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret
+                                        success_url successurl
+                                        cookie_name cookiename
+                                        cookie_http_only false
+                                        simple bob=secret
+                                        osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
                                 }`,
 			shouldErr: false,
 			path:      "/",
@@ -57,9 +57,9 @@ func TestSetup(t *testing.T) {
 						"bob": "secret",
 					},
 					"osiam": map[string]string{
-						"endpoint":     "http://localhost:8080",
-						"clientId":     "example-client",
-						"clientSecret": "secret",
+						"endpoint":      "http://localhost:8080",
+						"client_id":     "example-client",
+						"client_secret": "secret",
 					},
 				},
 				Oauth: login.Options{},
@@ -67,8 +67,8 @@ func TestSetup(t *testing.T) {
 		// error cases
 		{input: "loginsrv {\n}", shouldErr: true},
 		{input: "loginsrv xx yy {\n}", shouldErr: true},
-		{input: "loginsrv / {\n cookie-http-only 42 \n backend provider=simple,bob=secret \n}", shouldErr: true},
-		{input: "loginsrv / {\n unknown property \n backend provider=simple,bob=secret \n}", shouldErr: true},
+		{input: "loginsrv / {\n cookie_http_only 42 \n simple bob=secret \n}", shouldErr: true},
+		{input: "loginsrv / {\n unknown property \n simple bob=secret \n}", shouldErr: true},
 		{input: "loginsrv / {\n backend \n}", shouldErr: true},
 		{input: "loginsrv / {\n backend provider=foo\n}", shouldErr: true},
 		{input: "loginsrv / {\n backend kk\n}", shouldErr: true},
