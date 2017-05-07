@@ -122,6 +122,10 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 	return nil
 }
 
+func (manager *Manager) GetConfigs() map[string]Config {
+	return manager.configs
+}
+
 func redirectUriFromRequest(r *http.Request) string {
 	u := url.URL{}
 	u.Path = r.URL.Path

@@ -23,11 +23,26 @@ func TestHandler_NewFromConfig(t *testing.T) {
 	testCases := []struct {
 		config       *Config
 		backendCount int
+		oauthCount   int
 		expectError  bool
 	}{
 		{
+			&Config{
+				Backends: Options{
+					"simple": map[string]string{"bob": "secret"},
+				},
+				Oauth: Options{
+					"github": map[string]string{"client_id": "xxx", "client_secret": "YYY"},
+				},
+			},
+			1,
+			1,
+			false,
+		},
+		{
 			&Config{Backends: Options{"simple": map[string]string{"bob": "secret"}}},
 			1,
+			0,
 			false,
 		},
 		// error cases
@@ -35,16 +50,29 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			// init error because no users are provided
 			&Config{Backends: Options{"simple": map[string]string{}}},
 			1,
+			0,
+			true,
+		},
+		{
+			&Config{
+				Oauth: Options{
+					"FOOO": map[string]string{"client_id": "xxx", "client_secret": "YYY"},
+				},
+			},
+			0,
+			0,
 			true,
 		},
 		{
 			&Config{},
+			0,
 			0,
 			true,
 		},
 		{
 			&Config{Backends: Options{"simpleFoo": map[string]string{"bob": "secret"}}},
 			1,
+			0,
 			true,
 		},
 	}
@@ -55,7 +83,8 @@ func TestHandler_NewFromConfig(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, 1, len(h.backends))
+				assert.Equal(t, test.backendCount, len(h.backends))
+				assert.Equal(t, test.oauthCount, len(h.oauth.(*oauth2.Manager).GetConfigs()))
 			}
 		})
 	}
@@ -98,6 +127,73 @@ func TestHandler_LoginJson(t *testing.T) {
 	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
 	assert.Equal(t, 403, recorder.Code)
 	assert.Equal(t, "Wrong credentials", recorder.Body.String())
+}
+
+func TestHandler_HandleOauth(t *testing.T) {
+	managerMock := &oauth2ManagerMock{
+		_GetConfigFromRequest: func(r *http.Request) (oauth2.Config, error) {
+			return oauth2.Config{}, nil
+		},
+	}
+	handler := &Handler{
+		oauth:  managerMock,
+		config: DefaultConfig(),
+	}
+
+	// test start flow redirect
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		w.Header().Set("Location", "http://example.com")
+		w.WriteHeader(303)
+		return true, false, model.UserInfo{}, nil
+	}
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 303, recorder.Code)
+	assert.Equal(t, "http://example.com", recorder.Header().Get("Location"))
+
+	// test authentication
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		return false, true, model.UserInfo{Sub: "marvin"}, nil
+	}
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 200, recorder.Code)
+	token, err := tokenAsMap(recorder.Body.String())
+	assert.NoError(t, err)
+	assert.Equal(t, "marvin", token["sub"])
+
+	// test error in oauth
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		return false, false, model.UserInfo{}, errors.New("some error")
+	}
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 500, recorder.Code)
+
+	// test failure if no oauth action would be taken, because the url parameters where
+	// missing an action parts
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		return false, false, model.UserInfo{}, nil
+	}
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 403, recorder.Code)
 }
 
 func TestHandler_LoginWeb(t *testing.T) {
@@ -272,4 +368,28 @@ type errorTestBackend string
 
 func (h errorTestBackend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	return false, model.UserInfo{}, errors.New(string(h))
+}
+
+type oauth2ManagerMock struct {
+	_Handle func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error)
+	_AddConfig            func(providerName string, opts map[string]string) error
+	_GetConfigFromRequest func(r *http.Request) (oauth2.Config, error)
+}
+
+func (m *oauth2ManagerMock) Handle(w http.ResponseWriter, r *http.Request) (
+	startedFlow bool,
+	authenticated bool,
+	userInfo model.UserInfo,
+	err error) {
+	return m._Handle(w, r)
+}
+func (m *oauth2ManagerMock) AddConfig(providerName string, opts map[string]string) error {
+	return m._AddConfig(providerName, opts)
+}
+func (m *oauth2ManagerMock) GetConfigFromRequest(r *http.Request) (oauth2.Config, error) {
+	return m._GetConfigFromRequest(r)
 }

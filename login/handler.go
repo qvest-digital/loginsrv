@@ -20,7 +20,7 @@ const contentTypePlain = "text/plain"
 
 type Handler struct {
 	backends []Backend
-	oauth    *oauth2.Manager
+	oauth    oauthManager
 	config   *Config
 }
 
@@ -294,4 +294,14 @@ func (h *Handler) authenticate(username, password string) (bool, model.UserInfo,
 		}
 	}
 	return false, model.UserInfo{}, nil
+}
+
+type oauthManager interface {
+	Handle(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error)
+	AddConfig(providerName string, opts map[string]string) error
+	GetConfigFromRequest(r *http.Request) (oauth2.Config, error)
 }
