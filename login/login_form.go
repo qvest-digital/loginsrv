@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-const loginForm = `<!DOCTYPE html>
-<html>
-  <head>
+const partials = `
+
+{{define "styles"}}
     <link uic-remove rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link uic-remove rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-social/5.1.1/bootstrap-social.min.css">
     <link uic-remove rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
@@ -47,29 +47,20 @@ const loginForm = `<!DOCTYPE html>
        border-radius: 3px;
      }
     </style>
-  </head>
-  <body>
-    <uic-fragment name="content">
-      <div class="container">
-        <div class="row vertical-offset-100">
-    	  <div class="col-md-4 col-md-offset-4">
+{{end}}
 
-            {{ if .Error}}
-              <div class="alert alert-danger" role="alert">
-                <strong>Internal Error. </strong> Please try again later.
-              </div>
-            {{end}}
-
-            {{ if .Authenticated}}
+{{define "userInfo"}}
               {{with .UserInfo}}
                 <h1>Welcome {{.Sub}}!</h1>
                 <br/>
                 {{if .Picture}}<img class="login-picture" src="{{.Picture}}?s=120">{{end}}
                 {{if .Name}}<h3>{{.Name}}</h3>{{end}}
               {{end}}
-                <br/>
-                <a class="btn btn-md btn-primary" href="{{ .Config.LoginPath }}?logout=true">Logout</a>
-            {{else}}
+              <br/>
+              <a class="btn btn-md btn-primary" href="{{ .Config.LoginPath }}?logout=true">Logout</a>
+{{end}}
+
+{{define "login"}}
               {{ range $providerName, $opts := .Config.Oauth }}
                 <a class="btn btn-block btn-lg btn-social btn-{{ $providerName }}" href="{{ $.Config.LoginPath }}/{{ $providerName }}">
                   <span class="fa fa-{{ $providerName }}"></span> Sign in with {{ $providerName | ucfirst }}
@@ -106,6 +97,33 @@ const loginForm = `<!DOCTYPE html>
 	          </div>
 	        </div>
               {{end}}
+{{end}}`
+
+var layout = `<!DOCTYPE html>
+<html>
+  <head>
+    {{ template "styles" . }}
+  </head>
+  <body>
+    <uic-fragment name="content">
+      <div class="container">
+        <div class="row vertical-offset-100">
+    	  <div class="col-md-4 col-md-offset-4">
+
+            {{ if .Error}}
+              <div class="alert alert-danger" role="alert">
+                <strong>Internal Error. </strong> Please try again later.
+              </div>
+            {{end}}
+
+            {{if .Authenticated}}
+
+              {{template "userInfo" . }}
+
+            {{else}}
+
+              {{template "login" . }}
+
             {{end}}
 	  </div>
 	</div>
@@ -126,7 +144,10 @@ func writeLoginForm(w http.ResponseWriter, params loginFormData) {
 	funcMap := template.FuncMap{
 		"ucfirst": ucfirst,
 	}
-	t := template.Must(template.New("loginForm").Funcs(funcMap).Parse(loginForm))
+
+	t := template.New("loginForm").Funcs(funcMap)
+	t = template.Must(t.Parse(partials))
+	t = template.Must(t.Parse(layout))
 	b := bytes.NewBuffer(nil)
 	err := t.Execute(b, params)
 	if err != nil {

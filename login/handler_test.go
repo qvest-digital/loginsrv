@@ -29,10 +29,10 @@ func TestHandler_NewFromConfig(t *testing.T) {
 		{
 			&Config{
 				Backends: Options{
-					"simple": map[string]string{"bob": "secret"},
+					"simple": {"bob": "secret"},
 				},
 				Oauth: Options{
-					"github": map[string]string{"client_id": "xxx", "client_secret": "YYY"},
+					"github": {"client_id": "xxx", "client_secret": "YYY"},
 				},
 			},
 			1,
@@ -40,7 +40,7 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			false,
 		},
 		{
-			&Config{Backends: Options{"simple": map[string]string{"bob": "secret"}}},
+			&Config{Backends: Options{"simple": {"bob": "secret"}}},
 			1,
 			0,
 			false,
@@ -48,7 +48,7 @@ func TestHandler_NewFromConfig(t *testing.T) {
 		// error cases
 		{
 			// init error because no users are provided
-			&Config{Backends: Options{"simple": map[string]string{}}},
+			&Config{Backends: Options{"simple": {}}},
 			1,
 			0,
 			true,
@@ -56,7 +56,7 @@ func TestHandler_NewFromConfig(t *testing.T) {
 		{
 			&Config{
 				Oauth: Options{
-					"FOOO": map[string]string{"client_id": "xxx", "client_secret": "YYY"},
+					"FOOO": {"client_id": "xxx", "client_secret": "YYY"},
 				},
 			},
 			0,
@@ -70,7 +70,7 @@ func TestHandler_NewFromConfig(t *testing.T) {
 			true,
 		},
 		{
-			&Config{Backends: Options{"simpleFoo": map[string]string{"bob": "secret"}}},
+			&Config{Backends: Options{"simpleFoo": {"bob": "secret"}}},
 			1,
 			0,
 			true,
