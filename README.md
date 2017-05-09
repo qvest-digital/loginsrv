@@ -54,6 +54,10 @@ The configuration parameters are as follows.
         The secret to sign the jwt token (default "random key")
   -log-level string
         The log level (default "info")
+  -login-path string
+        The path of the login resource (default "/login")
+  -logout-url string
+        The url or path to redirect after logout
   -osiam value
         Osiam login backend opts: endpoint=..,client_id=..,client_secret=..
   -port string
@@ -62,6 +66,8 @@ The configuration parameters are as follows.
         Simple login backend opts: user1=password,user2=password,..
   -success-url string
         The url to redirect after login (default "/")
+  -template string
+        An alternative template for the login form
   -text-logging
         Log in text format instead of json
 ```
@@ -237,3 +243,48 @@ if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host`
 ```
 $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
+
+## Templating
+
+A custom template can be supplied by the paramter `template`. 
+You can find the original template in [login/login_form.go](https://github.com/tarent/loginsrv/blob/master/login/login_form.go).
+
+The templating uses the golang build in template language. A short intro can be found [here](https://astaxie.gitbooks.io/build-web-application-with-golang/en/07.4.html).
+
+When you specify a custom template, only the layout of the original template is replaced. The partials of the original are still loaded into
+the tempalte context and can be used by your template. So a minimal unstyled login template could look like this:
+
+```
+<!DOCTYPE html>
+<html>
+  <head>
+      <!-- your styles -->
+  <head>
+  <body>
+      <!-- your header -->
+
+      {{ if .Error}}
+        <div class="alert alert-danger" role="alert">
+          <strong>Internal Error. </strong> Please try again later.
+        </div>
+      {{end}}
+
+      {{if .Authenticated}}
+
+         {{template "userInfoq" . }}
+
+      {{else}}
+
+        {{template "login" . }}
+
+      {{end}}
+
+      <!-- your footer -->
+</body>
+</html>
+```
+
+
+
+
+
