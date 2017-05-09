@@ -271,7 +271,7 @@ the tempalte context and can be used by your template. So a minimal unstyled log
 
       {{if .Authenticated}}
 
-         {{template "userInfoq" . }}
+         {{template "userInfo" . }}
 
       {{else}}
 
