@@ -5,6 +5,7 @@ import (
 	"github.com/tarent/lib-compose/logging"
 	"github.com/tarent/loginsrv/model"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -144,10 +145,28 @@ func writeLoginForm(w http.ResponseWriter, params loginFormData) {
 	funcMap := template.FuncMap{
 		"ucfirst": ucfirst,
 	}
-
 	t := template.New("loginForm").Funcs(funcMap)
 	t = template.Must(t.Parse(partials))
-	t = template.Must(t.Parse(layout))
+	if params.Config != nil && params.Config.Template != "" {
+		customTemplate, err := ioutil.ReadFile(params.Config.Template)
+		if err != nil {
+			logging.Logger.WithError(err).Error()
+			w.WriteHeader(500)
+			w.Write([]byte(`Internal Server Error`))
+			return
+		}
+
+		t, err = t.Parse(string(customTemplate))
+		if err != nil {
+			logging.Logger.WithError(err).Error()
+			w.WriteHeader(500)
+			w.Write([]byte(`Internal Server Error`))
+			return
+		}
+	} else {
+		t = template.Must(t.Parse(layout))
+	}
+
 	b := bytes.NewBuffer(nil)
 	err := t.Execute(b, params)
 	if err != nil {

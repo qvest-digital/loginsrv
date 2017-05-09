@@ -115,6 +115,11 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.Method == "DELETE" || r.FormValue("logout") == "true" {
 		h.deleteToken(w)
+		if h.config.LogoutUrl != "" {
+			w.Header().Set("Location", h.config.LogoutUrl)
+			w.WriteHeader(303)
+			return
+		}
 		writeLoginForm(w,
 			loginFormData{
 				Config: h.config,
