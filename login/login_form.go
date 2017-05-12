@@ -145,7 +145,11 @@ func writeLoginForm(w http.ResponseWriter, params loginFormData) {
 	funcMap := template.FuncMap{
 		"ucfirst": ucfirst,
 	}
-	t := template.New("loginForm").Funcs(funcMap)
+	templateName := "loginForm"
+	if params.Config != nil && params.Config.Template != "" {
+		templateName = params.Config.Template
+	}
+	t := template.New(templateName).Funcs(funcMap)
 	t = template.Must(t.Parse(partials))
 	if params.Config != nil && params.Config.Template != "" {
 		customTemplate, err := ioutil.ReadFile(params.Config.Template)

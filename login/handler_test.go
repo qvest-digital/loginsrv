@@ -248,7 +248,6 @@ func TestHandler_CustomLogoutUrl(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, req("DELETE", "/login", ""))
-	fmt.Printf("%+v\n", recorder.Header())
 	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
 	assert.Equal(t, 303, recorder.Code)
 	assert.Equal(t, "http://example.com", recorder.Header().Get("Location"))
