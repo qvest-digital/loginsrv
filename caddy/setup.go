@@ -12,6 +12,7 @@ import (
 	_ "github.com/tarent/loginsrv/osiam"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -32,6 +33,10 @@ func setup(c *caddy.Controller) error {
 		config, err := parseConfig(c)
 		if err != nil {
 			return err
+		}
+
+		if config.Template != "" && !filepath.IsAbs(config.Template) {
+			config.Template = filepath.Join(httpserver.GetConfig(c).Root, config.Template)
 		}
 
 		if len(args) == 1 {
