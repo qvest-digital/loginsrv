@@ -5,6 +5,7 @@ import (
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/login"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -133,4 +134,25 @@ func TestSetup(t *testing.T) {
 		middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 		assert.Equal(t, &test.config, middleware.config)
 	}
+}
+
+func TestSetup_RelativeTemplateFile(t *testing.T) {
+	caddyfile := "loginsrv {\n  template myTemplate.tpl\n  simple bob=secret\n}"
+	root, _ := ioutil.TempDir("", "")
+	expectedPath := root + "/myTemplate.tpl"
+
+	c := caddy.NewTestController("http", caddyfile)
+	c.Key = "RelativeTemplateFileTest"
+	config := httpserver.GetConfig(c)
+	config.Root = root
+
+	err := setup(c)
+	assert.NoError(t, err)
+	mids := httpserver.GetConfig(c).Middleware()
+	if len(mids) == 0 {
+		t.Errorf("no middlewares created")
+	}
+	middleware := mids[len(mids)-1](nil).(*CaddyHandler)
+
+	assert.Equal(t, expectedPath, middleware.config.Template)
 }
