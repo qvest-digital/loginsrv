@@ -89,7 +89,7 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 		}
 		err := f.Value.Set(value)
 		if err != nil {
-			return cfg, fmt.Errorf("%v: %v", c.ArgErr(), err)
+			return cfg, c.Err(err.Error())
 		}
 	}
 
