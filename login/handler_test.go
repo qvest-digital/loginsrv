@@ -307,7 +307,7 @@ func TestHandler_LoginError(t *testing.T) {
 
 func TestHandler_getToken_Valid(t *testing.T) {
 	h := testHandler()
-	input := model.UserInfo{Sub: "marvin"}
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
 	token, err := h.createToken(input)
 	assert.NoError(t, err)
 	r := &http.Request{

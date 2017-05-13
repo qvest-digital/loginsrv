@@ -1,5 +1,10 @@
 package model
 
+import (
+	"errors"
+	"time"
+)
+
 type UserInfo struct {
 	Sub     string `json:"sub"`
 	Picture string `json:"picture,omitempty"`
@@ -12,5 +17,8 @@ type UserInfo struct {
 // this interface implementation
 // lets us use the user info as Claim for jwt-go
 func (u UserInfo) Valid() error {
+	if u.Expiry < time.Now().Unix() {
+		return errors.New("token expired")
+	}
 	return nil
 }

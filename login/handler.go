@@ -229,8 +229,12 @@ func (h *Handler) getToken(r *http.Request) (userInfo model.UserInfo, valid bool
 		return model.UserInfo{}, false
 	}
 
-	u, v := token.Claims.(*model.UserInfo)
-	return *u, v
+	u, ok := token.Claims.(*model.UserInfo)
+	if !ok {
+		return model.UserInfo{}, false
+	}
+
+	return *u, u.Valid() == nil
 }
 
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
