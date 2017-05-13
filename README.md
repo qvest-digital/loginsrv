@@ -38,39 +38,23 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
  
 ## Configuration and Startup
 ### Config Options
-The configuration parameters are as follows.
-```
-  -cookie-http-only
-        Set the cookie with the http only flag (default true)
-  -cookie-name string
-        The name of the jwt cookie (default "jwt_token")
-  -github value
-        Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]
-  -host string
-        The host to listen on (default "localhost")
-  -htpasswd value
-        Htpasswd login backend opts: file=/path/to/pwdfile
-  -jwt-secret string
-        The secret to sign the jwt token (default "random key")
-  -log-level string
-        The log level (default "info")
-  -login-path string
-        The path of the login resource (default "/login")
-  -logout-url string
-        The url or path to redirect after logout
-  -osiam value
-        Osiam login backend opts: endpoint=..,client_id=..,client_secret=..
-  -port string
-        The port to listen on (default "6789")
-  -simple value
-        Simple login backend opts: user1=password,user2=password,..
-  -success-url string
-        The url to redirect after login (default "/")
-  -template string
-        An alternative template for the login form
-  -text-logging
-        Log in text format instead of json
-```
+| Parameter | Type | Description | Default |
+|-|-|-|-|
+| -cookie-http-only | boolean | Set the cookie with the http only flag | true |
+| -cookie-name | string | The name of the jwt cookie | "jwt_token" |
+| -github | value | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..] |  |
+| -host | string | The host to listen on | "localhost" |
+| -htpasswd | value | Htpasswd login backend opts: file=/path/to/pwdfile |  |
+| -jwt-secret | string | The secret to sign the jwt token | "random key" |
+| -log-level | string | The log level | "info" |
+| -login-path | string | The path of the login resource | "/login" |
+| -logout-url | string | The url or path to redirect after logout |  |
+| -osiam | value | Osiam login backend opts: endpoint=..,client_id=..,client_secret=.. |  |
+| -port | string | The port to listen on | "6789" |
+| -simple | value | Simple login backend opts: user1=password,user2=password,.. |  |
+| -success-url | string | The url to redirect after login | "/" |
+| -template | string | An alternative template for the login form |  |
+| -text-logging | boolean | Log in text format instead of json | true |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
