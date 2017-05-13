@@ -1,6 +1,7 @@
 package caddy
 
 import (
+	"fmt"
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestSetup(t *testing.T) {
 		config    login.Config
 	}{
 		{ //defaults
-			input: `loginsrv {
+			input: `login {
                                         simple bob=secret
                                 }`,
 			shouldErr: false,
@@ -40,7 +41,7 @@ func TestSetup(t *testing.T) {
 				Oauth: login.Options{},
 			}},
 		{
-			input: `loginsrv {
+			input: `login {
                                         success_url successurl
                                         jwt_expiry 42h
                                         login_path /foo/bar
@@ -121,28 +122,50 @@ func TestSetup(t *testing.T) {
 			}},
 
 		// error cases
-		{input: "loginsrv {\n}", shouldErr: true},
-		{input: "loginsrv xx yy {\n}", shouldErr: true},
-		{input: "loginsrv {\n cookie_http_only 42 \n simple bob=secret \n}", shouldErr: true},
-		{input: "loginsrv {\n unknown property \n simple bob=secret \n}", shouldErr: true},
-		{input: "loginsrv {\n backend \n}", shouldErr: true},
-		{input: "loginsrv {\n backend provider=foo\n}", shouldErr: true},
-		{input: "loginsrv {\n backend kk\n}", shouldErr: true},
+		{ // duration parse error
+			input: `login {
+                                        simple bob=secret
+                                }`,
+			shouldErr: false,
+			config: login.Config{
+				JwtSecret:      "jwtsecret",
+				JwtExpiry:      24 * time.Hour,
+				SuccessUrl:     "/",
+				LoginPath:      "/login",
+				CookieName:     "jwt_token",
+				CookieHttpOnly: true,
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
+					},
+				},
+				Oauth: login.Options{},
+			}},
+		{input: "login {\n}", shouldErr: true},
+		{input: "login xx yy {\n}", shouldErr: true},
+		{input: "login {\n cookie_http_only 42d \n simple bob=secret \n}", shouldErr: true},
+		{input: "login {\n unknown property \n simple bob=secret \n}", shouldErr: true},
+		{input: "login {\n backend \n}", shouldErr: true},
+		{input: "login {\n backend provider=foo\n}", shouldErr: true},
+		{input: "login {\n backend kk\n}", shouldErr: true},
 	} {
-		c := caddy.NewTestController("http", test.input)
-		err := setup(c)
-		if err != nil && !test.shouldErr {
-			t.Errorf("Test case #%d received an error of %v", j, err)
-		} else if test.shouldErr {
-			continue
-		}
-		mids := httpserver.GetConfig(c).Middleware()
-		if len(mids) == 0 {
-			t.Errorf("no middlewares created in test #%v", j)
-			continue
-		}
-		middleware := mids[len(mids)-1](nil).(*CaddyHandler)
-		assert.Equal(t, &test.config, middleware.config)
+		t.Run(fmt.Sprintf("test %v", j), func(t *testing.T) {
+			c := caddy.NewTestController("http", test.input)
+			err := setup(c)
+			if test.shouldErr {
+				assert.Error(t, err, "test ")
+				return
+			} else {
+				assert.NoError(t, err)
+			}
+			mids := httpserver.GetConfig(c).Middleware()
+			if len(mids) == 0 {
+				t.Errorf("no middlewares created in test #%v", j)
+				return
+			}
+			middleware := mids[len(mids)-1](nil).(*CaddyHandler)
+			assert.Equal(t, &test.config, middleware.config)
+		})
 	}
 }
 
