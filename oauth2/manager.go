@@ -100,15 +100,15 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 
 	if clientId, exist := opts["client_id"]; !exist {
 		return fmt.Errorf("missing parameter client_id")
+	} else {
+		cfg.ClientID = clientId
 	}
-		
-	cfg.ClientID = clientId
 
 	if clientSecret, exist := opts["client_secret"]; !exist {
 		return fmt.Errorf("missing parameter client_secret")
+	} else {
+		cfg.ClientSecret = clientSecret
 	}
-		
-	cfg.ClientSecret = clientSecret
 
 	if scope, exist := opts["scope"]; exist {
 		cfg.Scope = scope
