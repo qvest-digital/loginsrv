@@ -29,7 +29,7 @@ type Backend struct {
 	auth *Auth
 }
 
-// NewBackend creates a new  Backend and verifies the parameters.
+// NewBackend creates a new Backend and verifies the parameters.
 func NewBackend(filename string) (*Backend, error) {
 	auth, err := NewAuth(filename)
 	return &Backend{
