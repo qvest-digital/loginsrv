@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestSetup(t *testing.T) {
@@ -26,6 +27,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
+				JwtExpiry:      24 * time.Hour,
 				SuccessUrl:     "/",
 				LoginPath:      "/login",
 				CookieName:     "jwt_token",
@@ -40,18 +42,24 @@ func TestSetup(t *testing.T) {
 		{
 			input: `loginsrv {
                                         success_url successurl
+                                        jwt_expiry 42h
                                         login_path /foo/bar
                                         cookie_name cookiename
                                         cookie_http_only false
+                                        cookie_domain example.com
+                                        cookie_expiry 23h23m
                                         simple bob=secret
                                         osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
                                 }`,
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
+				JwtExpiry:      42 * time.Hour,
 				SuccessUrl:     "successurl",
 				LoginPath:      "/foo/bar",
 				CookieName:     "cookiename",
+				CookieDomain:   "example.com",
+				CookieExpiry:   23*time.Hour + 23*time.Minute,
 				CookieHttpOnly: false,
 				Backends: login.Options{
 					"simple": map[string]string{
@@ -76,6 +84,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
+				JwtExpiry:      24 * time.Hour,
 				SuccessUrl:     "/",
 				LoginPath:      "/context/login",
 				CookieName:     "cookiename",
@@ -98,6 +107,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
+				JwtExpiry:      24 * time.Hour,
 				SuccessUrl:     "/",
 				LoginPath:      "/login",
 				CookieName:     "cookiename",
