@@ -24,7 +24,7 @@ type Provider struct {
 
 var provider = map[string]Provider{}
 
-// Register an Oauth provider
+// RegisterProvider an Oauth provider
 func RegisterProvider(p Provider) {
 	provider[p.Name] = p
 }
@@ -34,7 +34,7 @@ func UnRegisterProvider(name string) {
 	delete(provider, name)
 }
 
-// Return a provider
+// GetProvider returns a provider
 func GetProvider(providerName string) (Provider, bool) {
 	p, exist := provider[providerName]
 	return p, exist
@@ -43,7 +43,7 @@ func GetProvider(providerName string) (Provider, bool) {
 // ProviderList returns the names of all registered provider
 func ProviderList() []string {
 	list := make([]string, 0, len(provider))
-	for k, _ := range provider {
+	for k := range provider {
 		list = append(list, k)
 	}
 	return list
