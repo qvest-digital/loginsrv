@@ -24,7 +24,7 @@ func NewClient(endpoint string, clientId string, clientSecret string) *Client {
 }
 
 // Do an Osiam authorisation by Resource Owner Password Credentials Grant.
-// If no scopes are supplied, the default scope ist 'me'.
+// If no scopes are supplied, the default scope is 'me'.
 func (c *Client) GetTokenByPassword(username, password string, scopes ...string) (authenticated bool, token *Token, err error) {
 	scopeList := strings.Join(scopes, ",")
 	if scopeList == "" {

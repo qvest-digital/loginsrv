@@ -95,14 +95,14 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {
-		logging.Logger.Warn("DEPRECATED: '-backend' is no loger supported. Please set the backends by explicit paramters")
+		logging.Logger.Warn("DEPRECATED: '-backend' is no longer supported. Please set the backends by explicit parameters")
 		opts, err := parseOptions(optsKvList)
 		if err != nil {
 			return err
 		}
 		pName, ok := opts["provider"]
 		if !ok {
-			return errors.New("missing provder name provider=..")
+			return errors.New("missing provider name provider=...")
 		}
 		delete(opts, "provider")
 		c.Backends[pName] = opts

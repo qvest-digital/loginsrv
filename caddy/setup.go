@@ -40,7 +40,7 @@ func setup(c *caddy.Controller) error {
 		}
 
 		if len(args) == 1 {
-			logging.Logger.Warnf("DEPRECATED: Please set the loing path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
+			logging.Logger.Warnf("DEPRECATED: Please set the login path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
 			config.LoginPath = path.Join(args[0], "/login")
 		}
 
@@ -73,7 +73,7 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 	cfg.ConfigureFlagSet(fs)
 
 	for c.NextBlock() {
-		// caddy preferes '_' in parameter names,
+		// caddy prefers '_' in parameter names,
 		// so we map them to the '-' from the command line flags
 		// the replacement supports both, for backwards compatibility
 		name := strings.Replace(c.Val(), "_", "-", -1)
