@@ -16,7 +16,7 @@ It can be used as:
 * standalone microservice
 * docker container
 * golang library
-* or as [caddyserver](http://caddyserver.com/) plugin.
+* [caddyserver](http://caddyserver.com/) plugin
 
 ![](.screenshot.png)
 
@@ -24,7 +24,7 @@ It can be used as:
 The following providers (login backends) are supported.
 
 * [Htpasswd](#htpasswd)
-* [Osiam](#osiam)
+* [OSIAM](#osiam)
 * [Simple](#simple) (user/password pairs by configuration)
 * [Oauth2](#oauth2)
   * Github Login
@@ -38,46 +38,30 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
  
 ## Configuration and Startup
 ### Config Options
-The configuration parameters are as follows.
-```
-  -cookie-http-only
-        Set the cookie with the http only flag (default true)
-  -cookie-name string
-        The name of the jwt cookie (default "jwt_token")
-  -github value
-        Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]
-  -host string
-        The host to listen on (default "localhost")
-  -htpasswd value
-        Htpasswd login backend opts: file=/path/to/pwdfile
-  -jwt-secret string
-        The secret to sign the jwt token (default "random key")
-  -log-level string
-        The log level (default "info")
-  -login-path string
-        The path of the login resource (default "/login")
-  -logout-url string
-        The url or path to redirect after logout
-  -osiam value
-        Osiam login backend opts: endpoint=..,client_id=..,client_secret=..
-  -port string
-        The port to listen on (default "6789")
-  -simple value
-        Simple login backend opts: user1=password,user2=password,..
-  -success-url string
-        The url to redirect after login (default "/")
-  -template string
-        An alternative template for the login form
-  -text-logging
-        Log in text format instead of json
-```
+| Parameter | Type | Description | Default |
+|-|-|-|-|
+| -cookie-http-only | boolean | Set the cookie with the http only flag | true |
+| -cookie-name | string | The name of the jwt cookie | "jwt_token" |
+| -github | value | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..] |  |
+| -host | string | The host to listen on | "localhost" |
+| -htpasswd | value | Htpasswd login backend opts: file=/path/to/pwdfile |  |
+| -jwt-secret | string | The secret to sign the jwt token | "random key" |
+| -log-level | string | The log level | "info" |
+| -login-path | string | The path of the login resource | "/login" |
+| -logout-url | string | The url or path to redirect after logout |  |
+| -osiam | value | Osiam login backend opts: endpoint=..,client_id=..,client_secret=.. |  |
+| -port | string | The port to listen on | "6789" |
+| -simple | value | Simple login backend opts: user1=password,user2=password,.. |  |
+| -success-url | string | The url to redirect after login | "/" |
+| -template | string | An alternative template for the login form |  |
+| -text-logging | boolean | Log in text format instead of json | true |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
 So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
 
 ### Startup examples
-The most simple way to use loginsrv is by the provided docker container.
+The simplest way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
 ```
 $ docker run -d -p 80:80 tarent/loginsrv -jwt-secret my_secret -simple bob=secret
@@ -86,7 +70,7 @@ $ curl --data "username=bob&password=secret" 127.0.0.1/login
 eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4CyxQNxe5_Ovw-N5wfQwkzXz2enbhA9JZf8MmTp9n-TTDcWdY3Fd1SA72_M20G9lQ
 ```
 
-The same configuration could be written with enviroment variables in the way:
+The same configuration could be written with environment variables this way:
 ```
 $ docker run -d -p 80:80 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
 ```
@@ -173,7 +157,7 @@ Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-5
 ```
 
 ## The JWT Token
-Depending on the provider, the token my look as follows:
+Depending on the provider, the token may look as follows:
 ```
 {
   "sub": "smancke",
@@ -200,7 +184,7 @@ Example:
 loginsrv -backend 'provider=htpasswd,file=users
 ```
 
-### Osiam
+### OSIAM
 [OSIAM](http://osiam.org/) is a secure identity management solution providing REST based services for authentication and authorization.
 It implements the multplie OAuth2 flows, as well as SCIM for managing the user data.
 
@@ -222,7 +206,7 @@ loginsrv -backend provider=simple,bob=secret
 ## Oauth2
 
 The Oauth Web Flow (aka 3-leged-Oauth flow) is also supported.
-Currently the following oauth Provider are supported:
+Currently the following oauth Provider is supported:
 
 * github
 
@@ -246,13 +230,12 @@ $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 
 ## Templating
 
-A custom template can be supplied by the paramter `template`. 
+A custom template can be supplied by the parameter `template`. 
 You can find the original template in [login/login_form.go](https://github.com/tarent/loginsrv/blob/master/login/login_form.go).
 
 The templating uses the golang build in template language. A short intro can be found [here](https://astaxie.gitbooks.io/build-web-application-with-golang/en/07.4.html).
 
-When you specify a custom template, only the layout of the original template is replaced. The partials of the original are still loaded into
-the tempalte context and can be used by your template. So a minimal unstyled login template could look like this:
+When you specify a custom template, only the layout of the original template is replaced. The partials of the original are still loaded into the template context and can be used by your template. So a minimal unstyled login template could look like this:
 
 ```
 <!DOCTYPE html>
@@ -283,8 +266,3 @@ the tempalte context and can be used by your template. So a minimal unstyled log
 </body>
 </html>
 ```
-
-
-
-
-
