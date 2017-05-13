@@ -25,6 +25,7 @@ func DefaultConfig() *Config {
 		Port:           "6789",
 		LogLevel:       "info",
 		JwtSecret:      jwtDefaultSecret,
+		JwtExpiry:      24 * time.Hour,
 		SuccessUrl:     "/",
 		LogoutUrl:      "",
 		LoginPath:      "/login",
@@ -43,11 +44,14 @@ type Config struct {
 	LogLevel       string
 	TextLogging    bool
 	JwtSecret      string
+	JwtExpiry      time.Duration
 	SuccessUrl     string
 	LogoutUrl      string
 	Template       string
 	LoginPath      string
 	CookieName     string
+	CookieExpiry   time.Duration
+	CookieDomain   string
 	CookieHttpOnly bool
 	Backends       Options
 	Oauth          Options
@@ -86,8 +90,11 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.LogLevel, "log-level", c.LogLevel, "The log level")
 	f.BoolVar(&c.TextLogging, "text-logging", c.TextLogging, "Log in text format instead of json")
 	f.StringVar(&c.JwtSecret, "jwt-secret", "random key", "The secret to sign the jwt token")
+	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
 	f.BoolVar(&c.CookieHttpOnly, "cookie-http-only", c.CookieHttpOnly, "Set the cookie with the http only flag")
+	f.DurationVar(&c.CookieExpiry, "cookie-expiry", c.CookieExpiry, "The expiry duration for the cookie, e.g. 2h or 3h30m. Default is browser session")
+	f.StringVar(&c.CookieDomain, "cookie-domain", c.CookieDomain, "The optional domain parameter for the cookie")
 	f.StringVar(&c.SuccessUrl, "success-url", c.SuccessUrl, "The url to redirect after login")
 	f.StringVar(&c.LogoutUrl, "logout-url", c.LogoutUrl, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")

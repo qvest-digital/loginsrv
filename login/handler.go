@@ -173,10 +173,14 @@ func (h *Handler) deleteToken(w http.ResponseWriter) {
 		Expires:  time.Unix(0, 0),
 		Path:     "/",
 	}
+	if h.config.CookieDomain != "" {
+		cookie.Domain = h.config.CookieDomain
+	}
 	http.SetCookie(w, cookie)
 }
 
-func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo jwt.Claims) {
+func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, userInfo model.UserInfo) {
+	userInfo.Expiry = time.Now().Add(h.config.JwtExpiry).Unix()
 	token, err := h.createToken(userInfo)
 	if err != nil {
 		logging.Application(r.Header).WithError(err).Error()
@@ -184,12 +188,17 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	if wantHtml(r) {
-		// TODO: set livetime
 		cookie := &http.Cookie{
 			Name:     h.config.CookieName,
 			Value:    token,
 			HttpOnly: h.config.CookieHttpOnly,
 			Path:     "/",
+		}
+		if h.config.CookieExpiry != 0 {
+			cookie.Expires = time.Now().Add(h.config.CookieExpiry)
+		}
+		if h.config.CookieDomain != "" {
+			cookie.Domain = h.config.CookieDomain
 		}
 		http.SetCookie(w, cookie)
 		w.Header().Set("Location", h.config.SuccessUrl)
@@ -220,8 +229,12 @@ func (h *Handler) getToken(r *http.Request) (userInfo model.UserInfo, valid bool
 		return model.UserInfo{}, false
 	}
 
-	u, v := token.Claims.(*model.UserInfo)
-	return *u, v
+	u, ok := token.Claims.(*model.UserInfo)
+	if !ok {
+		return model.UserInfo{}, false
+	}
+
+	return *u, u.Valid() == nil
 }
 
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {

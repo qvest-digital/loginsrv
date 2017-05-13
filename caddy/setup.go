@@ -85,10 +85,12 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 
 		f := fs.Lookup(name)
 		if f == nil {
-			c.ArgErr()
-			continue
+			return cfg, c.ArgErr()
 		}
-		f.Value.Set(value)
+		err := f.Value.Set(value)
+		if err != nil {
+			return cfg, c.Err(err.Error())
+		}
 	}
 
 	return cfg, nil

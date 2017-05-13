@@ -9,14 +9,24 @@ import (
 	"github.com/tarent/loginsrv/oauth2"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 const TypeJson = "Content-Type: application/json"
 const TypeForm = "Content-Type: application/x-www-form-urlencoded"
 const AcceptHtml = "Accept: text/html"
 const AcceptJwt = "Accept: application/jwt"
+
+func testConfig() *Config {
+	testConfig := DefaultConfig()
+	testConfig.LoginPath = "/context/login"
+	testConfig.CookieDomain = "example.com"
+	testConfig.CookieExpiry = 23 * time.Hour
+	return testConfig
+}
 
 func TestHandler_NewFromConfig(t *testing.T) {
 
@@ -121,7 +131,8 @@ func TestHandler_LoginJson(t *testing.T) {
 	// verify the token
 	claims, err := tokenAsMap(recorder.Body.String())
 	assert.NoError(t, err)
-	assert.Equal(t, map[string]interface{}{"sub": "bob"}, claims)
+	assert.Equal(t, "bob", claims["sub"])
+	assert.InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
 
 	// wrong credentials
 	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
@@ -203,14 +214,21 @@ func TestHandler_LoginWeb(t *testing.T) {
 	assert.Equal(t, "/", recorder.Header().Get("Location"))
 
 	// verify the token from the cookie
-	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=")
-	headerParts := strings.SplitN(recorder.Header().Get("Set-Cookie"), "=", 2)
-	assert.Equal(t, 2, len(headerParts))
-	assert.Equal(t, headerParts[0], "jwt_token")
-	claims, err := tokenAsMap(strings.SplitN(headerParts[1], ";", 2)[0])
+	setCookieList := readSetCookies(recorder.Header())
+	assert.Equal(t, 1, len(setCookieList))
+
+	cookie := setCookieList[0]
+	assert.Equal(t, "jwt_token", cookie.Name)
+	assert.Equal(t, "/", cookie.Path)
+	assert.Equal(t, "example.com", cookie.Domain)
+	assert.InDelta(t, time.Now().Add(testConfig().CookieExpiry).Unix(), cookie.Expires.Unix(), 2)
+	assert.True(t, cookie.HttpOnly)
+
+	// check the token contens
+	claims, err := tokenAsMap(cookie.Value)
 	assert.NoError(t, err)
-	assert.Equal(t, map[string]interface{}{"sub": "bob"}, claims)
-	assert.Contains(t, headerParts[1]+";", "Path=/;")
+	assert.Equal(t, "bob", claims["sub"])
+	assert.InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
 
 	// show the login form again after authentication failed
 	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
@@ -223,19 +241,30 @@ func TestHandler_Logout(t *testing.T) {
 	// DELETE
 	recorder := call(req("DELETE", "/context/login", ""))
 	assert.Equal(t, 200, recorder.Code)
-	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+	checkDeleteCookei(t, recorder.Header())
 
 	// GET  + param
 	recorder = call(req("GET", "/context/login?logout=true", ""))
 	assert.Equal(t, 200, recorder.Code)
-	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+	checkDeleteCookei(t, recorder.Header())
 
 	// POST + param
 	recorder = call(req("POST", "/context/login", "logout=true", TypeForm))
 	assert.Equal(t, 200, recorder.Code)
-	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+	checkDeleteCookei(t, recorder.Header())
 
 	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
+}
+
+func checkDeleteCookei(t *testing.T, h http.Header) {
+	setCookieList := readSetCookies(h)
+	assert.Equal(t, 1, len(setCookieList))
+	cookie := setCookieList[0]
+
+	assert.Equal(t, "jwt_token", cookie.Name)
+	assert.Equal(t, "/", cookie.Path)
+	assert.Equal(t, "example.com", cookie.Domain)
+	assert.Equal(t, int64(0), cookie.Expires.Unix())
 }
 
 func TestHandler_CustomLogoutUrl(t *testing.T) {
@@ -278,7 +307,7 @@ func TestHandler_LoginError(t *testing.T) {
 
 func TestHandler_getToken_Valid(t *testing.T) {
 	h := testHandler()
-	input := model.UserInfo{Sub: "marvin"}
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
 	token, err := h.createToken(input)
 	assert.NoError(t, err)
 	r := &http.Request{
@@ -322,26 +351,22 @@ func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 }
 
 func testHandler() *Handler {
-	cfg := DefaultConfig()
-	cfg.LoginPath = "/context/login"
 	return &Handler{
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
 		},
 		oauth:  oauth2.NewManager(),
-		config: cfg,
+		config: testConfig(),
 	}
 }
 
 func testHandlerWithError() *Handler {
-	cfg := DefaultConfig()
-	cfg.LoginPath = "/context/login"
 	return &Handler{
 		backends: []Backend{
 			errorTestBackend("test error"),
 		},
 		oauth:  oauth2.NewManager(),
-		config: cfg,
+		config: testConfig(),
 	}
 }
 
@@ -375,7 +400,7 @@ func tokenAsMap(tokenString string) (map[string]interface{}, error) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return map[string]interface{}(claims), nil
 	}
-	
+
 	return nil, errors.New("token not valid")
 }
 
@@ -407,4 +432,86 @@ func (m *oauth2ManagerMock) AddConfig(providerName string, opts map[string]strin
 }
 func (m *oauth2ManagerMock) GetConfigFromRequest(r *http.Request) (oauth2.Config, error) {
 	return m._GetConfigFromRequest(r)
+}
+
+// copied from golang: net/http/cookie.go
+// with simple some simplification fro edge cases
+// readSetCookies parses all "Set-Cookie" values from
+// the header h and returns the successfully parsed Cookies.
+func readSetCookies(h http.Header) []*http.Cookie {
+	cookieCount := len(h["Set-Cookie"])
+	if cookieCount == 0 {
+		return []*http.Cookie{}
+	}
+	cookies := make([]*http.Cookie, 0, cookieCount)
+	for _, line := range h["Set-Cookie"] {
+		parts := strings.Split(strings.TrimSpace(line), ";")
+		if len(parts) == 1 && parts[0] == "" {
+			continue
+		}
+		parts[0] = strings.TrimSpace(parts[0])
+		j := strings.Index(parts[0], "=")
+		if j < 0 {
+			continue
+		}
+
+		name, value := parts[0][:j], parts[0][j+1:]
+
+		c := &http.Cookie{
+			Name:  name,
+			Value: value,
+			Raw:   line,
+		}
+
+		for i := 1; i < len(parts); i++ {
+			parts[i] = strings.TrimSpace(parts[i])
+			if len(parts[i]) == 0 {
+				continue
+			}
+			attr, val := parts[i], ""
+			if j := strings.Index(attr, "="); j >= 0 {
+				attr, val = attr[:j], attr[j+1:]
+			}
+			lowerAttr := strings.ToLower(attr)
+			switch lowerAttr {
+			case "secure":
+				c.Secure = true
+				continue
+			case "httponly":
+				c.HttpOnly = true
+				continue
+			case "domain":
+				c.Domain = val
+				continue
+			case "max-age":
+				secs, err := strconv.Atoi(val)
+				if err != nil || secs != 0 && val[0] == '0' {
+					break
+				}
+				if secs <= 0 {
+					secs = -1
+				}
+				c.MaxAge = secs
+				continue
+			case "expires":
+				c.RawExpires = val
+				exptime, err := time.Parse(time.RFC1123, val)
+				if err != nil {
+					exptime, err = time.Parse("Mon, 02-Jan-2006 15:04:05 MST", val)
+					if err != nil {
+						c.Expires = time.Time{}
+						break
+					}
+				}
+				c.Expires = exptime.UTC()
+				continue
+			case "path":
+				c.Path = val
+				continue
+			}
+			c.Unparsed = append(c.Unparsed, parts[i])
+		}
+		cookies = append(cookies, c)
+	}
+	return cookies
 }
