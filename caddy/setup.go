@@ -6,8 +6,14 @@ import (
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/lib-compose/logging"
+	_ "github.com/tarent/loginsrv/htpasswd"
 	"github.com/tarent/loginsrv/login"
+	_ "github.com/tarent/loginsrv/oauth2"
+	_ "github.com/tarent/loginsrv/osiam"
 	"os"
+	"path"
+	"path/filepath"
+	"strings"
 )
 
 func init() {
@@ -15,7 +21,6 @@ func init() {
 		ServerType: "http",
 		Action:     setup,
 	})
-	httpserver.RegisterDevDirective("login", "jwt")
 }
 
 // setup configures a new loginsrv instance.
@@ -25,17 +30,18 @@ func setup(c *caddy.Controller) error {
 	for c.Next() {
 		args := c.RemainingArgs()
 
-		if len(args) < 1 {
-			return fmt.Errorf("Missing path argument for loginsrv directive (%v:%v)", c.File(), c.Line())
-		}
-
-		if len(args) > 1 {
-			return fmt.Errorf("To many arguments for loginsrv directive %q (%v:%v)", args, c.File(), c.Line())
-		}
-
 		config, err := parseConfig(c)
 		if err != nil {
 			return err
+		}
+
+		if config.Template != "" && !filepath.IsAbs(config.Template) {
+			config.Template = filepath.Join(httpserver.GetConfig(c).Root, config.Template)
+		}
+
+		if len(args) == 1 {
+			logging.Logger.Warnf("DEPRECATED: Please set the login path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
+			config.LoginPath = path.Join(args[0], "/login")
 		}
 
 		if e, isset := os.LookupEnv("JWT_SECRET"); isset {
@@ -43,14 +49,14 @@ func setup(c *caddy.Controller) error {
 		} else {
 			os.Setenv("JWT_SECRET", config.JwtSecret)
 		}
-		fmt.Printf("config %+v\n", config)
+
 		loginHandler, err := login.NewHandler(config)
 		if err != nil {
 			return err
 		}
 
 		httpserver.GetConfig(c).AddMiddleware(func(next httpserver.Handler) httpserver.Handler {
-			return NewCaddyHandler(next, args[0], loginHandler, config)
+			return NewCaddyHandler(next, loginHandler, config)
 		})
 	}
 
@@ -67,7 +73,10 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 	cfg.ConfigureFlagSet(fs)
 
 	for c.NextBlock() {
-		name := c.Val()
+		// caddy prefers '_' in parameter names,
+		// so we map them to the '-' from the command line flags
+		// the replacement supports both, for backwards compatibility
+		name := strings.Replace(c.Val(), "_", "-", -1)
 		args := c.RemainingArgs()
 		if len(args) != 1 {
 			return cfg, fmt.Errorf("Wrong number of arguments for %v: %v (%v:%v)", name, args, c.File(), c.Line())

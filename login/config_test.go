@@ -26,6 +26,9 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--text-logging=true",
 		"--jwt-secret=jwtsecret",
 		"--success-url=successurl",
+		"--logout-url=logouturl",
+		"--template=template",
+		"--login-path=loginpath",
 		"--cookie-name=cookiename",
 		"--cookie-http-only=false",
 		"--backend=provider=simple",
@@ -40,6 +43,9 @@ func TestConfig_ReadConfig(t *testing.T) {
 		TextLogging:    true,
 		JwtSecret:      "jwtsecret",
 		SuccessUrl:     "successurl",
+		LogoutUrl:      "logouturl",
+		Template:       "template",
+		LoginPath:      "loginpath",
 		CookieName:     "cookiename",
 		CookieHttpOnly: false,
 		Backends: Options{
@@ -66,6 +72,9 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	assert.NoError(t, os.Setenv("LOGINSRV_TEXT_LOGGING", "true"))
 	assert.NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "jwtsecret"))
 	assert.NoError(t, os.Setenv("LOGINSRV_SUCCESS_URL", "successurl"))
+	assert.NoError(t, os.Setenv("LOGINSRV_LOGOUT_URL", "logouturl"))
+	assert.NoError(t, os.Setenv("LOGINSRV_TEMPLATE", "template"))
+	assert.NoError(t, os.Setenv("LOGINSRV_LOGIN_PATH", "loginpath"))
 	assert.NoError(t, os.Setenv("LOGINSRV_COOKIE_NAME", "cookiename"))
 	assert.NoError(t, os.Setenv("LOGINSRV_COOKIE_HTTP_ONLY", "false"))
 	assert.NoError(t, os.Setenv("LOGINSRV_SIMPLE", "foo=bar"))
@@ -78,6 +87,9 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 		TextLogging:    true,
 		JwtSecret:      "jwtsecret",
 		SuccessUrl:     "successurl",
+		LogoutUrl:      "logouturl",
+		Template:       "template",
+		LoginPath:      "loginpath",
 		CookieName:     "cookiename",
 		CookieHttpOnly: false,
 		Backends: Options{

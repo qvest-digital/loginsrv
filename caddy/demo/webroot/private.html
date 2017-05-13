@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Caddy-login Demo Application</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  </head>
+  <body>
+      <!-- Static navbar -->
+      <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+          <div id="navbar" class="navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="/">Start</a></li>
+              <li class="active"><a href="/private">Private</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="/login">Login</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <div class="container">        
+        <div class="jumbotron">
+          <h1>This is a private Site</h1>
+          You should only be able to see this, when logged in.
+          <p>Please <a href="/login?logout=true">Logout</a></p>
+        </div>        
+      </div>       
+      
+  </body>
+</html>

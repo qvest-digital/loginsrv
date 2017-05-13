@@ -1,0 +1,20 @@
+
+http://localhost:8080 {
+
+  log stdout  
+  root {$PWD}/webroot
+  ext .html
+  header /private Cache-Control "no-cache, no-store, must-revalidate"
+  
+  jwt {
+    path /private
+    redirect /login
+    allow sub demo
+  }
+
+  login {
+        success_url /private
+        htpasswd file=passwords
+  }
+  
+}

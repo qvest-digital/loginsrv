@@ -20,7 +20,7 @@ const contentTypePlain = "text/plain"
 
 type Handler struct {
 	backends []Backend
-	oauth    *oauth2.Manager
+	oauth    oauthManager
 	config   *Config
 }
 
@@ -59,6 +59,10 @@ func NewHandler(config *Config) (*Handler, error) {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
+		h.respondNotFound(w, r)
+		return
+	}
 
 	_, err := h.oauth.GetConfigFromRequest(r)
 	if err == nil {
@@ -86,7 +90,7 @@ func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
 
 	if authenticated {
 		logging.Application(r.Header).
-			WithField("username", userInfo.Sub).Info("sucessfully authenticated")
+			WithField("username", userInfo.Sub).Info("successfully authenticated")
 		h.respondAuthenticated(w, r, userInfo)
 		return
 	}
@@ -111,9 +115,13 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.Method == "DELETE" || r.FormValue("logout") == "true" {
 		h.deleteToken(w)
+		if h.config.LogoutUrl != "" {
+			w.Header().Set("Location", h.config.LogoutUrl)
+			w.WriteHeader(303)
+			return
+		}
 		writeLoginForm(w,
 			loginFormData{
-				Path:   r.URL.Path,
 				Config: h.config,
 			})
 		return
@@ -123,7 +131,6 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		userInfo, valid := h.getToken(r)
 		writeLoginForm(w,
 			loginFormData{
-				Path:          r.URL.Path,
 				Config:        h.config,
 				Authenticated: valid,
 				UserInfo:      userInfo,
@@ -146,7 +153,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 		if authenticated {
 			logging.Application(r.Header).
-				WithField("username", username).Info("sucessfully authenticated")
+				WithField("username", username).Info("successfully authenticated")
 			h.respondAuthenticated(w, r, userInfo)
 			return
 		}
@@ -181,7 +188,7 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		cookie := &http.Cookie{
 			Name:     h.config.CookieName,
 			Value:    token,
-			HttpOnly: true,
+			HttpOnly: h.config.CookieHttpOnly,
 			Path:     "/",
 		}
 		http.SetCookie(w, cookie)
@@ -222,7 +229,6 @@ func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			loginFormData{
-				Path:     r.URL.Path,
 				Error:    true,
 				Config:   h.config,
 				UserInfo: model.UserInfo{Sub: username},
@@ -239,6 +245,11 @@ func (h *Handler) respondBadRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Bad Request: Method or content-type not supported")
 }
 
+func (h *Handler) respondNotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	fmt.Fprintf(w, "Not Found: The requested page does not exist")
+}
+
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	if wantHtml(r) {
 		w.Header().Set("Content-Type", contentTypeHtml)
@@ -246,7 +257,6 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			loginFormData{
-				Path:     r.URL.Path,
 				Failure:  true,
 				Config:   h.config,
 				UserInfo: model.UserInfo{Sub: username},
@@ -289,4 +299,14 @@ func (h *Handler) authenticate(username, password string) (bool, model.UserInfo,
 		}
 	}
 	return false, model.UserInfo{}, nil
+}
+
+type oauthManager interface {
+	Handle(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error)
+	AddConfig(providerName string, opts map[string]string) error
+	GetConfigFromRequest(r *http.Request) (oauth2.Config, error)
 }

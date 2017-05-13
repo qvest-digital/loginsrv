@@ -23,28 +23,56 @@ func TestHandler_NewFromConfig(t *testing.T) {
 	testCases := []struct {
 		config       *Config
 		backendCount int
+		oauthCount   int
 		expectError  bool
 	}{
 		{
-			&Config{Backends: Options{"simple": map[string]string{"bob": "secret"}}},
+			&Config{
+				Backends: Options{
+					"simple": {"bob": "secret"},
+				},
+				Oauth: Options{
+					"github": {"client_id": "xxx", "client_secret": "YYY"},
+				},
+			},
 			1,
+			1,
+			false,
+		},
+		{
+			&Config{Backends: Options{"simple": {"bob": "secret"}}},
+			1,
+			0,
 			false,
 		},
 		// error cases
 		{
 			// init error because no users are provided
-			&Config{Backends: Options{"simple": map[string]string{}}},
+			&Config{Backends: Options{"simple": {}}},
 			1,
+			0,
+			true,
+		},
+		{
+			&Config{
+				Oauth: Options{
+					"FOOO": {"client_id": "xxx", "client_secret": "YYY"},
+				},
+			},
+			0,
+			0,
 			true,
 		},
 		{
 			&Config{},
 			0,
+			0,
 			true,
 		},
 		{
-			&Config{Backends: Options{"simpleFoo": map[string]string{"bob": "secret"}}},
+			&Config{Backends: Options{"simpleFoo": {"bob": "secret"}}},
 			1,
+			0,
 			true,
 		},
 	}
@@ -55,7 +83,8 @@ func TestHandler_NewFromConfig(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, 1, len(h.backends))
+				assert.Equal(t, test.backendCount, len(h.backends))
+				assert.Equal(t, test.oauthCount, len(h.oauth.(*oauth2.Manager).GetConfigs()))
 			}
 		})
 	}
@@ -63,14 +92,24 @@ func TestHandler_NewFromConfig(t *testing.T) {
 
 func TestHandler_LoginForm(t *testing.T) {
 	recorder := call(req("GET", "/context/login", ""))
-	assert.Equal(t, recorder.Code, 200)
+	assert.Equal(t, 200, recorder.Code)
 	assert.Contains(t, recorder.Body.String(), `class="container`)
 	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
 func TestHandler_HEAD(t *testing.T) {
 	recorder := call(req("HEAD", "/context/login", ""))
-	assert.Equal(t, recorder.Code, 400)
+	assert.Equal(t, 400, recorder.Code)
+}
+
+func TestHandler_404(t *testing.T) {
+	recorder := call(req("GET", "/context/", ""))
+	assert.Equal(t, 404, recorder.Code)
+
+	recorder = call(req("GET", "/", ""))
+	assert.Equal(t, 404, recorder.Code)
+
+	assert.Equal(t, "Not Found: The requested page does not exist", recorder.Body.String())
 }
 
 func TestHandler_LoginJson(t *testing.T) {
@@ -88,6 +127,73 @@ func TestHandler_LoginJson(t *testing.T) {
 	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
 	assert.Equal(t, 403, recorder.Code)
 	assert.Equal(t, "Wrong credentials", recorder.Body.String())
+}
+
+func TestHandler_HandleOauth(t *testing.T) {
+	managerMock := &oauth2ManagerMock{
+		_GetConfigFromRequest: func(r *http.Request) (oauth2.Config, error) {
+			return oauth2.Config{}, nil
+		},
+	}
+	handler := &Handler{
+		oauth:  managerMock,
+		config: DefaultConfig(),
+	}
+
+	// test start flow redirect
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		w.Header().Set("Location", "http://example.com")
+		w.WriteHeader(303)
+		return true, false, model.UserInfo{}, nil
+	}
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 303, recorder.Code)
+	assert.Equal(t, "http://example.com", recorder.Header().Get("Location"))
+
+	// test authentication
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		return false, true, model.UserInfo{Sub: "marvin"}, nil
+	}
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 200, recorder.Code)
+	token, err := tokenAsMap(recorder.Body.String())
+	assert.NoError(t, err)
+	assert.Equal(t, "marvin", token["sub"])
+
+	// test error in oauth
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		return false, false, model.UserInfo{}, errors.New("some error")
+	}
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 500, recorder.Code)
+
+	// test failure if no oauth action would be taken, because the url parameters where
+	// missing an action parts
+	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error) {
+		return false, false, model.UserInfo{}, nil
+	}
+	recorder = httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
+	assert.Equal(t, 403, recorder.Code)
 }
 
 func TestHandler_LoginWeb(t *testing.T) {
@@ -130,6 +236,21 @@ func TestHandler_Logout(t *testing.T) {
 	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
 
 	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
+}
+
+func TestHandler_CustomLogoutUrl(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.LogoutUrl = "http://example.com"
+	h := &Handler{
+		oauth:  oauth2.NewManager(),
+		config: cfg,
+	}
+
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, req("DELETE", "/login", ""))
+	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+	assert.Equal(t, 303, recorder.Code)
+	assert.Equal(t, "http://example.com", recorder.Header().Get("Location"))
 }
 
 func TestHandler_LoginError(t *testing.T) {
@@ -201,22 +322,26 @@ func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 }
 
 func testHandler() *Handler {
+	cfg := DefaultConfig()
+	cfg.LoginPath = "/context/login"
 	return &Handler{
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
 		},
 		oauth:  oauth2.NewManager(),
-		config: DefaultConfig(),
+		config: cfg,
 	}
 }
 
 func testHandlerWithError() *Handler {
+	cfg := DefaultConfig()
+	cfg.LoginPath = "/context/login"
 	return &Handler{
 		backends: []Backend{
 			errorTestBackend("test error"),
 		},
 		oauth:  oauth2.NewManager(),
-		config: DefaultConfig(),
+		config: cfg,
 	}
 }
 
@@ -249,13 +374,37 @@ func tokenAsMap(tokenString string) (map[string]interface{}, error) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return map[string]interface{}(claims), nil
-	} else {
-		return nil, errors.New("token not valid")
 	}
+	
+	return nil, errors.New("token not valid")
 }
 
 type errorTestBackend string
 
 func (h errorTestBackend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	return false, model.UserInfo{}, errors.New(string(h))
+}
+
+type oauth2ManagerMock struct {
+	_Handle func(w http.ResponseWriter, r *http.Request) (
+		startedFlow bool,
+		authenticated bool,
+		userInfo model.UserInfo,
+		err error)
+	_AddConfig            func(providerName string, opts map[string]string) error
+	_GetConfigFromRequest func(r *http.Request) (oauth2.Config, error)
+}
+
+func (m *oauth2ManagerMock) Handle(w http.ResponseWriter, r *http.Request) (
+	startedFlow bool,
+	authenticated bool,
+	userInfo model.UserInfo,
+	err error) {
+	return m._Handle(w, r)
+}
+func (m *oauth2ManagerMock) AddConfig(providerName string, opts map[string]string) error {
+	return m._AddConfig(providerName, opts)
+}
+func (m *oauth2ManagerMock) GetConfigFromRequest(r *http.Request) (oauth2.Config, error) {
+	return m._GetConfigFromRequest(r)
 }

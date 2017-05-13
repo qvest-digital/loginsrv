@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/tarent/lib-compose/logging"
 	"github.com/tarent/loginsrv/oauth2"
 	"math/rand"
 	"os"
@@ -25,6 +26,8 @@ func DefaultConfig() *Config {
 		LogLevel:       "info",
 		JwtSecret:      jwtDefaultSecret,
 		SuccessUrl:     "/",
+		LogoutUrl:      "",
+		LoginPath:      "/login",
 		CookieName:     "jwt_token",
 		CookieHttpOnly: true,
 		Backends:       Options{},
@@ -41,6 +44,9 @@ type Config struct {
 	TextLogging    bool
 	JwtSecret      string
 	SuccessUrl     string
+	LogoutUrl      string
+	Template       string
+	LoginPath      string
 	CookieName     string
 	CookieHttpOnly bool
 	Backends       Options
@@ -83,16 +89,20 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
 	f.BoolVar(&c.CookieHttpOnly, "cookie-http-only", c.CookieHttpOnly, "Set the cookie with the http only flag")
 	f.StringVar(&c.SuccessUrl, "success-url", c.SuccessUrl, "The url to redirect after login")
+	f.StringVar(&c.LogoutUrl, "logout-url", c.LogoutUrl, "The url or path to redirect after logout")
+	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")
+	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {
+		logging.Logger.Warn("DEPRECATED: '-backend' is no longer supported. Please set the backends by explicit parameters")
 		opts, err := parseOptions(optsKvList)
 		if err != nil {
 			return err
 		}
 		pName, ok := opts["provider"]
 		if !ok {
-			return errors.New("missing provder name provider=..")
+			return errors.New("missing provider name provider=...")
 		}
 		delete(opts, "provider")
 		c.Backends[pName] = opts
@@ -114,7 +124,6 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	for _, pName := range ProviderList() {
 		func(pName string) {
 			setter := setFunc(func(optsKvList string) error {
-				fmt.Printf("set %v\n", pName)
 				return c.addBackendOpts(pName, optsKvList)
 			})
 			desc, _ := GetProviderDescription(pName)

@@ -27,7 +27,7 @@ func SimpleBackendFactory(config map[string]string) (Backend, error) {
 	return NewSimpleBackend(userPassword), nil
 }
 
-// Simple backend, working on a map of username password pairs
+// SimpleBackend working on a map of username password pairs
 type SimpleBackend struct {
 	userPassword map[string]string
 }
