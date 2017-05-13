@@ -27,7 +27,6 @@ func (h *CaddyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, e
 	if strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
 		h.loginHandler.ServeHTTP(w, r)
 		return 0, nil
-	} else {
-		return h.next.ServeHTTP(w, r)
 	}
+	return h.next.ServeHTTP(w, r)
 }

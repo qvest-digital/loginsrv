@@ -90,7 +90,7 @@ func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
 
 	if authenticated {
 		logging.Application(r.Header).
-			WithField("username", userInfo.Sub).Info("sucessfully authenticated")
+			WithField("username", userInfo.Sub).Info("successfully authenticated")
 		h.respondAuthenticated(w, r, userInfo)
 		return
 	}
@@ -153,7 +153,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 		if authenticated {
 			logging.Application(r.Header).
-				WithField("username", username).Info("sucessfully authenticated")
+				WithField("username", username).Info("successfully authenticated")
 			h.respondAuthenticated(w, r, userInfo)
 			return
 		}
