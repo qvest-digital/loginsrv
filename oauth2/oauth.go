@@ -42,7 +42,7 @@ type Config struct {
 	Provider Provider
 }
 
-// Token represents the crendentials used to authorize
+// TokenInfo represents the credentials used to authorize
 // the requests to access protected resources on the OAuth 2.0
 // provider's backend.
 type TokenInfo struct {
@@ -65,7 +65,7 @@ type JsonError struct {
 const stateCookieName = "oauthState"
 const defaultTimeout = 5 * time.Second
 
-// Starts the flow by redirecting the user to the login provider.
+// StartFlow by redirecting the user to the login provider.
 // A state parameter to protect against cross-site request forgery attacks is randomly generated and stored in a cookie
 func StartFlow(cfg Config, w http.ResponseWriter) {
 	values := make(url.Values)
@@ -88,7 +88,7 @@ func StartFlow(cfg Config, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusFound)
 }
 
-// Check the authentication after coming back from the oauth flow.
+// Authenticate after coming back from the oauth flow.
 // Verify the state parameter againt the state cookie from the request.
 func Authenticate(cfg Config, r *http.Request) (TokenInfo, error) {
 	if r.FormValue("error") != "" {

@@ -19,7 +19,7 @@ func GetProvider(providerName string) (Provider, bool) {
 	return p, exist
 }
 
-// GetProvider returns the metainfo for a provider
+// GetProviderDescription returns the metainfo for a provider
 func GetProviderDescription(providerName string) (*ProviderDescription, bool) {
 	p, exist := providerDescription[providerName]
 	return p, exist
@@ -28,7 +28,7 @@ func GetProviderDescription(providerName string) (*ProviderDescription, bool) {
 // ProviderList returns the names of all registered provider
 func ProviderList() []string {
 	list := make([]string, 0, len(provider))
-	for k, _ := range provider {
+	for k := range provider {
 		list = append(list, k)
 	}
 	return list

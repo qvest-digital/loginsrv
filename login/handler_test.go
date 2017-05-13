@@ -374,9 +374,9 @@ func tokenAsMap(tokenString string) (map[string]interface{}, error) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return map[string]interface{}(claims), nil
-	} else {
-		return nil, errors.New("token not valid")
 	}
+	
+	return nil, errors.New("token not valid")
 }
 
 type errorTestBackend string
