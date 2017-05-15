@@ -492,6 +492,9 @@ func readCookiesParts(c *http.Cookie, parts []string) {
 			continue
 		case "max-age":
 			secs, err := strconv.Atoi(val)
+			if err != nil {
+				break
+			}
 			c.MaxAge = secs
 			continue
 		case "expires":
