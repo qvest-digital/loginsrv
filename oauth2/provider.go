@@ -4,7 +4,7 @@ import (
 	"github.com/tarent/loginsrv/model"
 )
 
-// Provider is the descriptoin of an oauth provider adapter
+// Provider is the description of an oauth provider adapter
 type Provider struct {
 	// The name to access the provider in the configuration
 	Name string

@@ -35,7 +35,7 @@ func TestBackend_Authenticate(t *testing.T) {
 	// wrong user credentials
 	backend, err = NewBackend(server.URL, "example-client", "secret")
 	NoError(t, err)
-	authenticated, userInfo, err = backend.Authenticate("admin", "XXX")
+	authenticated, _, err = backend.Authenticate("admin", "XXX")
 	NoError(t, err)
 	False(t, authenticated)
 

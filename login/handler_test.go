@@ -224,7 +224,7 @@ func TestHandler_LoginWeb(t *testing.T) {
 	InDelta(t, time.Now().Add(testConfig().CookieExpiry).Unix(), cookie.Expires.Unix(), 2)
 	True(t, cookie.HttpOnly)
 
-	// check the token contens
+	// check the token content
 	claims, err := tokenAsMap(cookie.Value)
 	NoError(t, err)
 	Equal(t, "bob", claims["sub"])
@@ -463,55 +463,59 @@ func readSetCookies(h http.Header) []*http.Cookie {
 			Raw:   line,
 		}
 
-		for i := 1; i < len(parts); i++ {
-			parts[i] = strings.TrimSpace(parts[i])
-			if len(parts[i]) == 0 {
-				continue
-			}
-			attr, val := parts[i], ""
-			if j := strings.Index(attr, "="); j >= 0 {
-				attr, val = attr[:j], attr[j+1:]
-			}
-			lowerAttr := strings.ToLower(attr)
-			switch lowerAttr {
-			case "secure":
-				c.Secure = true
-				continue
-			case "httponly":
-				c.HttpOnly = true
-				continue
-			case "domain":
-				c.Domain = val
-				continue
-			case "max-age":
-				secs, err := strconv.Atoi(val)
-				if err != nil || secs != 0 && val[0] == '0' {
-					break
-				}
-				if secs <= 0 {
-					secs = -1
-				}
-				c.MaxAge = secs
-				continue
-			case "expires":
-				c.RawExpires = val
-				exptime, err := time.Parse(time.RFC1123, val)
-				if err != nil {
-					exptime, err = time.Parse("Mon, 02-Jan-2006 15:04:05 MST", val)
-					if err != nil {
-						c.Expires = time.Time{}
-						break
-					}
-				}
-				c.Expires = exptime.UTC()
-				continue
-			case "path":
-				c.Path = val
-				continue
-			}
-			c.Unparsed = append(c.Unparsed, parts[i])
-		}
+		readCookiesParts(c, parts)
 		cookies = append(cookies, c)
 	}
 	return cookies
+}
+
+func readCookiesParts(c *http.Cookie, parts []string) {
+	for i := 1; i < len(parts); i++ {
+		parts[i] = strings.TrimSpace(parts[i])
+		if len(parts[i]) == 0 {
+			continue
+		}
+		attr, val := parts[i], ""
+		if j := strings.Index(attr, "="); j >= 0 {
+			attr, val = attr[:j], attr[j+1:]
+		}
+		lowerAttr := strings.ToLower(attr)
+		switch lowerAttr {
+		case "secure":
+			c.Secure = true
+			continue
+		case "httponly":
+			c.HttpOnly = true
+			continue
+		case "domain":
+			c.Domain = val
+			continue
+		case "max-age":
+			secs, err := strconv.Atoi(val)
+			if err != nil || secs != 0 && val[0] == '0' {
+				break
+			}
+			if secs <= 0 {
+				secs = -1
+			}
+			c.MaxAge = secs
+			continue
+		case "expires":
+			c.RawExpires = val
+			exptime, err := time.Parse(time.RFC1123, val)
+			if err != nil {
+				exptime, err = time.Parse("Mon, 02-Jan-2006 15:04:05 MST", val)
+				if err != nil {
+					c.Expires = time.Time{}
+					break
+				}
+			}
+			c.Expires = exptime.UTC()
+			continue
+		case "path":
+			c.Path = val
+			continue
+		}
+		c.Unparsed = append(c.Unparsed, parts[i])
+	}
 }
