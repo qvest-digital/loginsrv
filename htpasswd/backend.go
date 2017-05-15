@@ -6,6 +6,7 @@ import (
 	"github.com/tarent/loginsrv/model"
 )
 
+// ProviderName const
 const ProviderName = "htpasswd"
 
 func init() {
@@ -17,11 +18,12 @@ func init() {
 		BackendFactory)
 }
 
+// BackendFactory creates a htpasswd backend
 func BackendFactory(config map[string]string) (login.Backend, error) {
 	if f, exist := config["file"]; exist {
 		return NewBackend(f)
 	}
-	return nil, errors.New(`missing parameter "file" for htpasswd provider.`)
+	return nil, errors.New(`missing parameter "file" for htpasswd provider`)
 }
 
 // Backend is a htpasswd based authentication backend.
@@ -37,6 +39,7 @@ func NewBackend(filename string) (*Backend, error) {
 	}, err
 }
 
+// Authenticate the user
 func (sb *Backend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	authenticated, err := sb.auth.Authenticate(username, password)
 	if authenticated && err == nil {

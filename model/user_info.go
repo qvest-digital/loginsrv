@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// UserInfo holds the parameters returned by the backends.
+// This information wir be serialized to build the JWT token contents.
 type UserInfo struct {
 	Sub     string `json:"sub"`
 	Picture string `json:"picture,omitempty"`
@@ -14,8 +16,8 @@ type UserInfo struct {
 	Expiry  int64  `json:"exp,omitempty"`
 }
 
-// this interface implementation
-// lets us use the user info as Claim for jwt-go
+// Valid lets us use the user info as Claim for jwt-go.
+// It checks the token expiry.
 func (u UserInfo) Valid() error {
 	if u.Expiry < time.Now().Unix() {
 		return errors.New("token expired")

@@ -3,17 +3,18 @@ package caddy
 import (
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/loginsrv/login"
-	_ "github.com/tarent/loginsrv/osiam"
 	"net/http"
 	"strings"
 )
 
+// CaddyHandler is the loginsrv handler wrapper for caddy
 type CaddyHandler struct {
 	next         httpserver.Handler
 	config       *login.Config
 	loginHandler *login.Handler
 }
 
+// NewCaddyHandler create the handler
 func NewCaddyHandler(next httpserver.Handler, loginHandler *login.Handler, config *login.Config) *CaddyHandler {
 	h := &CaddyHandler{
 		next:         next,

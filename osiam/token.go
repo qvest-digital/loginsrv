@@ -11,7 +11,7 @@ type Token struct {
 	TokenType             string    `json:"token_type"`               // example "bearer"
 	AccessToken           string    `json:"access_token"`             // example "79f479c2-c0d7-458a-8464-7eb887dbc943"
 	RefreshToken          string    `json:"refresh_token"`            // example "3c7c4a87-dc91-4dd0-8ec8-d229a237a47c"
-	ClientId              string    `json:"client_id"`                // example "example-client"
+	ClientID              string    `json:"client_id"`                // example "example-client"
 	UserName              string    `json:"user_name"`                // example "admin"
 	Userid                string    `json:"user_id"`                  // example "84f6cffa-4505-48ec-a851-424160892283"
 	Scope                 string    `json:"scope"`                    // example "ME"
@@ -20,10 +20,12 @@ type Token struct {
 	ExpiresIn             int       `json:"expires_in"`               // example 28795
 }
 
+// Timestamp is a helper class for json handling ht the timestamp
 type Timestamp struct {
 	T time.Time
 }
 
+// UnmarshalJSON does the unmarshaling
 func (timestamp *Timestamp) UnmarshalJSON(b []byte) (err error) {
 	i, err := strconv.ParseInt(string(b), 10, 64)
 	if err != nil {
@@ -33,6 +35,7 @@ func (timestamp *Timestamp) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
+// MarshalJSON does the marshaling
 func (timestamp *Timestamp) MarshalJSON() ([]byte, error) {
 	if timestamp.T.UnixNano() == nilTime {
 		return []byte("null"), nil

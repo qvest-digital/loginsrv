@@ -48,12 +48,12 @@ func Test_Github_getUserInfo(t *testing.T) {
 	}))
 	defer server.Close()
 
-	githubApi = server.URL
+	githubAPI = server.URL
 
-	u, rawJson, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	u, rawJSON, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
 	NoError(t, err)
 	Equal(t, "octocat", u.Sub)
 	Equal(t, "octocat@github.com", u.Email)
 	Equal(t, "monalisa octocat", u.Name)
-	Equal(t, githubTestUserResponse, rawJson)
+	Equal(t, githubTestUserResponse, rawJSON)
 }

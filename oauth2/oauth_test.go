@@ -74,12 +74,12 @@ func Test_Authenticate(t *testing.T) {
 
 func Test_Authenticate_CodeExchangeError(t *testing.T) {
 	var testReturnCode int
-	testResponseJson := `{"error":"bad_verification_code","error_description":"The code passed is incorrect or expired.","error_uri":"https://developer.github.com/v3/oauth/#bad-verification-code"}`
+	testResponseJSON := `{"error":"bad_verification_code","error_description":"The code passed is incorrect or expired.","error_uri":"https://developer.github.com/v3/oauth/#bad-verification-code"}`
 	// mock a server for token exchange
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(testReturnCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(testResponseJson))
+		w.Write([]byte(testResponseJSON))
 	}))
 	defer server.Close()
 
@@ -103,7 +103,7 @@ func Test_Authenticate_CodeExchangeError(t *testing.T) {
 	Equal(t, "", tokenInfo.AccessToken)
 
 	testReturnCode = 200
-	testResponseJson = `{"foo": "bar"}`
+	testResponseJSON = `{"foo": "bar"}`
 	tokenInfo, err = Authenticate(testConfigCopy, request)
 	Error(t, err)
 	EqualError(t, err, `error: no access_token on token exchange`)

@@ -15,9 +15,9 @@ import (
 	"time"
 )
 
-const TypeJson = "Content-Type: application/json"
+const TypeJSON = "Content-Type: application/json"
 const TypeForm = "Content-Type: application/x-www-form-urlencoded"
-const AcceptHtml = "Accept: text/html"
+const AcceptHTML = "Accept: text/html"
 const AcceptJwt = "Accept: application/jwt"
 
 func testConfig() *Config {
@@ -124,7 +124,7 @@ func TestHandler_404(t *testing.T) {
 
 func TestHandler_LoginJson(t *testing.T) {
 	// success
-	recorder := call(req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptJwt))
+	recorder := call(req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJSON, AcceptJwt))
 	Equal(t, 200, recorder.Code)
 	Equal(t, recorder.Header().Get("Content-Type"), "application/jwt")
 
@@ -135,7 +135,7 @@ func TestHandler_LoginJson(t *testing.T) {
 	InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
 
 	// wrong credentials
-	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
+	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJSON, AcceptJwt))
 	Equal(t, 403, recorder.Code)
 	Equal(t, "Wrong credentials", recorder.Body.String())
 }
@@ -209,7 +209,7 @@ func TestHandler_HandleOauth(t *testing.T) {
 
 func TestHandler_LoginWeb(t *testing.T) {
 	// redirectSuccess
-	recorder := call(req("POST", "/context/login", "username=bob&password=secret", TypeForm, AcceptHtml))
+	recorder := call(req("POST", "/context/login", "username=bob&password=secret", TypeForm, AcceptHTML))
 	Equal(t, 303, recorder.Code)
 	Equal(t, "/", recorder.Header().Get("Location"))
 
@@ -231,7 +231,7 @@ func TestHandler_LoginWeb(t *testing.T) {
 	InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
 
 	// show the login form again after authentication failed
-	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
+	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHTML))
 	Equal(t, 403, recorder.Code)
 	Contains(t, recorder.Body.String(), `class="container"`)
 	Equal(t, recorder.Header().Get("Set-Cookie"), "")
@@ -267,9 +267,9 @@ func checkDeleteCookei(t *testing.T, h http.Header) {
 	Equal(t, int64(0), cookie.Expires.Unix())
 }
 
-func TestHandler_CustomLogoutUrl(t *testing.T) {
+func TestHandler_CustomLogoutURL(t *testing.T) {
 	cfg := DefaultConfig()
-	cfg.LogoutUrl = "http://example.com"
+	cfg.LogoutURL = "http://example.com"
 	h := &Handler{
 		oauth:  oauth2.NewManager(),
 		config: cfg,
@@ -286,7 +286,7 @@ func TestHandler_LoginError(t *testing.T) {
 	h := testHandlerWithError()
 
 	// backend returning an error with result type == jwt
-	request := req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptJwt)
+	request := req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJSON, AcceptJwt)
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, request)
 
@@ -295,7 +295,7 @@ func TestHandler_LoginError(t *testing.T) {
 	Equal(t, recorder.Body.String(), "Internal Server Error")
 
 	// backend returning an error with result type == html
-	request = req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptHtml)
+	request = req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJSON, AcceptHTML)
 	recorder = httptest.NewRecorder()
 	h.ServeHTTP(recorder, request)
 

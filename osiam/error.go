@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 )
 
+// OsiamError represents an error response from osiam.
 type OsiamError struct {
 	Error   string
 	Message string
 }
 
+// ParseOsiamError creates an OsiamError out of a json
 func ParseOsiamError(jsonBody []byte) OsiamError {
 	m := map[string]interface{}{}
 	err := json.Unmarshal(jsonBody, &m)
@@ -46,10 +48,12 @@ func ParseOsiamError(jsonBody []byte) OsiamError {
 	return e
 }
 
+// IsLoginError checks, if the grant was invalid
 func (e OsiamError) IsLoginError() bool {
 	return e.Error == "invalid_grant"
 }
 
+// IsUnauthorized checks, if the error reason was Unauthorized
 func (e OsiamError) IsUnauthorized() bool {
 	return e.Error == "Unauthorized"
 }

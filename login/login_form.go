@@ -181,7 +181,7 @@ func writeLoginForm(w http.ResponseWriter, params loginFormData) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Header().Set("Content-Type", contentTypeHtml)
+	w.Header().Set("Content-Type", contentTypeHTML)
 	if params.Error {
 		w.WriteHeader(500)
 	}

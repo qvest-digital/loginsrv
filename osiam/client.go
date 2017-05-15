@@ -9,21 +9,23 @@ import (
 	"strings"
 )
 
+// Client is a wrapper for the osiam API.
 type Client struct {
 	Endpoint     string
-	ClientId     string
+	ClientID     string
 	ClientSecret string
 }
 
-func NewClient(endpoint string, clientId string, clientSecret string) *Client {
+// NewClient for the osiam API.
+func NewClient(endpoint string, clientID string, clientSecret string) *Client {
 	return &Client{
 		Endpoint:     endpoint,
-		ClientId:     clientId,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
 	}
 }
 
-// Do an Osiam authorisation by Resource Owner Password Credentials Grant.
+// GetTokenByPassword does an Osiam authorisation by Resource Owner Password Credentials Grant.
 // If no scopes are supplied, the default scope is 'me'.
 func (c *Client) GetTokenByPassword(username, password string, scopes ...string) (authenticated bool, token *Token, err error) {
 	scopeList := strings.Join(scopes, ",")
@@ -37,7 +39,7 @@ func (c *Client) GetTokenByPassword(username, password string, scopes ...string)
 		return false, nil, err
 	}
 
-	req.SetBasicAuth(c.ClientId, c.ClientSecret)
+	req.SetBasicAuth(c.ClientID, c.ClientSecret)
 	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
 
 	res, err := http.DefaultClient.Do(req)
@@ -50,7 +52,7 @@ func (c *Client) GetTokenByPassword(username, password string, scopes ...string)
 		return false, nil, err
 	}
 
-	if !isJson(res.Header.Get("Content-Type")) {
+	if !isJSON(res.Header.Get("Content-Type")) {
 		bodyStart := string(body)
 		if len(bodyStart) > 50 {
 			bodyStart = bodyStart[0:50]
@@ -80,6 +82,6 @@ func (c *Client) GetTokenByPassword(username, password string, scopes ...string)
 	return false, nil, fmt.Errorf("Osiam error: %v, %v (http status %v)", errorMessage.Error, errorMessage.Message, res.StatusCode)
 }
 
-func isJson(contentType string) bool {
+func isJSON(contentType string) bool {
 	return strings.HasPrefix(contentType, "application/json")
 }

@@ -25,7 +25,7 @@ func TestClient_GetTokenByPassword(t *testing.T) {
 			ExpiresIn:             28493,
 			ExpiresAt:             Timestamp{time.Unix(1479600891424, 0)},
 			RefreshToken:          "15b22304-f838-48c2-9c40-18bf285060a6",
-			ClientId:              "example-client",
+			ClientID:              "example-client",
 			RefreshTokenExpiresAt: Timestamp{time.Unix(1479575304893, 0)},
 			UserName:              "admin",
 			TokenType:             "bearer",

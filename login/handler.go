@@ -14,10 +14,12 @@ import (
 	"time"
 )
 
-const contentTypeHtml = "text/html; charset=utf-8"
+const contentTypeHTML = "text/html; charset=utf-8"
 const contentTypeJWT = "application/jwt"
 const contentTypePlain = "text/plain"
 
+// Handler is the mail login handler.
+// It serves the login ressource and does the authentication against the backends or oauth provider.
 type Handler struct {
 	backends []Backend
 	oauth    oauthManager
@@ -27,7 +29,7 @@ type Handler struct {
 // NewHandler creates a login handler based on the supplied configuration.
 func NewHandler(config *Config) (*Handler, error) {
 	if len(config.Backends) == 0 && len(config.Oauth) == 0 {
-		return nil, errors.New("No login backends or oauth provider configured!")
+		return nil, errors.New("No login backends or oauth provider configured")
 	}
 
 	backends := []Backend{}
@@ -115,8 +117,8 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.Method == "DELETE" || r.FormValue("logout") == "true" {
 		h.deleteToken(w)
-		if h.config.LogoutUrl != "" {
-			w.Header().Set("Location", h.config.LogoutUrl)
+		if h.config.LogoutURL != "" {
+			w.Header().Set("Location", h.config.LogoutURL)
 			w.WriteHeader(303)
 			return
 		}
@@ -187,11 +189,11 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		h.respondError(w, r)
 		return
 	}
-	if wantHtml(r) {
+	if wantHTML(r) {
 		cookie := &http.Cookie{
 			Name:     h.config.CookieName,
 			Value:    token,
-			HttpOnly: h.config.CookieHttpOnly,
+			HttpOnly: h.config.CookieHTTPOnly,
 			Path:     "/",
 		}
 		if h.config.CookieExpiry != 0 {
@@ -201,7 +203,7 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 			cookie.Domain = h.config.CookieDomain
 		}
 		http.SetCookie(w, cookie)
-		w.Header().Set("Location", h.config.SuccessUrl)
+		w.Header().Set("Location", h.config.SuccessURL)
 		w.WriteHeader(303)
 		return
 	}
@@ -238,7 +240,7 @@ func (h *Handler) getToken(r *http.Request) (userInfo model.UserInfo, valid bool
 }
 
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
-	if wantHtml(r) {
+	if wantHTML(r) {
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
 			loginFormData{
@@ -264,8 +266,8 @@ func (h *Handler) respondNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
-	if wantHtml(r) {
-		w.Header().Set("Content-Type", contentTypeHtml)
+	if wantHTML(r) {
+		w.Header().Set("Content-Type", contentTypeHTML)
 		w.WriteHeader(403)
 		username, _, _ := getCredentials(r)
 		writeLoginForm(w,
@@ -281,7 +283,7 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Wrong credentials")
 }
 
-func wantHtml(r *http.Request) bool {
+func wantHTML(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept"), "text/html")
 }
 

@@ -65,6 +65,8 @@ func (manager *Manager) Handle(w http.ResponseWriter, r *http.Request) (
 	return true, false, model.UserInfo{}, nil
 }
 
+// GetConfigFromRequest returns the oauth configuration matching the current path.
+// The configuration name is taken from the last path segment.
 func (manager *Manager) GetConfigFromRequest(r *http.Request) (Config, error) {
 	configName := manager.getConfigNameFromPath(r.URL.Path)
 	cfg, exist := manager.configs[configName]
@@ -73,7 +75,7 @@ func (manager *Manager) GetConfigFromRequest(r *http.Request) (Config, error) {
 	}
 
 	if cfg.RedirectURI == "" {
-		cfg.RedirectURI = redirectUriFromRequest(r)
+		cfg.RedirectURI = redirectURIFromRequest(r)
 	}
 
 	return cfg, nil
@@ -98,17 +100,17 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 		TokenURL: p.TokenURL,
 	}
 
-	if clientId, exist := opts["client_id"]; !exist {
+	clientID, exist := opts["client_id"]
+	if !exist {
 		return fmt.Errorf("missing parameter client_id")
-	} else {
-		cfg.ClientID = clientId
 	}
+	cfg.ClientID = clientID
 
-	if clientSecret, exist := opts["client_secret"]; !exist {
+	clientSecret, exist := opts["client_secret"]
+	if !exist {
 		return fmt.Errorf("missing parameter client_secret")
-	} else {
-		cfg.ClientSecret = clientSecret
 	}
+	cfg.ClientSecret = clientSecret
 
 	if scope, exist := opts["scope"]; exist {
 		cfg.Scope = scope
@@ -122,11 +124,12 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 	return nil
 }
 
+// GetConfigs of the manager
 func (manager *Manager) GetConfigs() map[string]Config {
 	return manager.configs
 }
 
-func redirectUriFromRequest(r *http.Request) string {
+func redirectURIFromRequest(r *http.Request) string {
 	u := url.URL{}
 	u.Path = r.URL.Path
 

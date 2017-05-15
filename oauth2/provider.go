@@ -4,7 +4,7 @@ import (
 	"github.com/tarent/loginsrv/model"
 )
 
-// Oauth provider configuration
+// Provider is the descriptoin of an oauth provider adapter
 type Provider struct {
 	// The name to access the provider in the configuration
 	Name string
@@ -29,7 +29,7 @@ func RegisterProvider(p Provider) {
 	provider[p.Name] = p
 }
 
-// Unregister an Oauth provider
+// UnRegisterProvider removes a provider
 func UnRegisterProvider(name string) {
 	delete(provider, name)
 }

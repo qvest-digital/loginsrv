@@ -57,8 +57,8 @@ type TokenInfo struct {
 	Scope string `json:"scope,omitempty"`
 }
 
-// JsonError represents an oauth error response in json form.
-type JsonError struct {
+// JSONError represents an oauth error response in json form.
+type JSONError struct {
 	Error string `json:"error"`
 }
 
@@ -83,8 +83,8 @@ func StartFlow(cfg Config, w http.ResponseWriter) {
 		HttpOnly: true,
 	})
 
-	targetUrl := cfg.AuthURL + "?" + values.Encode()
-	w.Header().Set("Location", targetUrl)
+	targetURL := cfg.AuthURL + "?" + values.Encode()
+	w.Header().Set("Location", targetURL)
 	w.WriteHeader(http.StatusFound)
 }
 
@@ -133,7 +133,7 @@ func getAccessToken(cfg Config, state, code string) (TokenInfo, error) {
 		return TokenInfo{}, fmt.Errorf("error reading token exchange response: %q", err)
 	}
 
-	jsonError := JsonError{}
+	jsonError := JSONError{}
 	json.Unmarshal(body, &jsonError)
 	if jsonError.Error != "" {
 		return TokenInfo{}, fmt.Errorf("error: got %q on token exchange", jsonError.Error)

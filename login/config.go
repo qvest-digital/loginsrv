@@ -19,6 +19,7 @@ func init() {
 	jwtDefaultSecret = randStringBytes(32)
 }
 
+// DefaultConfig for the loginsrv handler
 func DefaultConfig() *Config {
 	return &Config{
 		Host:           "localhost",
@@ -26,11 +27,11 @@ func DefaultConfig() *Config {
 		LogLevel:       "info",
 		JwtSecret:      jwtDefaultSecret,
 		JwtExpiry:      24 * time.Hour,
-		SuccessUrl:     "/",
-		LogoutUrl:      "",
+		SuccessURL:     "/",
+		LogoutURL:      "",
 		LoginPath:      "/login",
 		CookieName:     "jwt_token",
-		CookieHttpOnly: true,
+		CookieHTTPOnly: true,
 		Backends:       Options{},
 		Oauth:          Options{},
 	}
@@ -38,6 +39,7 @@ func DefaultConfig() *Config {
 
 const envPrefix = "LOGINSRV_"
 
+// Config for the loginsrv handler
 type Config struct {
 	Host           string
 	Port           string
@@ -45,14 +47,14 @@ type Config struct {
 	TextLogging    bool
 	JwtSecret      string
 	JwtExpiry      time.Duration
-	SuccessUrl     string
-	LogoutUrl      string
+	SuccessURL     string
+	LogoutURL      string
 	Template       string
 	LoginPath      string
 	CookieName     string
 	CookieExpiry   time.Duration
 	CookieDomain   string
-	CookieHttpOnly bool
+	CookieHTTPOnly bool
 	Backends       Options
 	Oauth          Options
 }
@@ -92,11 +94,11 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.JwtSecret, "jwt-secret", "random key", "The secret to sign the jwt token")
 	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
-	f.BoolVar(&c.CookieHttpOnly, "cookie-http-only", c.CookieHttpOnly, "Set the cookie with the http only flag")
+	f.BoolVar(&c.CookieHTTPOnly, "cookie-http-only", c.CookieHTTPOnly, "Set the cookie with the http only flag")
 	f.DurationVar(&c.CookieExpiry, "cookie-expiry", c.CookieExpiry, "The expiry duration for the cookie, e.g. 2h or 3h30m. Default is browser session")
 	f.StringVar(&c.CookieDomain, "cookie-domain", c.CookieDomain, "The optional domain parameter for the cookie")
-	f.StringVar(&c.SuccessUrl, "success-url", c.SuccessUrl, "The url to redirect after login")
-	f.StringVar(&c.LogoutUrl, "logout-url", c.LogoutUrl, "The url or path to redirect after logout")
+	f.StringVar(&c.SuccessURL, "success-url", c.SuccessURL, "The url to redirect after login")
+	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")
 	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
 
@@ -139,6 +141,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	}
 }
 
+// ReadConfig from the commandline args
 func ReadConfig() *Config {
 	c, err := readConfig(flag.CommandLine, os.Args[1:])
 	if err != nil {

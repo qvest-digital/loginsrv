@@ -14,11 +14,13 @@ import (
 	"strings"
 )
 
+// Auth is the htpassword authenticater
 type Auth struct {
 	filename string
 	userHash map[string]string
 }
 
+// NewAuth creates an htpassword authenticater
 func NewAuth(filename string) (*Auth, error) {
 	a := &Auth{
 		filename: filename,
@@ -53,6 +55,7 @@ func (a *Auth) parse(filename string) error {
 	return nil
 }
 
+// Authenticate the user
 func (a *Auth) Authenticate(username, password string) (bool, error) {
 	if hash, exist := a.userHash[username]; exist {
 		h := []byte(hash)

@@ -5,6 +5,7 @@ import (
 	"github.com/tarent/loginsrv/login"
 )
 
+// OsiamProviderName const with the name of the provider
 const OsiamProviderName = "osiam"
 
 func init() {

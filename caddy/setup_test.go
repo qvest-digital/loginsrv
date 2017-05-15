@@ -29,10 +29,10 @@ func TestSetup(t *testing.T) {
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
 				JwtExpiry:      24 * time.Hour,
-				SuccessUrl:     "/",
+				SuccessURL:     "/",
 				LoginPath:      "/login",
 				CookieName:     "jwt_token",
-				CookieHttpOnly: true,
+				CookieHTTPOnly: true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -56,12 +56,12 @@ func TestSetup(t *testing.T) {
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
 				JwtExpiry:      42 * time.Hour,
-				SuccessUrl:     "successurl",
+				SuccessURL:     "successurl",
 				LoginPath:      "/foo/bar",
 				CookieName:     "cookiename",
 				CookieDomain:   "example.com",
 				CookieExpiry:   23*time.Hour + 23*time.Minute,
-				CookieHttpOnly: false,
+				CookieHTTPOnly: false,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -86,10 +86,10 @@ func TestSetup(t *testing.T) {
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
 				JwtExpiry:      24 * time.Hour,
-				SuccessUrl:     "/",
+				SuccessURL:     "/",
 				LoginPath:      "/context/login",
 				CookieName:     "cookiename",
-				CookieHttpOnly: true,
+				CookieHTTPOnly: true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -109,10 +109,10 @@ func TestSetup(t *testing.T) {
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
 				JwtExpiry:      24 * time.Hour,
-				SuccessUrl:     "/",
+				SuccessURL:     "/",
 				LoginPath:      "/login",
 				CookieName:     "cookiename",
-				CookieHttpOnly: true,
+				CookieHTTPOnly: true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -130,10 +130,10 @@ func TestSetup(t *testing.T) {
 			config: login.Config{
 				JwtSecret:      "jwtsecret",
 				JwtExpiry:      24 * time.Hour,
-				SuccessUrl:     "/",
+				SuccessURL:     "/",
 				LoginPath:      "/login",
 				CookieName:     "jwt_token",
-				CookieHttpOnly: true,
+				CookieHTTPOnly: true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -155,9 +155,8 @@ func TestSetup(t *testing.T) {
 			if test.shouldErr {
 				Error(t, err, "test ")
 				return
-			} else {
-				NoError(t, err)
 			}
+			NoError(t, err)
 			mids := httpserver.GetConfig(c).Middleware()
 			if len(mids) == 0 {
 				t.Errorf("no middlewares created in test #%v", j)

@@ -217,7 +217,7 @@ func Test_Manager_redirectUriFromRequest(t *testing.T) {
 			if test.tls {
 				r.TLS = &tls.ConnectionState{}
 			}
-			uri := redirectUriFromRequest(r)
+			uri := redirectURIFromRequest(r)
 			Equal(t, test.expected, uri)
 		})
 	}
@@ -237,12 +237,12 @@ func Test_Manager_RedirectURI_Generation(t *testing.T) {
 		startFlowReceivedConfig = cfg
 	}
 
-	callUrl := "http://example.com/login/github"
-	r, _ := http.NewRequest("GET", callUrl, nil)
+	callURL := "http://example.com/login/github"
+	r, _ := http.NewRequest("GET", callURL, nil)
 
 	_, _, _, err := m.Handle(httptest.NewRecorder(), r)
 	NoError(t, err)
-	Equal(t, callUrl, startFlowReceivedConfig.RedirectURI)
+	Equal(t, callURL, startFlowReceivedConfig.RedirectURI)
 }
 
 func assertEqualConfig(t *testing.T, c1, c2 Config) {

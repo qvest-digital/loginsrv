@@ -5,6 +5,7 @@ import (
 	"github.com/tarent/loginsrv/model"
 )
 
+// SimpleProviderName const with the providers name
 const SimpleProviderName = "simple"
 
 func init() {
@@ -16,6 +17,7 @@ func init() {
 		SimpleBackendFactory)
 }
 
+// SimpleBackendFactory returns a new configured SimpleBackend
 func SimpleBackendFactory(config map[string]string) (Backend, error) {
 	userPassword := map[string]string{}
 	for k, v := range config {
@@ -39,6 +41,7 @@ func NewSimpleBackend(userPassword map[string]string) *SimpleBackend {
 	}
 }
 
+// Authenticate the user
 func (sb *SimpleBackend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	if p, exist := sb.userPassword[username]; exist && p == password {
 		return true, model.UserInfo{Sub: username}, nil

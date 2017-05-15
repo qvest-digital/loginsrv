@@ -9,12 +9,13 @@ import (
 	"strings"
 )
 
-var githubApi = "https://api.github.com"
+var githubAPI = "https://api.github.com"
 
 func init() {
 	RegisterProvider(providerGithub)
 }
 
+// GithubUser is used for parsing the github response
 type GithubUser struct {
 	Login     string `json:"login,omitempty"`
 	AvatarURL string `json:"avatar_url,omitempty"`
@@ -28,7 +29,7 @@ var providerGithub = Provider{
 	TokenURL: "https://github.com/login/oauth/access_token",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 		gu := GithubUser{}
-		url := fmt.Sprintf("%v/user?access_token=%v", githubApi, token.AccessToken)
+		url := fmt.Sprintf("%v/user?access_token=%v", githubAPI, token.AccessToken)
 		resp, err := http.Get(url)
 		if err != nil {
 			return model.UserInfo{}, "", err
