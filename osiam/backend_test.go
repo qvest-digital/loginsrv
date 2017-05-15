@@ -28,7 +28,7 @@ func TestBackend_Authenticate(t *testing.T) {
 	// wrong client credentials
 	backend, err = NewBackend(server.URL, "example-client", "XXX")
 	NoError(t, err)
-	authenticated, userInfo, err = backend.Authenticate("admin", "koala")
+	authenticated, _, err = backend.Authenticate("admin", "koala")
 	Error(t, err)
 	False(t, authenticated)
 
