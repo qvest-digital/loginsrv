@@ -2,7 +2,7 @@ package login
 
 import (
 	"flag"
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -16,7 +16,7 @@ func TestConfig_ReadConfigDefaults(t *testing.T) {
 	gotConfig := ReadConfig()
 	defaultConfig.JwtSecret = "random"
 	gotConfig.JwtSecret = "random"
-	assert.Equal(t, defaultConfig, gotConfig)
+	Equal(t, defaultConfig, gotConfig)
 }
 
 func TestConfig_ReadConfig(t *testing.T) {
@@ -68,27 +68,27 @@ func TestConfig_ReadConfig(t *testing.T) {
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, cfg)
+	NoError(t, err)
+	Equal(t, expected, cfg)
 }
 
 func TestConfig_ReadConfigFromEnv(t *testing.T) {
-	assert.NoError(t, os.Setenv("LOGINSRV_HOST", "host"))
-	assert.NoError(t, os.Setenv("LOGINSRV_PORT", "port"))
-	assert.NoError(t, os.Setenv("LOGINSRV_LOG_LEVEL", "loglevel"))
-	assert.NoError(t, os.Setenv("LOGINSRV_TEXT_LOGGING", "true"))
-	assert.NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "jwtsecret"))
-	assert.NoError(t, os.Setenv("LOGINSRV_JWT_EXPIRY", "42h42m"))
-	assert.NoError(t, os.Setenv("LOGINSRV_SUCCESS_URL", "successurl"))
-	assert.NoError(t, os.Setenv("LOGINSRV_LOGOUT_URL", "logouturl"))
-	assert.NoError(t, os.Setenv("LOGINSRV_TEMPLATE", "template"))
-	assert.NoError(t, os.Setenv("LOGINSRV_LOGIN_PATH", "loginpath"))
-	assert.NoError(t, os.Setenv("LOGINSRV_COOKIE_NAME", "cookiename"))
-	assert.NoError(t, os.Setenv("LOGINSRV_COOKIE_EXPIRY", "23m"))
-	assert.NoError(t, os.Setenv("LOGINSRV_COOKIE_DOMAIN", "*.example.com"))
-	assert.NoError(t, os.Setenv("LOGINSRV_COOKIE_HTTP_ONLY", "false"))
-	assert.NoError(t, os.Setenv("LOGINSRV_SIMPLE", "foo=bar"))
-	assert.NoError(t, os.Setenv("LOGINSRV_GITHUB", "client_id=foo,client_secret=bar"))
+	NoError(t, os.Setenv("LOGINSRV_HOST", "host"))
+	NoError(t, os.Setenv("LOGINSRV_PORT", "port"))
+	NoError(t, os.Setenv("LOGINSRV_LOG_LEVEL", "loglevel"))
+	NoError(t, os.Setenv("LOGINSRV_TEXT_LOGGING", "true"))
+	NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "jwtsecret"))
+	NoError(t, os.Setenv("LOGINSRV_JWT_EXPIRY", "42h42m"))
+	NoError(t, os.Setenv("LOGINSRV_SUCCESS_URL", "successurl"))
+	NoError(t, os.Setenv("LOGINSRV_LOGOUT_URL", "logouturl"))
+	NoError(t, os.Setenv("LOGINSRV_TEMPLATE", "template"))
+	NoError(t, os.Setenv("LOGINSRV_LOGIN_PATH", "loginpath"))
+	NoError(t, os.Setenv("LOGINSRV_COOKIE_NAME", "cookiename"))
+	NoError(t, os.Setenv("LOGINSRV_COOKIE_EXPIRY", "23m"))
+	NoError(t, os.Setenv("LOGINSRV_COOKIE_DOMAIN", "*.example.com"))
+	NoError(t, os.Setenv("LOGINSRV_COOKIE_HTTP_ONLY", "false"))
+	NoError(t, os.Setenv("LOGINSRV_SIMPLE", "foo=bar"))
+	NoError(t, os.Setenv("LOGINSRV_GITHUB", "client_id=foo,client_secret=bar"))
 
 	expected := &Config{
 		Host:           "host",
@@ -119,6 +119,6 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
-	assert.NoError(t, err)
-	assert.Equal(t, expected, cfg)
+	NoError(t, err)
+	Equal(t, expected, cfg)
 }

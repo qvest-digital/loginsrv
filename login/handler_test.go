@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
 	"net/http"
@@ -90,11 +90,11 @@ func TestHandler_NewFromConfig(t *testing.T) {
 		t.Run(fmt.Sprintf("test %v", i), func(t *testing.T) {
 			h, err := NewHandler(test.config)
 			if test.expectError {
-				assert.Error(t, err)
+				Error(t, err)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, test.backendCount, len(h.backends))
-				assert.Equal(t, test.oauthCount, len(h.oauth.(*oauth2.Manager).GetConfigs()))
+				NoError(t, err)
+				Equal(t, test.backendCount, len(h.backends))
+				Equal(t, test.oauthCount, len(h.oauth.(*oauth2.Manager).GetConfigs()))
 			}
 		})
 	}
@@ -102,42 +102,42 @@ func TestHandler_NewFromConfig(t *testing.T) {
 
 func TestHandler_LoginForm(t *testing.T) {
 	recorder := call(req("GET", "/context/login", ""))
-	assert.Equal(t, 200, recorder.Code)
-	assert.Contains(t, recorder.Body.String(), `class="container`)
-	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
+	Equal(t, 200, recorder.Code)
+	Contains(t, recorder.Body.String(), `class="container`)
+	Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
 func TestHandler_HEAD(t *testing.T) {
 	recorder := call(req("HEAD", "/context/login", ""))
-	assert.Equal(t, 400, recorder.Code)
+	Equal(t, 400, recorder.Code)
 }
 
 func TestHandler_404(t *testing.T) {
 	recorder := call(req("GET", "/context/", ""))
-	assert.Equal(t, 404, recorder.Code)
+	Equal(t, 404, recorder.Code)
 
 	recorder = call(req("GET", "/", ""))
-	assert.Equal(t, 404, recorder.Code)
+	Equal(t, 404, recorder.Code)
 
-	assert.Equal(t, "Not Found: The requested page does not exist", recorder.Body.String())
+	Equal(t, "Not Found: The requested page does not exist", recorder.Body.String())
 }
 
 func TestHandler_LoginJson(t *testing.T) {
 	// success
 	recorder := call(req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptJwt))
-	assert.Equal(t, 200, recorder.Code)
-	assert.Equal(t, recorder.Header().Get("Content-Type"), "application/jwt")
+	Equal(t, 200, recorder.Code)
+	Equal(t, recorder.Header().Get("Content-Type"), "application/jwt")
 
 	// verify the token
 	claims, err := tokenAsMap(recorder.Body.String())
-	assert.NoError(t, err)
-	assert.Equal(t, "bob", claims["sub"])
-	assert.InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
+	NoError(t, err)
+	Equal(t, "bob", claims["sub"])
+	InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
 
 	// wrong credentials
 	recorder = call(req("POST", "/context/login", `{"username": "bob", "password": "FOOOBAR"}`, TypeJson, AcceptJwt))
-	assert.Equal(t, 403, recorder.Code)
-	assert.Equal(t, "Wrong credentials", recorder.Body.String())
+	Equal(t, 403, recorder.Code)
+	Equal(t, "Wrong credentials", recorder.Body.String())
 }
 
 func TestHandler_HandleOauth(t *testing.T) {
@@ -163,8 +163,8 @@ func TestHandler_HandleOauth(t *testing.T) {
 	}
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
-	assert.Equal(t, 303, recorder.Code)
-	assert.Equal(t, "http://example.com", recorder.Header().Get("Location"))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "http://example.com", recorder.Header().Get("Location"))
 
 	// test authentication
 	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
@@ -176,10 +176,10 @@ func TestHandler_HandleOauth(t *testing.T) {
 	}
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
-	assert.Equal(t, 200, recorder.Code)
+	Equal(t, 200, recorder.Code)
 	token, err := tokenAsMap(recorder.Body.String())
-	assert.NoError(t, err)
-	assert.Equal(t, "marvin", token["sub"])
+	NoError(t, err)
+	Equal(t, "marvin", token["sub"])
 
 	// test error in oauth
 	managerMock._Handle = func(w http.ResponseWriter, r *http.Request) (
@@ -191,7 +191,7 @@ func TestHandler_HandleOauth(t *testing.T) {
 	}
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
-	assert.Equal(t, 500, recorder.Code)
+	Equal(t, 500, recorder.Code)
 
 	// test failure if no oauth action would be taken, because the url parameters where
 	// missing an action parts
@@ -204,67 +204,67 @@ func TestHandler_HandleOauth(t *testing.T) {
 	}
 	recorder = httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req("GET", "/login/github", ""))
-	assert.Equal(t, 403, recorder.Code)
+	Equal(t, 403, recorder.Code)
 }
 
 func TestHandler_LoginWeb(t *testing.T) {
 	// redirectSuccess
 	recorder := call(req("POST", "/context/login", "username=bob&password=secret", TypeForm, AcceptHtml))
-	assert.Equal(t, 303, recorder.Code)
-	assert.Equal(t, "/", recorder.Header().Get("Location"))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "/", recorder.Header().Get("Location"))
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
-	assert.Equal(t, 1, len(setCookieList))
+	Equal(t, 1, len(setCookieList))
 
 	cookie := setCookieList[0]
-	assert.Equal(t, "jwt_token", cookie.Name)
-	assert.Equal(t, "/", cookie.Path)
-	assert.Equal(t, "example.com", cookie.Domain)
-	assert.InDelta(t, time.Now().Add(testConfig().CookieExpiry).Unix(), cookie.Expires.Unix(), 2)
-	assert.True(t, cookie.HttpOnly)
+	Equal(t, "jwt_token", cookie.Name)
+	Equal(t, "/", cookie.Path)
+	Equal(t, "example.com", cookie.Domain)
+	InDelta(t, time.Now().Add(testConfig().CookieExpiry).Unix(), cookie.Expires.Unix(), 2)
+	True(t, cookie.HttpOnly)
 
 	// check the token contens
 	claims, err := tokenAsMap(cookie.Value)
-	assert.NoError(t, err)
-	assert.Equal(t, "bob", claims["sub"])
-	assert.InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
+	NoError(t, err)
+	Equal(t, "bob", claims["sub"])
+	InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
 
 	// show the login form again after authentication failed
 	recorder = call(req("POST", "/context/login", "username=bob&password=FOOBAR", TypeForm, AcceptHtml))
-	assert.Equal(t, 403, recorder.Code)
-	assert.Contains(t, recorder.Body.String(), `class="container"`)
-	assert.Equal(t, recorder.Header().Get("Set-Cookie"), "")
+	Equal(t, 403, recorder.Code)
+	Contains(t, recorder.Body.String(), `class="container"`)
+	Equal(t, recorder.Header().Get("Set-Cookie"), "")
 }
 
 func TestHandler_Logout(t *testing.T) {
 	// DELETE
 	recorder := call(req("DELETE", "/context/login", ""))
-	assert.Equal(t, 200, recorder.Code)
+	Equal(t, 200, recorder.Code)
 	checkDeleteCookei(t, recorder.Header())
 
 	// GET  + param
 	recorder = call(req("GET", "/context/login?logout=true", ""))
-	assert.Equal(t, 200, recorder.Code)
+	Equal(t, 200, recorder.Code)
 	checkDeleteCookei(t, recorder.Header())
 
 	// POST + param
 	recorder = call(req("POST", "/context/login", "logout=true", TypeForm))
-	assert.Equal(t, 200, recorder.Code)
+	Equal(t, 200, recorder.Code)
 	checkDeleteCookei(t, recorder.Header())
 
-	assert.Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
+	Equal(t, "no-cache, no-store, must-revalidate", recorder.Header().Get("Cache-Control"))
 }
 
 func checkDeleteCookei(t *testing.T, h http.Header) {
 	setCookieList := readSetCookies(h)
-	assert.Equal(t, 1, len(setCookieList))
+	Equal(t, 1, len(setCookieList))
 	cookie := setCookieList[0]
 
-	assert.Equal(t, "jwt_token", cookie.Name)
-	assert.Equal(t, "/", cookie.Path)
-	assert.Equal(t, "example.com", cookie.Domain)
-	assert.Equal(t, int64(0), cookie.Expires.Unix())
+	Equal(t, "jwt_token", cookie.Name)
+	Equal(t, "/", cookie.Path)
+	Equal(t, "example.com", cookie.Domain)
+	Equal(t, int64(0), cookie.Expires.Unix())
 }
 
 func TestHandler_CustomLogoutUrl(t *testing.T) {
@@ -277,9 +277,9 @@ func TestHandler_CustomLogoutUrl(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, req("DELETE", "/login", ""))
-	assert.Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
-	assert.Equal(t, 303, recorder.Code)
-	assert.Equal(t, "http://example.com", recorder.Header().Get("Location"))
+	Contains(t, recorder.Header().Get("Set-Cookie"), "jwt_token=delete; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;")
+	Equal(t, 303, recorder.Code)
+	Equal(t, "http://example.com", recorder.Header().Get("Location"))
 }
 
 func TestHandler_LoginError(t *testing.T) {
@@ -290,39 +290,39 @@ func TestHandler_LoginError(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, request)
 
-	assert.Equal(t, 500, recorder.Code)
-	assert.Equal(t, recorder.Header().Get("Content-Type"), "text/plain")
-	assert.Equal(t, recorder.Body.String(), "Internal Server Error")
+	Equal(t, 500, recorder.Code)
+	Equal(t, recorder.Header().Get("Content-Type"), "text/plain")
+	Equal(t, recorder.Body.String(), "Internal Server Error")
 
 	// backend returning an error with result type == html
 	request = req("POST", "/context/login", `{"username": "bob", "password": "secret"}`, TypeJson, AcceptHtml)
 	recorder = httptest.NewRecorder()
 	h.ServeHTTP(recorder, request)
 
-	assert.Equal(t, 500, recorder.Code)
-	assert.Contains(t, recorder.Header().Get("Content-Type"), "text/html")
-	assert.Contains(t, recorder.Body.String(), `class="container"`)
-	assert.Contains(t, recorder.Body.String(), "Internal Error")
+	Equal(t, 500, recorder.Code)
+	Contains(t, recorder.Header().Get("Content-Type"), "text/html")
+	Contains(t, recorder.Body.String(), `class="container"`)
+	Contains(t, recorder.Body.String(), "Internal Error")
 }
 
 func TestHandler_getToken_Valid(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
 	token, err := h.createToken(input)
-	assert.NoError(t, err)
+	NoError(t, err)
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
 	userInfo, valid := h.getToken(r)
-	assert.True(t, valid)
-	assert.Equal(t, input, userInfo)
+	True(t, valid)
+	Equal(t, input, userInfo)
 }
 
 func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin"}
 	token, err := h.createToken(input)
-	assert.NoError(t, err)
+	NoError(t, err)
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
@@ -331,7 +331,7 @@ func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	h.config.JwtSecret = "foobar"
 
 	_, valid := h.getToken(r)
-	assert.False(t, valid)
+	False(t, valid)
 }
 
 func TestHandler_getToken_InvalidToken(t *testing.T) {
@@ -341,13 +341,13 @@ func TestHandler_getToken_InvalidToken(t *testing.T) {
 	}
 
 	_, valid := h.getToken(r)
-	assert.False(t, valid)
+	False(t, valid)
 }
 
 func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 	h := testHandler()
 	_, valid := h.getToken(&http.Request{})
-	assert.False(t, valid)
+	False(t, valid)
 }
 
 func testHandler() *Handler {

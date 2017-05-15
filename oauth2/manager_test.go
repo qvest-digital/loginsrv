@@ -3,7 +3,7 @@ package oauth2
 import (
 	"crypto/tls"
 	"errors"
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
@@ -21,7 +21,7 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 		TokenURL: "https://example.com/login/oauth/access_token",
 		GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 			getUserInfoCalled = true
-			assert.Equal(t, token, expectedToken)
+			Equal(t, token, expectedToken)
 			return model.UserInfo{
 				Sub: "the-username",
 			}, "", nil
@@ -63,13 +63,13 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://example.com/login/"+exampleProvider.Name, nil)
 
 	startedFlow, authenticated, userInfo, err := m.Handle(httptest.NewRecorder(), r)
-	assert.NoError(t, err)
-	assert.True(t, startedFlow)
-	assert.False(t, authenticated)
-	assert.Equal(t, model.UserInfo{}, userInfo)
+	NoError(t, err)
+	True(t, startedFlow)
+	False(t, authenticated)
+	Equal(t, model.UserInfo{}, userInfo)
 
-	assert.True(t, startFlowCalled)
-	assert.False(t, authenticateCalled)
+	True(t, startFlowCalled)
+	False(t, authenticateCalled)
 
 	assertEqualConfig(t, expectedConfig, startFlowReceivedConfig)
 
@@ -77,14 +77,14 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	r, _ = http.NewRequest("GET", "http://example.com/login/"+exampleProvider.Name+"?code=xyz", nil)
 
 	startedFlow, authenticated, userInfo, err = m.Handle(httptest.NewRecorder(), r)
-	assert.NoError(t, err)
-	assert.False(t, startedFlow)
-	assert.True(t, authenticated)
-	assert.Equal(t, model.UserInfo{Sub: "the-username"}, userInfo)
-	assert.True(t, authenticateCalled)
+	NoError(t, err)
+	False(t, startedFlow)
+	True(t, authenticated)
+	Equal(t, model.UserInfo{Sub: "the-username"}, userInfo)
+	True(t, authenticateCalled)
 	assertEqualConfig(t, expectedConfig, authenticateReceivedConfig)
 
-	assert.True(t, getUserInfoCalled)
+	True(t, getUserInfoCalled)
 }
 
 func Test_Manager_NoAauthOnWrongCode(t *testing.T) {
@@ -117,12 +117,12 @@ func Test_Manager_NoAauthOnWrongCode(t *testing.T) {
 	r, _ := http.NewRequest("GET", "http://example.com/login/"+exampleProvider.Name+"?code=xyz", nil)
 
 	startedFlow, authenticated, userInfo, err := m.Handle(httptest.NewRecorder(), r)
-	assert.EqualError(t, err, "code not valid")
-	assert.False(t, startedFlow)
-	assert.False(t, authenticated)
-	assert.Equal(t, model.UserInfo{}, userInfo)
-	assert.True(t, authenticateCalled)
-	assert.False(t, getUserInfoCalled)
+	EqualError(t, err, "code not valid")
+	False(t, startedFlow)
+	False(t, authenticated)
+	Equal(t, model.UserInfo{}, userInfo)
+	True(t, authenticateCalled)
+	False(t, getUserInfoCalled)
 }
 
 func Test_Manager_getConfig_ErrorCase(t *testing.T) {
@@ -135,19 +135,19 @@ func Test_Manager_getConfig_ErrorCase(t *testing.T) {
 	})
 
 	_, err := m.GetConfigFromRequest(r)
-	assert.EqualError(t, err, "no oauth configuration for login")
+	EqualError(t, err, "no oauth configuration for login")
 }
 
 func Test_Manager_AddConfig_ErrorCases(t *testing.T) {
 	m := NewManager()
 
-	assert.NoError(t,
+	NoError(t,
 		m.AddConfig("github", map[string]string{
 			"client_id":     "foo",
 			"client_secret": "bar",
 		}))
 
-	assert.EqualError(t,
+	EqualError(t,
 		m.AddConfig("FOOOO", map[string]string{
 			"client_id":     "foo",
 			"client_secret": "bar",
@@ -155,14 +155,14 @@ func Test_Manager_AddConfig_ErrorCases(t *testing.T) {
 		"no provider for name FOOOO",
 	)
 
-	assert.EqualError(t,
+	EqualError(t,
 		m.AddConfig("github", map[string]string{
 			"client_secret": "bar",
 		}),
 		"missing parameter client_id",
 	)
 
-	assert.EqualError(t,
+	EqualError(t,
 		m.AddConfig("github", map[string]string{
 			"client_id": "foo",
 		}),
@@ -218,7 +218,7 @@ func Test_Manager_redirectUriFromRequest(t *testing.T) {
 				r.TLS = &tls.ConnectionState{}
 			}
 			uri := redirectUriFromRequest(r)
-			assert.Equal(t, test.expected, uri)
+			Equal(t, test.expected, uri)
 		})
 	}
 }
@@ -241,16 +241,16 @@ func Test_Manager_RedirectURI_Generation(t *testing.T) {
 	r, _ := http.NewRequest("GET", callUrl, nil)
 
 	_, _, _, err := m.Handle(httptest.NewRecorder(), r)
-	assert.NoError(t, err)
-	assert.Equal(t, callUrl, startFlowReceivedConfig.RedirectURI)
+	NoError(t, err)
+	Equal(t, callUrl, startFlowReceivedConfig.RedirectURI)
 }
 
 func assertEqualConfig(t *testing.T, c1, c2 Config) {
-	assert.Equal(t, c1.AuthURL, c2.AuthURL)
-	assert.Equal(t, c1.ClientID, c2.ClientID)
-	assert.Equal(t, c1.ClientSecret, c2.ClientSecret)
-	assert.Equal(t, c1.Scope, c2.Scope)
-	assert.Equal(t, c1.RedirectURI, c2.RedirectURI)
-	assert.Equal(t, c1.TokenURL, c2.TokenURL)
-	assert.Equal(t, c1.Provider.Name, c2.Provider.Name)
+	Equal(t, c1.AuthURL, c2.AuthURL)
+	Equal(t, c1.ClientID, c2.ClientID)
+	Equal(t, c1.ClientSecret, c2.ClientSecret)
+	Equal(t, c1.Scope, c2.Scope)
+	Equal(t, c1.RedirectURI, c2.RedirectURI)
+	Equal(t, c1.TokenURL, c2.TokenURL)
+	Equal(t, c1.Provider.Name, c2.Provider.Name)
 }

@@ -1,21 +1,21 @@
 package login
 
 import (
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSetup(t *testing.T) {
 	p, exist := GetProvider(SimpleProviderName)
-	assert.True(t, exist)
-	assert.NotNil(t, p)
+	True(t, exist)
+	NotNil(t, p)
 
 	backend, err := p(map[string]string{
 		"bob": "secret",
 	})
 
-	assert.NoError(t, err)
-	assert.Equal(t,
+	NoError(t, err)
+	Equal(t,
 		map[string]string{
 			"bob": "secret",
 		},
@@ -28,17 +28,17 @@ func TestSimpleBackend_Authenticate(t *testing.T) {
 	})
 
 	authenticated, userInfo, err := backend.Authenticate("bob", "secret")
-	assert.True(t, authenticated)
-	assert.Equal(t, "bob", userInfo.Sub)
-	assert.NoError(t, err)
+	True(t, authenticated)
+	Equal(t, "bob", userInfo.Sub)
+	NoError(t, err)
 
 	authenticated, userInfo, err = backend.Authenticate("bob", "fooo")
-	assert.False(t, authenticated)
-	assert.Equal(t, "", userInfo.Sub)
-	assert.NoError(t, err)
+	False(t, authenticated)
+	Equal(t, "", userInfo.Sub)
+	NoError(t, err)
 
 	authenticated, userInfo, err = backend.Authenticate("", "")
-	assert.False(t, authenticated)
-	assert.Equal(t, "", userInfo.Sub)
-	assert.NoError(t, err)
+	False(t, authenticated)
+	Equal(t, "", userInfo.Sub)
+	NoError(t, err)
 }

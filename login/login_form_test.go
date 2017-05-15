@@ -1,7 +1,7 @@
 package login
 
 import (
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"net/http/httptest"
@@ -19,10 +19,10 @@ func Test_form(t *testing.T) {
 			Backends:  Options{"simple": {}},
 		},
 	})
-	assert.Contains(t, recorder.Body.String(), `<form`)
-	assert.NotContains(t, recorder.Body.String(), `github`)
-	assert.NotContains(t, recorder.Body.String(), `Welcome`)
-	assert.Contains(t, recorder.Body.String(), `Error`)
+	Contains(t, recorder.Body.String(), `<form`)
+	NotContains(t, recorder.Body.String(), `github`)
+	NotContains(t, recorder.Body.String(), `Welcome`)
+	Contains(t, recorder.Body.String(), `Error`)
 
 	// only form
 	recorder = httptest.NewRecorder()
@@ -32,10 +32,10 @@ func Test_form(t *testing.T) {
 			Backends:  Options{"simple": {}},
 		},
 	})
-	assert.Contains(t, recorder.Body.String(), `<form`)
-	assert.NotContains(t, recorder.Body.String(), `github`)
-	assert.NotContains(t, recorder.Body.String(), `Welcome`)
-	assert.NotContains(t, recorder.Body.String(), `Error`)
+	Contains(t, recorder.Body.String(), `<form`)
+	NotContains(t, recorder.Body.String(), `github`)
+	NotContains(t, recorder.Body.String(), `Welcome`)
+	NotContains(t, recorder.Body.String(), `Error`)
 
 	// only links
 	recorder = httptest.NewRecorder()
@@ -45,10 +45,10 @@ func Test_form(t *testing.T) {
 			Oauth:     Options{"github": {}},
 		},
 	})
-	assert.NotContains(t, recorder.Body.String(), `<form`)
-	assert.Contains(t, recorder.Body.String(), `href="/login/github"`)
-	assert.NotContains(t, recorder.Body.String(), `Welcome`)
-	assert.NotContains(t, recorder.Body.String(), `Error`)
+	NotContains(t, recorder.Body.String(), `<form`)
+	Contains(t, recorder.Body.String(), `href="/login/github"`)
+	NotContains(t, recorder.Body.String(), `Welcome`)
+	NotContains(t, recorder.Body.String(), `Error`)
 
 	// with form and links
 	recorder = httptest.NewRecorder()
@@ -59,10 +59,10 @@ func Test_form(t *testing.T) {
 			Oauth:     Options{"github": {}},
 		},
 	})
-	assert.Contains(t, recorder.Body.String(), `<form`)
-	assert.Contains(t, recorder.Body.String(), `href="/login/github"`)
-	assert.NotContains(t, recorder.Body.String(), `Welcome`)
-	assert.NotContains(t, recorder.Body.String(), `Error`)
+	Contains(t, recorder.Body.String(), `<form`)
+	Contains(t, recorder.Body.String(), `href="/login/github"`)
+	NotContains(t, recorder.Body.String(), `Welcome`)
+	NotContains(t, recorder.Body.String(), `Error`)
 
 	// show only the user info
 	recorder = httptest.NewRecorder()
@@ -75,21 +75,21 @@ func Test_form(t *testing.T) {
 			Oauth:     Options{"github": {}},
 		},
 	})
-	assert.NotContains(t, recorder.Body.String(), `<form`)
-	assert.NotContains(t, recorder.Body.String(), `href="/login/github"`)
-	assert.Contains(t, recorder.Body.String(), `Welcome smancke`)
-	assert.NotContains(t, recorder.Body.String(), `Error`)
+	NotContains(t, recorder.Body.String(), `<form`)
+	NotContains(t, recorder.Body.String(), `href="/login/github"`)
+	Contains(t, recorder.Body.String(), `Welcome smancke`)
+	NotContains(t, recorder.Body.String(), `Error`)
 }
 
 func Test_form_executeError(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	writeLoginForm(recorder, loginFormData{})
-	assert.Equal(t, 500, recorder.Code)
+	Equal(t, 500, recorder.Code)
 }
 
 func Test_form_customTemplate(t *testing.T) {
 	f, err := ioutil.TempFile("", "")
-	assert.NoError(t, err)
+	NoError(t, err)
 	f.WriteString(`<html><body>My custom template {{template "login" .}}</body></html>`)
 	f.Close()
 	defer os.Remove(f.Name())
@@ -103,17 +103,17 @@ func Test_form_customTemplate(t *testing.T) {
 			Template:  f.Name(),
 		},
 	})
-	assert.Contains(t, recorder.Body.String(), `My custom template`)
-	assert.Contains(t, recorder.Body.String(), `<form`)
-	assert.NotContains(t, recorder.Body.String(), `github`)
-	assert.NotContains(t, recorder.Body.String(), `Welcome`)
-	assert.NotContains(t, recorder.Body.String(), `Error`)
-	assert.NotContains(t, recorder.Body.String(), `style`)
+	Contains(t, recorder.Body.String(), `My custom template`)
+	Contains(t, recorder.Body.String(), `<form`)
+	NotContains(t, recorder.Body.String(), `github`)
+	NotContains(t, recorder.Body.String(), `Welcome`)
+	NotContains(t, recorder.Body.String(), `Error`)
+	NotContains(t, recorder.Body.String(), `style`)
 }
 
 func Test_form_customTemplate_ParseError(t *testing.T) {
 	f, err := ioutil.TempFile("", "")
-	assert.NoError(t, err)
+	NoError(t, err)
 	f.WriteString(`<html><body>My custom template {{template "login" `)
 	f.Close()
 	defer os.Remove(f.Name())
@@ -126,7 +126,7 @@ func Test_form_customTemplate_ParseError(t *testing.T) {
 			Template:  f.Name(),
 		},
 	})
-	assert.Equal(t, 500, recorder.Code)
+	Equal(t, 500, recorder.Code)
 }
 
 func Test_form_customTemplate_MissingFile(t *testing.T) {
@@ -136,11 +136,11 @@ func Test_form_customTemplate_MissingFile(t *testing.T) {
 			Template: "/this/file/does/not/exist",
 		},
 	})
-	assert.Equal(t, 500, recorder.Code)
+	Equal(t, 500, recorder.Code)
 }
 
 func Test_ucfirst(t *testing.T) {
-	assert.Equal(t, "", ucfirst(""))
-	assert.Equal(t, "A", ucfirst("a"))
-	assert.Equal(t, "Abc def", ucfirst("abc def"))
+	Equal(t, "", ucfirst(""))
+	Equal(t, "A", ucfirst("a"))
+	Equal(t, "Abc def", ucfirst("abc def"))
 }

@@ -2,7 +2,7 @@ package osiam
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -17,9 +17,9 @@ func TestClient_GetTokenByPassword(t *testing.T) {
 	client := NewClient(server.URL, "example-client", "secret")
 	authenticated, token, err := client.GetTokenByPassword("admin", "koala")
 
-	assert.NoError(t, err)
-	assert.True(t, authenticated)
-	assert.Equal(t,
+	NoError(t, err)
+	True(t, authenticated)
+	Equal(t,
 		&Token{
 			Userid:                "84f6cffa-4505-48ec-a851-424160892283",
 			ExpiresIn:             28493,
@@ -33,8 +33,8 @@ func TestClient_GetTokenByPassword(t *testing.T) {
 			Scope:                 "ME",
 		},
 		token)
-	assert.True(t, len(token.RefreshToken) > 0)
-	assert.True(t, token.ExpiresIn > 0)
+	True(t, len(token.RefreshToken) > 0)
+	True(t, token.ExpiresIn > 0)
 }
 
 func TestClient_GetTokenByPasswordErrorCases(t *testing.T) {
@@ -44,23 +44,23 @@ func TestClient_GetTokenByPasswordErrorCases(t *testing.T) {
 	// wrong credentials
 	client := NewClient(server.URL, "example-client", "secret")
 	authenticated, _, err := client.GetTokenByPassword("admin", "XXX")
-	assert.NoError(t, err)
-	assert.False(t, authenticated)
+	NoError(t, err)
+	False(t, authenticated)
 
 	// wrong url -> 404
 	client = NewClient(server.URL+"/Foo", "example-client", "secret")
 	_, _, err = client.GetTokenByPassword("admin", "koala")
-	assert.Error(t, err)
+	Error(t, err)
 
 	// wrong client secret
 	client = NewClient(server.URL, "example-client", "XXX")
 	_, _, err = client.GetTokenByPassword("admin", "koala")
-	assert.Error(t, err)
+	Error(t, err)
 
 	// invalid url
 	client = NewClient("://", "example-client", "secret")
 	_, _, err = client.GetTokenByPassword("admin", "koala")
-	assert.Error(t, err)
+	Error(t, err)
 
 }
 
@@ -75,7 +75,7 @@ func TestClient_GetTokenByPasswordInvalidJson(t *testing.T) {
 
 	client := NewClient(server.URL, "example-client", "secret")
 	_, _, err := client.GetTokenByPassword("admin", "koala")
-	assert.Error(t, err)
+	Error(t, err)
 }
 
 func TestClient_GetTokenByPasswordUnknownError(t *testing.T) {
@@ -89,7 +89,7 @@ func TestClient_GetTokenByPasswordUnknownError(t *testing.T) {
 
 	client := NewClient(server.URL, "example-client", "secret")
 	_, _, err := client.GetTokenByPassword("admin", "koala")
-	assert.Error(t, err)
+	Error(t, err)
 }
 
 func TestClient_GetTokenByPasswordNoServer(t *testing.T) {
@@ -99,7 +99,7 @@ func TestClient_GetTokenByPasswordNoServer(t *testing.T) {
 
 	client := NewClient(server.URL, "example-client", "secret")
 	_, _, err := client.GetTokenByPassword("admin", "koala")
-	assert.Error(t, err)
+	Error(t, err)
 }
 
 func osiamMockHandler(w http.ResponseWriter, r *http.Request) {

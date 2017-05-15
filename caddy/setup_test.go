@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/login"
 	"io/ioutil"
 	"os"
@@ -153,10 +153,10 @@ func TestSetup(t *testing.T) {
 			c := caddy.NewTestController("http", test.input)
 			err := setup(c)
 			if test.shouldErr {
-				assert.Error(t, err, "test ")
+				Error(t, err, "test ")
 				return
 			} else {
-				assert.NoError(t, err)
+				NoError(t, err)
 			}
 			mids := httpserver.GetConfig(c).Middleware()
 			if len(mids) == 0 {
@@ -164,7 +164,7 @@ func TestSetup(t *testing.T) {
 				return
 			}
 			middleware := mids[len(mids)-1](nil).(*CaddyHandler)
-			assert.Equal(t, &test.config, middleware.config)
+			Equal(t, &test.config, middleware.config)
 		})
 	}
 }
@@ -180,12 +180,12 @@ func TestSetup_RelativeTemplateFile(t *testing.T) {
 	config.Root = root
 
 	err := setup(c)
-	assert.NoError(t, err)
+	NoError(t, err)
 	mids := httpserver.GetConfig(c).Middleware()
 	if len(mids) == 0 {
 		t.Errorf("no middlewares created")
 	}
 	middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 
-	assert.Equal(t, expectedPath, middleware.config.Template)
+	Equal(t, expectedPath, middleware.config.Template)
 }

@@ -2,7 +2,7 @@ package osiam
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -35,8 +35,8 @@ var testTokenString = `{
 func TestClient_TokenMarshaling(t *testing.T) {
 	tk := &Token{}
 	json.Unmarshal([]byte(testTokenString), tk)
-	assert.Equal(t, testToken, tk)
+	Equal(t, testToken, tk)
 
 	_, err := json.Marshal(tk)
-	assert.NoError(t, err)
+	NoError(t, err)
 }

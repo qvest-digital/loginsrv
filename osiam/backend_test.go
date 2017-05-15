@@ -1,7 +1,7 @@
 package osiam
 
 import (
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
@@ -14,12 +14,12 @@ func TestBackend_Authenticate(t *testing.T) {
 
 	// positive case
 	backend, err := NewBackend(server.URL, "example-client", "secret")
-	assert.NoError(t, err)
+	NoError(t, err)
 	authenticated, userInfo, err := backend.Authenticate("admin", "koala")
 
-	assert.NoError(t, err)
-	assert.True(t, authenticated)
-	assert.Equal(t,
+	NoError(t, err)
+	True(t, authenticated)
+	Equal(t,
 		model.UserInfo{
 			Sub: "admin",
 		},
@@ -27,27 +27,27 @@ func TestBackend_Authenticate(t *testing.T) {
 
 	// wrong client credentials
 	backend, err = NewBackend(server.URL, "example-client", "XXX")
-	assert.NoError(t, err)
+	NoError(t, err)
 	authenticated, userInfo, err = backend.Authenticate("admin", "koala")
-	assert.Error(t, err)
-	assert.False(t, authenticated)
+	Error(t, err)
+	False(t, authenticated)
 
 	// wrong user credentials
 	backend, err = NewBackend(server.URL, "example-client", "secret")
-	assert.NoError(t, err)
+	NoError(t, err)
 	authenticated, userInfo, err = backend.Authenticate("admin", "XXX")
-	assert.NoError(t, err)
-	assert.False(t, authenticated)
+	NoError(t, err)
+	False(t, authenticated)
 
 }
 
 func TestBackend_AuthenticateErrorCases(t *testing.T) {
 	_, err := NewBackend("://", "example-client", "secret")
-	assert.Error(t, err)
+	Error(t, err)
 
 	_, err = NewBackend("http://example.com", "", "secret")
-	assert.Error(t, err)
+	Error(t, err)
 
 	_, err = NewBackend("http://example.com", "example-client", "")
-	assert.Error(t, err)
+	Error(t, err)
 }

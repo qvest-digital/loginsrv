@@ -1,7 +1,7 @@
 package oauth2
 
 import (
-	"github.com/stretchr/testify/assert"
+	. "github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -42,7 +42,7 @@ var githubTestUserResponse = `{
 
 func Test_Github_getUserInfo(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "secret", r.FormValue("access_token"))
+		Equal(t, "secret", r.FormValue("access_token"))
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write([]byte(githubTestUserResponse))
 	}))
@@ -51,9 +51,9 @@ func Test_Github_getUserInfo(t *testing.T) {
 	githubApi = server.URL
 
 	u, rawJson, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
-	assert.NoError(t, err)
-	assert.Equal(t, "octocat", u.Sub)
-	assert.Equal(t, "octocat@github.com", u.Email)
-	assert.Equal(t, "monalisa octocat", u.Name)
-	assert.Equal(t, githubTestUserResponse, rawJson)
+	NoError(t, err)
+	Equal(t, "octocat", u.Sub)
+	Equal(t, "octocat@github.com", u.Email)
+	Equal(t, "monalisa octocat", u.Name)
+	Equal(t, githubTestUserResponse, rawJson)
 }
