@@ -70,7 +70,7 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 		if strings.HasPrefix(hash, "$apr1$") {
 			return compareMD5(h, p), nil
 		}
-		return false, fmt.Errorf("unknown algorythm for user %q", username)
+		return false, fmt.Errorf("unknown algorithm for user %q", username)
 	}
 	return false, nil
 }
