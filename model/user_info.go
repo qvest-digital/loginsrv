@@ -6,7 +6,7 @@ import (
 )
 
 // UserInfo holds the parameters returned by the backends.
-// This information wir be serialized to build the JWT token contents.
+// This information will be serialized to build the JWT token contents.
 type UserInfo struct {
 	Sub     string `json:"sub"`
 	Picture string `json:"picture,omitempty"`

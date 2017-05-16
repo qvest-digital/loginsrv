@@ -28,7 +28,7 @@ The following providers (login backends) are supported.
 * [Simple](#simple) (user/password pairs by configuration)
 * [Oauth2](#oauth2)
   * Github Login
-  * .. google and facebook will come soon ..
+  * .. Google and Facebook will come soon ..
   
 ## Questions
 
@@ -39,7 +39,7 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
 ## Configuration and Startup
 ### Config Options
 
-_Note for caddy users_: Not all parameters are available in caddy. See the table for details. Incaddy, the parameter names can be also be used with `_` in the names, e.g. `cookie_http_only`.
+_Note for Caddy users_: Not all parameters are available in Caddy. See the table for details. With Caddy, the parameter names can be also be used with `_` in the names, e.g. `cookie_http_only`.
 
 | Parameter         | Type        | Default      | Caddy | Description                                                                          |
 |-------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------|
@@ -96,7 +96,7 @@ Starts the Oauth Web Flow with the configured provider. E.g. `GET /login/github`
 
 ### POST /login
 
-Perfoms the login and returns the JWT. Depending on the content-type, and parameters a classical JSON-Rest or a redirect can be performed.
+Performs the login and returns the JWT. Depending on the content-type and parameters, a classical JSON-Rest or a redirect can be performed.
 
 #### Runtime Parameters
 
@@ -114,7 +114,7 @@ Perfoms the login and returns the JWT. Depending on the content-type, and parame
 | Code | Meaning               | Description                |
 |------| ----------------------|----------------------------|
 | 200  | OK                    | Successfully authenticated |
-| 403  | Forbidden             | The Credentials are wrong  |
+| 403  | Forbidden             | The credentials are wrong  |
 | 400  | Bad Request           | Missing parameters         |
 | 500  | Internal Server Error | Internal error, e.g. the login provider is not available or failed    |
 | 303  | See Other             | Sets the JWT as a cookie, if the login succeeds and redirect to the urls provided in `redirectSuccess` or `redirectError` |
@@ -142,7 +142,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBcz
 ```
 
 #### Example: Credentials as JSON
-The Credentials also could be send as JSON encoded.
+The credentials can also be sent JSON encoded.
 ```
 curl -i -H 'Content-Type: application/json'  --data '{"username": "bob", "password": "secret"}' http://127.0.0.1:6789/login
 HTTP/1.1 200 OK
@@ -192,9 +192,9 @@ loginsrv -backend 'provider=htpasswd,file=users
 
 ### OSIAM
 [OSIAM](http://osiam.org/) is a secure identity management solution providing REST based services for authentication and authorization.
-It implements the multplie OAuth2 flows, as well as SCIM for managing the user data.
+It implements the multiple OAuth2 flows, as well as SCIM for managing the user data.
 
-To start loginsrv against the default osiam configuration on the same machine, use the following example.
+To start loginsrv against the default OSIAM configuration on the same machine, use the following example.
 ```
 loginsrv --jwt-secret=jwtsecret --text-logging -backend 'provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret'
 ```
@@ -226,7 +226,7 @@ An Oauth Provider supports the following parameters:
 | redirect_uri      | Alternative Redirect URI (optional)    |
 
 When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
-If not supplied, the oauth redirect uri is caclulated out of the current url. This should work in most cases and should even work
+If not supplied, the oauth redirect uri is calculated out of the current url. This should work in most cases and should even work
 if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host` and `X-Forwarded-Proto` are set correctly.
 
 ### Github Startup Example

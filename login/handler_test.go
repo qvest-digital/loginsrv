@@ -435,7 +435,7 @@ func (m *oauth2ManagerMock) GetConfigFromRequest(r *http.Request) (oauth2.Config
 }
 
 // copied from golang: net/http/cookie.go
-// with simple some simplification fro edge cases
+// with some simplifications for edge cases
 // readSetCookies parses all "Set-Cookie" values from
 // the header h and returns the successfully parsed Cookies.
 func readSetCookies(h http.Header) []*http.Cookie {
