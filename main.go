@@ -6,7 +6,7 @@ import (
 
 	"github.com/tarent/loginsrv/login"
 
-	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/logging"
 	"net/http"
 	"os"
 	"os/signal"

@@ -1,7 +1,7 @@
 package osiam
 
 import (
-	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/login"
 )
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
 	"io/ioutil"

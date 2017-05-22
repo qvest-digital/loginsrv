@@ -2,7 +2,7 @@ package login
 
 import (
 	"bytes"
-	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"html/template"
 	"io/ioutil"

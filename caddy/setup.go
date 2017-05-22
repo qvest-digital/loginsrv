@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
-	"github.com/tarent/lib-compose/logging"
+	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/login"
 	"os"
 	"path"
