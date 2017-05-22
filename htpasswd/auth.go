@@ -13,7 +13,10 @@ import (
 	"os"
 	"strings"
 	"time"
+	"sync"
 )
+
+var mu sync.RWMutex
 
 // Auth is the htpassword authenticater
 type Auth struct {
@@ -47,6 +50,7 @@ func (a *Auth) parse(filename string) error {
 	cr.Comment = '#'
 	cr.TrimLeadingSpace = true
 
+	mu.Lock()
 	a.userHash = map[string]string{}
 	for {
 		record, err := cr.Read()
@@ -61,12 +65,14 @@ func (a *Auth) parse(filename string) error {
 		}
 		a.userHash[record[0]] = record[1]
 	}
+	mu.Unlock()
 	return nil
 }
 
 // Authenticate the user
 func (a *Auth) Authenticate(username, password string) (bool, error) {
 	reloadIfChanged(a)
+	mu.RLock()
 	if hash, exist := a.userHash[username]; exist {
 		h := []byte(hash)
 		p := []byte(password)
@@ -82,6 +88,7 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 		}
 		return false, fmt.Errorf("unknown algorithm for user %q", username)
 	}
+	mu.RUnlock()
 	return false, nil
 }
 
