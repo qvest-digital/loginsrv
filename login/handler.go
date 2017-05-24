@@ -146,13 +146,13 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		userInfo, valid := h.getToken(r)
 
 		// No token found, assuming new authentication
-		if userInfo.Sub == "" && userInfo.Expiry == 0 {
+		if userInfo.Sub == "" && userInfo.Expiry == 0 || !valid {
 			h.handleAuthentication(w, r)
 			return
 		}
 
 		// Refresh the jwt if it is valid
-		h.handleRefresh(w, r, userInfo, valid)
+		h.handleRefresh(w, r, userInfo)
 		return
 	}
 }
@@ -182,13 +182,10 @@ func (h *Handler) handleAuthentication(w http.ResponseWriter, r *http.Request) {
 	h.respondAuthFailure(w, r)
 }
 
-func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo model.UserInfo, valid bool) {
-	if valid {
-		h.respondAuthenticated(w, r, userInfo)
-		logging.Application(r.Header).WithField("username", userInfo.Sub).Info("refreshed jwt")
-		return
-	}
-	h.respondRefreshFailure(w, r)
+func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo model.UserInfo) {
+	h.respondAuthenticated(w, r, userInfo)
+	logging.Application(r.Header).WithField("username", userInfo.Sub).Info("refreshed jwt")
+	return
 }
 
 func (h *Handler) deleteToken(w http.ResponseWriter) {
@@ -316,11 +313,6 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Wrong credentials")
 }
 
-func (h *Handler) respondRefreshFailure(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", contentTypePlain)
-	w.WriteHeader(403)
-	fmt.Fprintf(w, "Expired or invalid token")
-}
 func wantHTML(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept"), "text/html")
 }
