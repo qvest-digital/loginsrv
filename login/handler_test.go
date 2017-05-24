@@ -17,6 +17,7 @@ import (
 
 const TypeJSON = "Content-Type: application/json"
 const TypeForm = "Content-Type: application/x-www-form-urlencoded"
+const TypeJwt = "Content-Type: application/jwt"
 const AcceptHTML = "Accept: text/html"
 const AcceptJwt = "Accept: application/jwt"
 
@@ -235,6 +236,67 @@ func TestHandler_LoginWeb(t *testing.T) {
 	Equal(t, 403, recorder.Code)
 	Contains(t, recorder.Body.String(), `class="container"`)
 	Equal(t, recorder.Header().Get("Set-Cookie"), "")
+}
+
+func TestHandler_Refresh(t *testing.T) {
+	h := testHandler()
+	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix()}
+	token, err := h.createToken(input)
+	NoError(t, err)
+
+	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
+
+	// refreshSuccess
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	Equal(t, 200, recorder.Code)
+
+	// verify the token from the cookie
+	setCookieList := readSetCookies(recorder.Header())
+	Equal(t, 1, len(setCookieList))
+
+	cookie := setCookieList[0]
+	Equal(t, "jwt_token", cookie.Name)
+	Equal(t, "/", cookie.Path)
+	Equal(t, "example.com", cookie.Domain)
+	InDelta(t, time.Now().Add(testConfig().CookieExpiry).Unix(), cookie.Expires.Unix(), 2)
+	True(t, cookie.HttpOnly)
+
+	// check the token content
+	claims, err := tokenAsMap(cookie.Value)
+	NoError(t, err)
+	Equal(t, "bob", claims["sub"])
+	InDelta(t, time.Now().Add(DefaultConfig().JwtExpiry).Unix(), claims["exp"], 2)
+}
+
+func TestHandler_Refresh_Expired(t *testing.T) {
+	h := testHandler()
+	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Unix()-1}
+	token, err := h.createToken(input)
+	NoError(t, err)
+
+	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
+
+	// refreshSuccess
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	Equal(t, 403, recorder.Code)
+
+	// verify the token from the cookie
+	setCookieList := readSetCookies(recorder.Header())
+	Equal(t, 0, len(setCookieList))
+}
+
+func TestHandler_Refresh_Invalid_Token(t *testing.T) {
+	h := testHandler()
+
+	cookieStr := "Cookie: "+h.config.CookieName + "=kjsbkabsdkjbasdbkasbdk.dfgdfg.fdgdfg;"
+
+	// refreshSuccess
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	Equal(t, 403, recorder.Code)
+
+	// verify the token from the cookie
+	setCookieList := readSetCookies(recorder.Header())
+	Equal(t, 0, len(setCookieList))
 }
 
 func TestHandler_Logout(t *testing.T) {
