@@ -27,7 +27,7 @@ func DefaultConfig() *Config {
 		LogLevel:       "info",
 		JwtSecret:      jwtDefaultSecret,
 		JwtExpiry:      24 * time.Hour,
-		JwtRefreshes:	0,
+		JwtRefreshes:   0,
 		SuccessURL:     "/",
 		LogoutURL:      "",
 		LoginPath:      "/login",
@@ -48,7 +48,7 @@ type Config struct {
 	TextLogging    bool
 	JwtSecret      string
 	JwtExpiry      time.Duration
-	JwtRefreshes	int
+	JwtRefreshes   int
 	SuccessURL     string
 	LogoutURL      string
 	Template       string
