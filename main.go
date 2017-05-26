@@ -51,9 +51,10 @@ func main() {
 	}()
 	logging.LifecycleStop(applicationName, <-stop, nil)
 
-	ctx, _ := context.WithTimeout(context.Background(), config.GracePeriod)
+	ctx, ctxCancel := context.WithTimeout(context.Background(), config.GracePeriod)
 
 	httpSrv.Shutdown(ctx)
+	ctxCancel()
 }
 
 var exit = func(signal os.Signal, err error) {
