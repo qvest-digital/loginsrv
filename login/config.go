@@ -27,6 +27,7 @@ func DefaultConfig() *Config {
 		LogLevel:       "info",
 		JwtSecret:      jwtDefaultSecret,
 		JwtExpiry:      24 * time.Hour,
+		JwtRefreshes:	0,
 		SuccessURL:     "/",
 		LogoutURL:      "",
 		LoginPath:      "/login",
@@ -47,6 +48,7 @@ type Config struct {
 	TextLogging    bool
 	JwtSecret      string
 	JwtExpiry      time.Duration
+	JwtRefreshes	int
 	SuccessURL     string
 	LogoutURL      string
 	Template       string
@@ -93,6 +95,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.BoolVar(&c.TextLogging, "text-logging", c.TextLogging, "Log in text format instead of json")
 	f.StringVar(&c.JwtSecret, "jwt-secret", "random key", "The secret to sign the jwt token")
 	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
+	f.IntVar(&c.JwtRefreshes, "jwt-refreshes", c.JwtRefreshes, "The maximum amount of jwt refreshes. 0 by Default")
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
 	f.BoolVar(&c.CookieHTTPOnly, "cookie-http-only", c.CookieHTTPOnly, "Set the cookie with the http only flag")
 	f.DurationVar(&c.CookieExpiry, "cookie-expiry", c.CookieExpiry, "The expiry duration for the cookie, e.g. 2h or 3h30m. Default is browser session")
