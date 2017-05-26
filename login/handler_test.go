@@ -26,6 +26,7 @@ func testConfig() *Config {
 	testConfig.LoginPath = "/context/login"
 	testConfig.CookieDomain = "example.com"
 	testConfig.CookieExpiry = 23 * time.Hour
+	testConfig.JwtRefreshes = 1
 	return testConfig
 }
 
@@ -293,6 +294,24 @@ func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
 	Equal(t, 403, recorder.Code)
+
+	// verify the token from the cookie
+	setCookieList := readSetCookies(recorder.Header())
+	Equal(t, 0, len(setCookieList))
+}
+
+func TestHandler_Refresh_Max_Refreshes_Reached(t *testing.T) {
+	h := testHandler()
+	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix(), Refreshes:1}
+	token, err := h.createToken(input)
+	NoError(t, err)
+
+	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
+
+	// refreshSuccess
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	Equal(t, 403, recorder.Code)
+	Contains(t, recorder.Body.String(), "reached")
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())

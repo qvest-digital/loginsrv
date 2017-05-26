@@ -183,9 +183,12 @@ func (h *Handler) handleAuthentication(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo model.UserInfo) {
-	h.respondAuthenticated(w, r, userInfo)
-	logging.Application(r.Header).WithField("username", userInfo.Sub).Info("refreshed jwt")
-	return
+	if userInfo.Refreshes >= h.config.JwtRefreshes {
+		h.respondMaxRefreshesReached(w, r)
+	} else {
+		h.respondAuthenticated(w, r, userInfo)
+		logging.Application(r.Header).WithField("username", userInfo.Sub).Info("refreshed jwt")
+	}
 }
 
 func (h *Handler) deleteToken(w http.ResponseWriter) {
@@ -292,6 +295,11 @@ func (h *Handler) respondBadRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) respondNotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 	fmt.Fprintf(w, "Not Found: The requested page does not exist")
+}
+
+func (h *Handler) respondMaxRefreshesReached(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(403)
+	fmt.Fprint(w, "Max JWT refreshes reached")
 }
 
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
