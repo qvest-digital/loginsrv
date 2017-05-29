@@ -46,7 +46,11 @@ func main() {
 
 	go func() {
 		if err := httpSrv.ListenAndServe(); err != nil {
-			logging.LifecycleStop(applicationName, nil, err)
+			if err == http.ErrServerClosed {
+				logging.ServerClosed(applicationName)
+			} else {
+				exit(nil, err)
+			}
 		}
 	}()
 	logging.LifecycleStop(applicationName, <-stop, nil)
