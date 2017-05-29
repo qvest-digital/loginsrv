@@ -109,8 +109,8 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		(r.Method == "POST" &&
 			(strings.HasPrefix(contentType, "application/json") ||
 				strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
-				strings.HasPrefix(contentType, contentTypeJWT) ||
-				strings.HasPrefix(contentType, "multipart/form-data")))) {
+				strings.HasPrefix(contentType, "multipart/form-data") ||
+				contentType == ""))) {
 		h.respondBadRequest(w, r)
 		return
 	}
@@ -145,9 +145,15 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		// Check if we got a valid jwt with the post (refresh)
 		userInfo, valid := h.getToken(r)
 
-		// No token found, assuming new authentication
-		if userInfo.Sub == "" && userInfo.Expiry == 0 || !valid {
-			h.handleAuthentication(w, r)
+		username, password, err := getCredentials(r)
+		if err != nil {
+			h.respondBadRequest(w, r)
+			return
+		}
+
+		if userInfo.Sub == "" && userInfo.Expiry == 0 || !valid || (username != "" && password != "") {
+			// No token found or credentials found, assuming new authentication
+			h.handleAuthentication(w, r, username, password)
 			return
 		}
 
@@ -157,12 +163,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) handleAuthentication(w http.ResponseWriter, r *http.Request) {
-	username, password, err := getCredentials(r)
-	if err != nil {
-		h.respondBadRequest(w, r)
-		return
-	}
+func (h *Handler) handleAuthentication(w http.ResponseWriter, r *http.Request, username string, password string) {
 	authenticated, userInfo, err := h.authenticate(username, password)
 	if err != nil {
 		logging.Application(r.Header).WithError(err).Error()
@@ -214,27 +215,22 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	wantHTML := wantHTML(r)
-	wantAndHaveJWT := wantAndHaveJWT(r)
-	if wantHTML || wantAndHaveJWT {
-		cookie := &http.Cookie{
-			Name:     h.config.CookieName,
-			Value:    token,
-			HttpOnly: h.config.CookieHTTPOnly,
-			Path:     "/",
-		}
-		if h.config.CookieExpiry != 0 {
-			cookie.Expires = time.Now().Add(h.config.CookieExpiry)
-		}
-		if h.config.CookieDomain != "" {
-			cookie.Domain = h.config.CookieDomain
-		}
-
-		http.SetCookie(w, cookie)
-
+	cookie := &http.Cookie{
+		Name:     h.config.CookieName,
+		Value:    token,
+		HttpOnly: h.config.CookieHTTPOnly,
+		Path:     "/",
+	}
+	if h.config.CookieExpiry != 0 {
+		cookie.Expires = time.Now().Add(h.config.CookieExpiry)
+	}
+	if h.config.CookieDomain != "" {
+		cookie.Domain = h.config.CookieDomain
 	}
 
-	if wantHTML {
+	http.SetCookie(w, cookie)
+
+	if wantHTML(r) {
 		w.Header().Set("Location", h.config.SuccessURL)
 		w.WriteHeader(303)
 		return
@@ -323,10 +319,6 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 
 func wantHTML(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept"), "text/html")
-}
-
-func wantAndHaveJWT(r *http.Request) bool {
-	return strings.Contains(r.Header.Get("Accept"), contentTypeJWT) && strings.Contains(r.Header.Get("Content-Type"), contentTypeJWT)
 }
 
 func getCredentials(r *http.Request) (string, string, error) {

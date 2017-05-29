@@ -17,7 +17,6 @@ import (
 
 const TypeJSON = "Content-Type: application/json"
 const TypeForm = "Content-Type: application/x-www-form-urlencoded"
-const TypeJwt = "Content-Type: application/jwt"
 const AcceptHTML = "Accept: text/html"
 const AcceptJwt = "Accept: application/jwt"
 
@@ -248,7 +247,7 @@ func TestHandler_Refresh(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
 	Equal(t, 200, recorder.Code)
 
 	// verify the token from the cookie
@@ -278,7 +277,7 @@ func TestHandler_Refresh_Expired(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
 	Equal(t, 403, recorder.Code)
 
 	// verify the token from the cookie
@@ -292,7 +291,7 @@ func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=kjsbkabsdkjbasdbkasbdk.dfgdfg.fdgdfg;"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
 	Equal(t, 403, recorder.Code)
 
 	// verify the token from the cookie
@@ -309,7 +308,7 @@ func TestHandler_Refresh_Max_Refreshes_Reached(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, TypeJwt, cookieStr))
+	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
 	Equal(t, 403, recorder.Code)
 	Contains(t, recorder.Body.String(), "reached")
 
