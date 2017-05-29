@@ -142,23 +142,22 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		// Check if we got a valid jwt with the post (refresh)
-		userInfo, valid := h.getToken(r)
-
 		username, password, err := getCredentials(r)
 		if err != nil {
 			h.respondBadRequest(w, r)
 			return
 		}
-
-		if userInfo.Sub == "" && userInfo.Expiry == 0 || !valid || (username != "" && password != "") {
+		if username != "" {
 			// No token found or credentials found, assuming new authentication
 			h.handleAuthentication(w, r, username, password)
 			return
 		}
-
-		// Refresh the jwt if it is valid
-		h.handleRefresh(w, r, userInfo)
+		userInfo, valid := h.getToken(r)
+		if valid {
+			h.handleRefresh(w, r, userInfo)
+			return
+		}
+		h.respondBadRequest(w, r)
 		return
 	}
 }
@@ -215,22 +214,22 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:     h.config.CookieName,
-		Value:    token,
-		HttpOnly: h.config.CookieHTTPOnly,
-		Path:     "/",
-	}
-	if h.config.CookieExpiry != 0 {
-		cookie.Expires = time.Now().Add(h.config.CookieExpiry)
-	}
-	if h.config.CookieDomain != "" {
-		cookie.Domain = h.config.CookieDomain
-	}
-
-	http.SetCookie(w, cookie)
-
 	if wantHTML(r) {
+		cookie := &http.Cookie{
+			Name:     h.config.CookieName,
+			Value:    token,
+			HttpOnly: h.config.CookieHTTPOnly,
+			Path:     "/",
+		}
+		if h.config.CookieExpiry != 0 {
+			cookie.Expires = time.Now().Add(h.config.CookieExpiry)
+		}
+		if h.config.CookieDomain != "" {
+			cookie.Domain = h.config.CookieDomain
+		}
+
+		http.SetCookie(w, cookie)
+
 		w.Header().Set("Location", h.config.SuccessURL)
 		w.WriteHeader(303)
 		return

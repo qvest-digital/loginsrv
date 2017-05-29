@@ -247,8 +247,8 @@ func TestHandler_Refresh(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
-	Equal(t, 200, recorder.Code)
+	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
+	Equal(t, 303, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
@@ -277,8 +277,8 @@ func TestHandler_Refresh_Expired(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
-	Equal(t, 403, recorder.Code)
+	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
+	Equal(t, 400, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
@@ -291,8 +291,8 @@ func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 	cookieStr := "Cookie: "+h.config.CookieName + "=kjsbkabsdkjbasdbkasbdk.dfgdfg.fdgdfg;"
 
 	// refreshSuccess
-	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))
-	Equal(t, 403, recorder.Code)
+	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
+	Equal(t, 400, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
