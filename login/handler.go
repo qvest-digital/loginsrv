@@ -186,6 +186,7 @@ func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo
 	if userInfo.Refreshes >= h.config.JwtRefreshes {
 		h.respondMaxRefreshesReached(w, r)
 	} else {
+		userInfo.Refreshes++
 		h.respondAuthenticated(w, r, userInfo)
 		logging.Application(r.Header).WithField("username", userInfo.Sub).Info("refreshed jwt")
 	}
