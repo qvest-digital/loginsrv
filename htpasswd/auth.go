@@ -12,12 +12,16 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
+	"sync"
 )
 
 // Auth is the htpassword authenticater
 type Auth struct {
 	filename string
 	userHash map[string]string
+	modTime time.Time //Used in func reloadIfChanged to reload htpasswd file if it changed
+	mu sync.RWMutex
 }
 
 // NewAuth creates an htpassword authenticater
@@ -33,11 +37,20 @@ func (a *Auth) parse(filename string) error {
 	if err != nil {
 		return err
 	}
+	
+	fileInfo, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	a.modTime = fileInfo.ModTime()
+	
 	cr := csv.NewReader(r)
 	cr.Comma = ':'
 	cr.Comment = '#'
 	cr.TrimLeadingSpace = true
 
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	a.userHash = map[string]string{}
 	for {
 		record, err := cr.Read()
@@ -57,6 +70,9 @@ func (a *Auth) parse(filename string) error {
 
 // Authenticate the user
 func (a *Auth) Authenticate(username, password string) (bool, error) {
+	reloadIfChanged(a)
+	a.mu.RLock()
+	defer a.mu.RUnlock()
 	if hash, exist := a.userHash[username]; exist {
 		h := []byte(hash)
 		p := []byte(password)
@@ -73,6 +89,22 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 		return false, fmt.Errorf("unknown algorithm for user %q", username)
 	}
 	return false, nil
+}
+
+// Reload htpasswd file if it changed during current run
+func reloadIfChanged(a *Auth) {
+	fileInfo, err := os.Stat(a.filename)
+	if err != nil {
+		//On error, retain current file
+		return
+	}
+	
+	currentmodTime := fileInfo.ModTime()
+	
+	if currentmodTime != a.modTime {
+		a.modTime = currentmodTime
+		a.parse(a.filename)
+	}
 }
 
 func compareSha(hashedPassword, password []byte) bool {
