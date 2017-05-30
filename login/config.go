@@ -35,6 +35,7 @@ func DefaultConfig() *Config {
 		CookieHTTPOnly: true,
 		Backends:       Options{},
 		Oauth:          Options{},
+		GracePeriod:    5 * time.Second,
 	}
 }
 
@@ -59,6 +60,7 @@ type Config struct {
 	CookieHTTPOnly bool
 	Backends       Options
 	Oauth          Options
+	GracePeriod    time.Duration
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -104,6 +106,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")
 	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
+	f.DurationVar(&c.GracePeriod, "grace-period", c.GracePeriod, "Graceful shutdown grace period")
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {

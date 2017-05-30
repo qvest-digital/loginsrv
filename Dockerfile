@@ -1,4 +1,3 @@
-
 FROM alpine
 ENV LOGINSRV_HOST=0.0.0.0 LOGINSRV_PORT=80
 COPY loginsrv /
