@@ -61,6 +61,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -success-url      | string      | "/"          | X     | The url to redirect after login                                                      |
 | -template         | string      |              | X     | An alternative template for the login form                                           |
 | -text-logging     | boolean     | true         | -     | Log in text format instead of json                                                   |
+| -grace-period     | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted.                                                   |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.

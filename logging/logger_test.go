@@ -267,6 +267,28 @@ func Test_Logger_LifecycleStop(t *testing.T) {
 	a.Equal("b666", data["build_number"])
 }
 
+func Test_Logger_ServerClosed(t *testing.T) {
+	a := assert.New(t)
+
+	// given a logger
+	b := bytes.NewBuffer(nil)
+	Logger.Out = b
+
+	// and an Environment Variable with the Build Number is set
+	os.Setenv("BUILD_NUMBER", "b666")
+
+	// when a LifecycleStart is logged
+	ServerClosed("my-app")
+
+	// then: it is logged
+	data := mapFromBuffer(b)
+	a.Equal("info", data["level"])
+	a.Equal("http server was closed: my-app", data["message"])
+	a.Equal("application", data["type"])
+	a.Equal("stop", data["event"])
+	a.Equal("b666", data["build_number"])
+}
+
 func Test_Logger_Cacheinfo(t *testing.T) {
 	a := assert.New(t)
 

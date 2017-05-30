@@ -221,6 +221,21 @@ func LifecycleStop(appName string, signal os.Signal, err error) {
 	}
 }
 
+// LifecycleStop logs the stop of an application
+func ServerClosed(appName string) {
+	fields := logrus.Fields{
+		"type":  "application",
+		"event": "stop",
+	}
+
+	if os.Getenv("BUILD_NUMBER") != "" {
+		fields["build_number"] = os.Getenv("BUILD_NUMBER")
+	}
+
+	Logger.WithFields(fields).Infof("http server was closed: %v", appName)
+}
+
+
 func getRemoteIp(r *http.Request) string {
 	if r.Header.Get("X-Cluster-Client-Ip") != "" {
 		return r.Header.Get("X-Cluster-Client-Ip")

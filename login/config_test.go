@@ -38,6 +38,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--backend=provider=simple",
 		"--backend=provider=foo",
 		"--github=client_id=foo,client_secret=bar",
+		"--grace-period=4s",
 	}
 
 	expected := &Config{
@@ -65,6 +66,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 				"client_secret": "bar",
 			},
 		},
+		GracePeriod:	4*time.Second,
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
@@ -89,6 +91,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_COOKIE_HTTP_ONLY", "false"))
 	NoError(t, os.Setenv("LOGINSRV_SIMPLE", "foo=bar"))
 	NoError(t, os.Setenv("LOGINSRV_GITHUB", "client_id=foo,client_secret=bar"))
+	NoError(t, os.Setenv("LOGINSRV_GRACE_PERIOD", "4s"))
 
 	expected := &Config{
 		Host:           "host",
@@ -116,6 +119,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 				"client_secret": "bar",
 			},
 		},
+		GracePeriod:	4*time.Second,
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
