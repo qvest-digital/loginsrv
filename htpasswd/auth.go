@@ -12,16 +12,17 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 // Auth is the htpassword authenticater
 type Auth struct {
 	filename string
 	userHash map[string]string
-	modTime time.Time //Used in func reloadIfChanged to reload htpasswd file if it changed
-	mu sync.RWMutex
+	// Used in func reloadIfChanged to reload htpasswd file if it changed
+	modTime time.Time
+	mu      sync.RWMutex
 }
 
 // NewAuth creates an htpassword authenticater
@@ -37,13 +38,13 @@ func (a *Auth) parse(filename string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		return err
 	}
 	a.modTime = fileInfo.ModTime()
-	
+
 	cr := csv.NewReader(r)
 	cr.Comma = ':'
 	cr.Comment = '#'
@@ -98,9 +99,9 @@ func reloadIfChanged(a *Auth) {
 		//On error, retain current file
 		return
 	}
-	
+
 	currentmodTime := fileInfo.ModTime()
-	
+
 	if currentmodTime != a.modTime {
 		a.modTime = currentmodTime
 		a.parse(a.filename)
