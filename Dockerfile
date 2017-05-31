@@ -1,5 +1,7 @@
 FROM alpine
-ENV LOGINSRV_HOST=0.0.0.0 LOGINSRV_PORT=80
+RUN addgroup -S loginsrv && adduser -S -g loginsrv loginsrv
+USER loginsrv
+ENV LOGINSRV_HOST=0.0.0.0 LOGINSRV_PORT=8080
 COPY loginsrv /
 ENTRYPOINT ["/loginsrv"]
-EXPOSE 80
+EXPOSE 8080

@@ -72,15 +72,15 @@ So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
 The simplest way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
 ```
-$ docker run -d -p 80:80 tarent/loginsrv -jwt-secret my_secret -simple bob=secret
+$ docker run -d -p 8080:8080 tarent/loginsrv -jwt-secret my_secret -simple bob=secret
 
-$ curl --data "username=bob&password=secret" 127.0.0.1/login
+$ curl --data "username=bob&password=secret" 127.0.0.1:8080/login
 eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4CyxQNxe5_Ovw-N5wfQwkzXz2enbhA9JZf8MmTp9n-TTDcWdY3Fd1SA72_M20G9lQ
 ```
 
 The same configuration could be written with environment variables this way:
 ```
-$ docker run -d -p 80:80 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
+$ docker run -d -p 8080:8080 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
 ```
 
 ## API
