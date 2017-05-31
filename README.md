@@ -61,6 +61,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -success-url      | string      | "/"          | X     | The url to redirect after login                                                      |
 | -template         | string      |              | X     | An alternative template for the login form                                           |
 | -text-logging     | boolean     | true         | -     | Log in text format instead of json                                                   |
+| -jwt-refreshes    | int         | 0            | X     | The maximum amount of jwt refreshes.                                                 |
 | -grace-period     | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted.                                                   |
 
 ### Environment Variables
@@ -121,6 +122,11 @@ Performs the login and returns the JWT. Depending on the content-type and parame
 | 303  | See Other             | Sets the JWT as a cookie, if the login succeeds and redirect to the urls provided in `redirectSuccess` or `redirectError` |
 
 Hint: The status `401 Unauthorized` is not used as a return code to not conflict with an Http BasicAuth Authentication.
+
+#### JWT-Refresh
+
+If the POST-Parameters for username and password are missing and a valid JWT-Cookie is part of the request, then the JWT-Cookie is refreshed.
+This only happens if the jwt-refreshes config option is set to a value greater than 0. 
 
 ### DELETE /login
 

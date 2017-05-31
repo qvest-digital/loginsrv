@@ -109,7 +109,8 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		(r.Method == "POST" &&
 			(strings.HasPrefix(contentType, "application/json") ||
 				strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
-				strings.HasPrefix(contentType, "multipart/form-data")))) {
+				strings.HasPrefix(contentType, "multipart/form-data") ||
+				contentType == ""))) {
 		h.respondBadRequest(w, r)
 		return
 	}
@@ -146,24 +147,48 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.respondBadRequest(w, r)
 			return
 		}
-		authenticated, userInfo, err := h.authenticate(username, password)
-		if err != nil {
-			logging.Application(r.Header).WithError(err).Error()
-			h.respondError(w, r)
+		if username != "" {
+			// No token found or credentials found, assuming new authentication
+			h.handleAuthentication(w, r, username, password)
 			return
 		}
-
-		if authenticated {
-			logging.Application(r.Header).
-				WithField("username", username).Info("successfully authenticated")
-			h.respondAuthenticated(w, r, userInfo)
+		userInfo, valid := h.getToken(r)
+		if valid {
+			h.handleRefresh(w, r, userInfo)
 			return
 		}
-		logging.Application(r.Header).
-			WithField("username", username).Info("failed authentication")
-
-		h.respondAuthFailure(w, r)
+		h.respondBadRequest(w, r)
 		return
+	}
+}
+
+func (h *Handler) handleAuthentication(w http.ResponseWriter, r *http.Request, username string, password string) {
+	authenticated, userInfo, err := h.authenticate(username, password)
+	if err != nil {
+		logging.Application(r.Header).WithError(err).Error()
+		h.respondError(w, r)
+		return
+	}
+
+	if authenticated {
+		logging.Application(r.Header).
+			WithField("username", username).Info("successfully authenticated")
+		h.respondAuthenticated(w, r, userInfo)
+		return
+	}
+	logging.Application(r.Header).
+		WithField("username", username).Info("failed authentication")
+
+	h.respondAuthFailure(w, r)
+}
+
+func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo model.UserInfo) {
+	if userInfo.Refreshes >= h.config.JwtRefreshes {
+		h.respondMaxRefreshesReached(w, r)
+	} else {
+		userInfo.Refreshes++
+		h.respondAuthenticated(w, r, userInfo)
+		logging.Application(r.Header).WithField("username", userInfo.Sub).Info("refreshed jwt")
 	}
 }
 
@@ -189,6 +214,7 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		h.respondError(w, r)
 		return
 	}
+
 	if wantHTML(r) {
 		cookie := &http.Cookie{
 			Name:     h.config.CookieName,
@@ -202,7 +228,9 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		if h.config.CookieDomain != "" {
 			cookie.Domain = h.config.CookieDomain
 		}
+
 		http.SetCookie(w, cookie)
+
 		w.Header().Set("Location", h.config.SuccessURL)
 		w.WriteHeader(303)
 		return
@@ -265,6 +293,11 @@ func (h *Handler) respondNotFound(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Not Found: The requested page does not exist")
 }
 
+func (h *Handler) respondMaxRefreshesReached(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(403)
+	fmt.Fprint(w, "Max JWT refreshes reached")
+}
+
 func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 	if wantHTML(r) {
 		w.Header().Set("Content-Type", contentTypeHTML)
@@ -278,6 +311,7 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 			})
 		return
 	}
+
 	w.Header().Set("Content-Type", contentTypePlain)
 	w.WriteHeader(403)
 	fmt.Fprintf(w, "Wrong credentials")
