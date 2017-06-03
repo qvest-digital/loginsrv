@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go run main.go --text-logging=true --jwt-secret=secret --backend "provider=simple,bob=secret"
+go run main.go --text-logging=true --jwt-secret=secret --simple bob=secret
