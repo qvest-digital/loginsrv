@@ -2,17 +2,19 @@ package main
 
 import (
 	_ "github.com/tarent/loginsrv/htpasswd"
+	_ "github.com/tarent/loginsrv/httpupstream"
 	_ "github.com/tarent/loginsrv/osiam"
 
 	"github.com/tarent/loginsrv/login"
 
 	"context"
 	"fmt"
-	"github.com/tarent/loginsrv/logging"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/tarent/loginsrv/logging"
 )
 
 const applicationName = "loginsrv"
