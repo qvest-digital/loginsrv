@@ -26,7 +26,7 @@ The following providers (login backends) are supported.
 * [Htpasswd](#htpasswd)
 * [OSIAM](#osiam)
 * [Simple](#simple) (user/password pairs by configuration)
-* [Httpupstreem](#httpupstream)
+* [Httpupstream](#httpupstream)
 * [Oauth2](#oauth2)
   * Github Login
   * .. Google and Facebook will come soon ..
@@ -198,15 +198,15 @@ Example:
 loginsrv -backend 'provider=htpasswd,file=users
 ```
 
-### Httpupstreem
-Authentication against an upstream http server by performing a simple simple authenticated request
+### Httpupstream
+Authentication against an upstream http server by performing a http basic authenticated request and checking the response for a http 200 OK status code. Anything other than a 200 OK status code will result in a failure to authenticate.
 
 Parameters for the provider:
-| Parameter-Name    | Description                                            |
-| ------------------|--------------------------------------------------------|
-| upstream          | http/https url to call                                 |
-| skipverify        | true to ignore TLS errors (optional, false by default) |
-| timeout           | request timeout (optional 1m by default)               |
+| Parameter-Name    | Description                                                               |
+| ------------------|---------------------------------------------------------------------------|
+| upstream          | http/https url to call                                                    |
+| skipverify        | true to ignore TLS errors (optional, false by default)                    |
+| timeout           | request timeout (optional 1m by default, go duration syntax is supported) |
 
 Example:
 ```

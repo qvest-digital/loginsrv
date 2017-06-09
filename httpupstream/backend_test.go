@@ -51,7 +51,7 @@ func TestSetup_Default(t *testing.T) {
 		false,
 		backend.(*Backend).auth.skipverify)
 	Equal(t,
-		time.Second*60,
+		defaultTimeout,
 		backend.(*Backend).auth.timeout)
 }
 

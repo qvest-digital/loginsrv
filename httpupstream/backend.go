@@ -14,6 +14,8 @@ import (
 // ProviderName const
 const ProviderName = "httpupstream"
 
+const defaultTimeout = time.Minute
+
 func init() {
 	login.RegisterProvider(
 		&login.ProviderDescription{
@@ -39,7 +41,7 @@ func BackendFactory(config map[string]string) (login.Backend, error) {
 	}
 
 	v := false
-	t := time.Minute
+	t := defaultTimeout
 
 	if te {
 		t, err = time.ParseDuration(ts)
