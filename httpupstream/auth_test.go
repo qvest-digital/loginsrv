@@ -44,5 +44,25 @@ func TestAuth_ValidCredentials(t *testing.T) {
 
 	authenticated, err := auth.Authenticate("bob-bcrypt", "secret")
 	NoError(t, err)
-	False(t, authenticated)
+	True(t, authenticated)
+}
+
+func TestAuth_InvalidUrl(t *testing.T) {
+	invalidUrl := &url.URL{Scheme: "\\\\"}
+
+	auth, err := NewAuth(invalidUrl, time.Second, false)
+	NoError(t, err)
+
+	_, err = auth.Authenticate("foo", "bar")
+	Error(t, err)
+}
+
+func TestAuth_InvalidHost(t *testing.T) {
+	invalidServer, _ := url.Parse("http://0.0.0.0.0")
+
+	auth, err := NewAuth(invalidServer, time.Second, false)
+	NoError(t, err)
+
+	_, err = auth.Authenticate("foo", "bar")
+	Error(t, err)
 }

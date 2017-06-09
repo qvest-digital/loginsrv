@@ -195,7 +195,7 @@ Parameters for the provider:
 
 Example:
 ```
-loginsrv -backend 'provider=htpasswd,file=users
+loginsrv -htpasswd file=users
 ```
 
 ### Httpupstream
@@ -210,7 +210,7 @@ Parameters for the provider:
 
 Example:
 ```
-loginsrv -backend 'provider=httpupstream,upstream=https://google.com,timeout=1s'
+loginsrv -httpupstream upstream=https://google.com,timeout=1s
 ```
 
 ### OSIAM
@@ -219,7 +219,7 @@ It implements the multiple OAuth2 flows, as well as SCIM for managing the user d
 
 To start loginsrv against the default OSIAM configuration on the same machine, use the following example.
 ```
-loginsrv --jwt-secret=jwtsecret --text-logging -backend 'provider=osiam,endpoint=http://localhost:8080,clientId=example-client,clientSecret=secret'
+loginsrv --jwt-secret=jwtsecret --text-logging -osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret'
 ```
 
 Then go to http://127.0.0.1:6789/login and login with `admin/koala`.
@@ -229,7 +229,7 @@ Simple is a demo provider for testing only. It holds a user/password table in me
 
 Example
 ```
-loginsrv -backend provider=simple,bob=secret
+loginsrv -simple bob=secret
 ```
 
 ## Oauth2

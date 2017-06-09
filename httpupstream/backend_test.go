@@ -62,6 +62,15 @@ func TestSetup_Error(t *testing.T) {
 
 	_, err := p(map[string]string{})
 	Error(t, err)
+
+	_, err = p(map[string]string{"upstream": ":invalid-url"})
+	Error(t, err)
+
+	_, err = p(map[string]string{"upstream": "http://example.com", "timeout": "some-string"})
+	Error(t, err)
+
+	_, err = p(map[string]string{"upstream": "http://example.com", "skipverify": "some-string"})
+	Error(t, err)
 }
 
 func TestSimpleBackend_Authenticate(t *testing.T) {
