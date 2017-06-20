@@ -244,7 +244,7 @@ func TestHandler_Refresh(t *testing.T) {
 	token, err := h.createToken(input)
 	NoError(t, err)
 
-	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
+	cookieStr := "Cookie: " + h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
@@ -270,11 +270,11 @@ func TestHandler_Refresh(t *testing.T) {
 
 func TestHandler_Refresh_Expired(t *testing.T) {
 	h := testHandler()
-	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Unix()-1}
+	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Unix() - 1}
 	token, err := h.createToken(input)
 	NoError(t, err)
 
-	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
+	cookieStr := "Cookie: " + h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
@@ -288,7 +288,7 @@ func TestHandler_Refresh_Expired(t *testing.T) {
 func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 	h := testHandler()
 
-	cookieStr := "Cookie: "+h.config.CookieName + "=kjsbkabsdkjbasdbkasbdk.dfgdfg.fdgdfg;"
+	cookieStr := "Cookie: " + h.config.CookieName + "=kjsbkabsdkjbasdbkasbdk.dfgdfg.fdgdfg;"
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
@@ -301,11 +301,11 @@ func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 
 func TestHandler_Refresh_Max_Refreshes_Reached(t *testing.T) {
 	h := testHandler()
-	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix(), Refreshes:1}
+	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix(), Refreshes: 1}
 	token, err := h.createToken(input)
 	NoError(t, err)
 
-	cookieStr := "Cookie: "+h.config.CookieName + "=" + token + ";"
+	cookieStr := "Cookie: " + h.config.CookieName + "=" + token + ";"
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptJwt, cookieStr))

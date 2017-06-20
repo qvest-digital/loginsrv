@@ -66,7 +66,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 				"client_secret": "bar",
 			},
 		},
-		GracePeriod:	4*time.Second,
+		GracePeriod: 4 * time.Second,
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
@@ -119,7 +119,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 				"client_secret": "bar",
 			},
 		},
-		GracePeriod:	4*time.Second,
+		GracePeriod: 4 * time.Second,
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
