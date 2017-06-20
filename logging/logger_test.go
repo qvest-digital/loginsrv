@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/tarent/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/tarent/logrus"
 	"net/http"
 	"os"
 	"testing"
@@ -319,7 +319,7 @@ func Test_Logger_Cacheinfo(t *testing.T) {
 func Test_Logger_GetRemoteIp1(t *testing.T) {
 	a := assert.New(t)
 	req, _ := http.NewRequest("GET", "test.com", nil)
-	req.Header["X-Cluster-Client-Ip"] = []string {"1234"}
+	req.Header["X-Cluster-Client-Ip"] = []string{"1234"}
 	ret := getRemoteIp(req)
 	a.Equal("1234", ret)
 }
@@ -327,7 +327,7 @@ func Test_Logger_GetRemoteIp1(t *testing.T) {
 func Test_Logger_GetRemoteIp2(t *testing.T) {
 	a := assert.New(t)
 	req, _ := http.NewRequest("GET", "test.com", nil)
-	req.Header["X-Real-Ip"] = []string {"1234"}
+	req.Header["X-Real-Ip"] = []string{"1234"}
 	ret := getRemoteIp(req)
 	a.Equal("1234", ret)
 }

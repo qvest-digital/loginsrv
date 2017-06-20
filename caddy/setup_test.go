@@ -38,8 +38,8 @@ func TestSetup(t *testing.T) {
 						"bob": "secret",
 					},
 				},
-				Oauth: login.Options{},
-				GracePeriod:	5*time.Second,
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
 			}},
 		{
 			input: `login {
@@ -73,8 +73,8 @@ func TestSetup(t *testing.T) {
 						"client_secret": "secret",
 					},
 				},
-				Oauth: login.Options{},
-				GracePeriod:	5*time.Second,
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
 			}},
 		{ // backwards compatibility
 			// * login path as argument
@@ -97,8 +97,8 @@ func TestSetup(t *testing.T) {
 						"bob": "secret",
 					},
 				},
-				Oauth: login.Options{},
-				GracePeriod:	5*time.Second,
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
 			}},
 		{ // backwards compatibility
 			// * login path as argument
@@ -121,8 +121,8 @@ func TestSetup(t *testing.T) {
 						"bob": "secret",
 					},
 				},
-				Oauth: login.Options{},
-				GracePeriod:	5*time.Second,
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
 			}},
 
 		// error cases
@@ -143,8 +143,8 @@ func TestSetup(t *testing.T) {
 						"bob": "secret",
 					},
 				},
-				Oauth: login.Options{},
-				GracePeriod:	5*time.Second,
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
 			}},
 		{input: "login {\n}", shouldErr: true},
 		{input: "login xx yy {\n}", shouldErr: true},

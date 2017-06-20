@@ -235,7 +235,6 @@ func ServerClosed(appName string) {
 	Logger.WithFields(fields).Infof("http server was closed: %v", appName)
 }
 
-
 func getRemoteIp(r *http.Request) string {
 	if r.Header.Get("X-Cluster-Client-Ip") != "" {
 		return r.Header.Get("X-Cluster-Client-Ip")
