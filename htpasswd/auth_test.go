@@ -3,6 +3,7 @@ package htpasswd
 import (
 	. "github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 )
@@ -20,7 +21,7 @@ bob-foo:{fooo}sdcsdcsdc/BfQ=
 `
 
 func TestAuth_Hashes(t *testing.T) {
-	auth, err := NewAuth(writeTmpfile(testfile))
+	auth, err := NewAuth([]string{writeTmpfile(testfile)})
 	NoError(t, err)
 
 	testUsers := []string{"bob-md5", "bob-bcrypt", "bob-sha"}
@@ -38,8 +39,10 @@ func TestAuth_Hashes(t *testing.T) {
 }
 
 func TestAuth_ReloadFile(t *testing.T) {
-	filename := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
-	auth, err := NewAuth(filename)
+	file := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
+	filenames := []string{file}
+
+	auth, err := NewAuth(filenames)
 	NoError(t, err)
 
 	authenticated, err := auth.Authenticate("bob", "secret")
@@ -53,7 +56,7 @@ func TestAuth_ReloadFile(t *testing.T) {
 	// The refresh is time based, so we have to wait a second, here
 	time.Sleep(time.Second)
 
-	err = ioutil.WriteFile(filename, []byte(`alice:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`), 06644)
+	err = ioutil.WriteFile(file, []byte(`alice:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`), 06644)
 	NoError(t, err)
 
 	authenticated, err = auth.Authenticate("bob", "secret")
@@ -65,8 +68,35 @@ func TestAuth_ReloadFile(t *testing.T) {
 	True(t, authenticated)
 }
 
+func TestAuth_ReloadFileDeleted(t *testing.T) {
+	file := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
+	filenames := []string{file}
+
+	auth, err := NewAuth(filenames)
+	NoError(t, err)
+
+	authenticated, err := auth.Authenticate("bob", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+
+	authenticated, err = auth.Authenticate("alice", "secret")
+	NoError(t, err)
+	False(t, authenticated)
+
+	// The refresh is time based, so we have to wait a second, here
+	time.Sleep(time.Second)
+
+	// delete file and load auth from "cache"
+	_ = os.Remove(file)
+
+	authenticated, err = auth.Authenticate("bob", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+
+}
+
 func TestAuth_UnknownUser(t *testing.T) {
-	auth, err := NewAuth(writeTmpfile(testfile))
+	auth, err := NewAuth([]string{writeTmpfile(testfile)})
 	NoError(t, err)
 
 	authenticated, err := auth.Authenticate("unknown", "secret")
@@ -75,21 +105,21 @@ func TestAuth_UnknownUser(t *testing.T) {
 }
 
 func TestAuth_ErrorOnMissingFile(t *testing.T) {
-	_, err := NewAuth("/tmp/foo/bar/nothing")
+	_, err := NewAuth([]string{"/tmp/foo/bar/nothing"})
 	Error(t, err)
 }
 
 func TestAuth_ErrorOnInvalidFileContents(t *testing.T) {
-	_, err := NewAuth(writeTmpfile("foo bar bazz"))
+	_, err := NewAuth([]string{writeTmpfile("foo bar bazz")})
 	Error(t, err)
 
-	_, err = NewAuth(writeTmpfile("foo:bar\nfoo:bar:bazz"))
+	_, err = NewAuth([]string{writeTmpfile("foo:bar\nfoo:bar:bazz")})
 	Error(t, err)
 }
 
 func TestAuth_BadMD5Format(t *testing.T) {
 	// missing $ separator in md5 hash
-	a, err := NewAuth(writeTmpfile("foo:$apr1$IDZSCL/oN68zaFDDRivjour94OVeB."))
+	a, err := NewAuth([]string{writeTmpfile("foo:$apr1$IDZSCL/oN68zaFDDRivjour94OVeB.")})
 	NoError(t, err)
 
 	authenticated, err := a.Authenticate("foo", "secret")
@@ -98,7 +128,7 @@ func TestAuth_BadMD5Format(t *testing.T) {
 }
 
 func TestAuth_Hashes_UnknownAlgoError(t *testing.T) {
-	auth, err := NewAuth(writeTmpfile(testfile))
+	auth, err := NewAuth([]string{writeTmpfile(testfile)})
 	NoError(t, err)
 
 	authenticated, err := auth.Authenticate("bob-foo", "secret")

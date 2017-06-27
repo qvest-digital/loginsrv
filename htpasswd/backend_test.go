@@ -3,10 +3,11 @@ package htpasswd
 import (
 	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/login"
+	"strings"
 	"testing"
 )
 
-func TestSetup(t *testing.T) {
+func TestSetupOneFile(t *testing.T) {
 	p, exist := login.GetProvider(ProviderName)
 	True(t, exist)
 	NotNil(t, p)
@@ -18,8 +19,41 @@ func TestSetup(t *testing.T) {
 
 	NoError(t, err)
 	Equal(t,
-		file,
-		backend.(*Backend).auth.filename)
+		[]string{file},
+		backend.(*Backend).auth.filenames)
+}
+
+func TestSetupTwoFiles(t *testing.T) {
+	p, exist := login.GetProvider(ProviderName)
+	True(t, exist)
+	NotNil(t, p)
+
+	filenames := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	backend, err := p(map[string]string{
+		"file": strings.Join(filenames, ","),
+	})
+
+	NoError(t, err)
+	Equal(t,
+		filenames,
+		backend.(*Backend).auth.filenames)
+}
+
+func TestSetupTwoConfigs(t *testing.T) {
+	p, exist := login.GetProvider(ProviderName)
+	True(t, exist)
+	NotNil(t, p)
+
+	filenames := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	backend, err := p(map[string]string{
+		"files": strings.Join(filenames, ","),
+		"file":  "willnotb,used",
+	})
+
+	NoError(t, err)
+	Equal(t,
+		filenames,
+		backend.(*Backend).auth.filenames)
 }
 
 func TestSetup_Error(t *testing.T) {
@@ -32,7 +66,7 @@ func TestSetup_Error(t *testing.T) {
 }
 
 func TestSimpleBackend_Authenticate(t *testing.T) {
-	backend, err := NewBackend(writeTmpfile(testfile))
+	backend, err := NewBackend([]string{writeTmpfile(testfile)})
 	NoError(t, err)
 
 	authenticated, userInfo, err := backend.Authenticate("bob-bcrypt", "secret")
