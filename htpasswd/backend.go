@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/tarent/loginsrv/login"
 	"github.com/tarent/loginsrv/model"
+	"strings"
 )
 
 // ProviderName const
@@ -13,15 +14,19 @@ func init() {
 	login.RegisterProvider(
 		&login.ProviderDescription{
 			Name:     ProviderName,
-			HelpText: "Htpasswd login backend opts: file=/path/to/pwdfile",
+			HelpText: "Htpasswd login backend opts: files=/path/to/pwdfile,/path/to/additionalfile",
 		},
 		BackendFactory)
 }
 
 // BackendFactory creates a htpasswd backend
 func BackendFactory(config map[string]string) (login.Backend, error) {
-	if f, exist := config["file"]; exist {
-		return NewBackend(f)
+	if f, exist := config["files"]; exist {
+		filemap := strings.Split(f, ",")
+		return NewBackend(filemap)
+	} else if f, exist := config["file"]; exist {
+		filemap := strings.Split(f, ",")
+		return NewBackend(filemap)
 	}
 	return nil, errors.New(`missing parameter "file" for htpasswd provider`)
 }
@@ -32,8 +37,8 @@ type Backend struct {
 }
 
 // NewBackend creates a new Backend and verifies the parameters.
-func NewBackend(filename string) (*Backend, error) {
-	auth, err := NewAuth(filename)
+func NewBackend(filenames []string) (*Backend, error) {
+	auth, err := NewAuth(filenames)
 	return &Backend{
 		auth,
 	}, err

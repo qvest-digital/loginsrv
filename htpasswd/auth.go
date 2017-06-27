@@ -18,54 +18,58 @@ import (
 
 // Auth is the htpassword authenticater
 type Auth struct {
-	filename string
-	userHash map[string]string
+	filenames []string
+	userHash  map[string]string
 	// Used in func reloadIfChanged to reload htpasswd file if it changed
 	modTime time.Time
 	mu      sync.RWMutex
 }
 
 // NewAuth creates an htpassword authenticater
-func NewAuth(filename string) (*Auth, error) {
+func NewAuth(filenames []string) (*Auth, error) {
 	a := &Auth{
-		filename: filename,
+		filenames: filenames,
 	}
-	return a, a.parse(filename)
+	return a, a.parse(filenames)
 }
 
-func (a *Auth) parse(filename string) error {
-	r, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
+func (a *Auth) parse(filenames []string) error {
+	tmpUserHash := map[string]string{}
 
-	fileInfo, err := os.Stat(filename)
-	if err != nil {
-		return err
-	}
-	a.modTime = fileInfo.ModTime()
-
-	cr := csv.NewReader(r)
-	cr.Comma = ':'
-	cr.Comment = '#'
-	cr.TrimLeadingSpace = true
-
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.userHash = map[string]string{}
-	for {
-		record, err := cr.Read()
-		if err == io.EOF {
-			break
-		}
+	for _, filename := range filenames {
+		r, err := os.Open(filename)
 		if err != nil {
 			return err
 		}
-		if len(record) != 2 {
-			return fmt.Errorf("password file in wrong format (%v)", filename)
+
+		fileInfo, err := os.Stat(filename)
+		if err != nil {
+			return err
 		}
-		a.userHash[record[0]] = record[1]
+		a.modTime = fileInfo.ModTime()
+
+		cr := csv.NewReader(r)
+		cr.Comma = ':'
+		cr.Comment = '#'
+		cr.TrimLeadingSpace = true
+
+		for {
+			record, err := cr.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return err
+			}
+			if len(record) != 2 {
+				return fmt.Errorf("password file in wrong format (%v)", filename)
+			}
+			tmpUserHash[record[0]] = record[1]
+		}
 	}
+	a.mu.Lock()
+	a.userHash = tmpUserHash
+	defer a.mu.Unlock()
 	return nil
 }
 
@@ -94,17 +98,24 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 
 // Reload htpasswd file if it changed during current run
 func reloadIfChanged(a *Auth) {
-	fileInfo, err := os.Stat(a.filename)
-	if err != nil {
-		//On error, retain current file
-		return
+	reload := false
+	currentmodTime := a.modTime
+	for _, filename := range a.filenames {
+		fileInfo, err := os.Stat(filename)
+		if err != nil {
+			//On error, retain current file
+			return
+		}
+		if fileInfo.ModTime() != a.modTime {
+			currentmodTime = fileInfo.ModTime()
+			reload = true
+			break
+		}
 	}
 
-	currentmodTime := fileInfo.ModTime()
-
-	if currentmodTime != a.modTime {
+	if reload {
 		a.modTime = currentmodTime
-		a.parse(a.filename)
+		a.parse(a.filenames)
 	}
 }
 
