@@ -12,14 +12,14 @@ func TestSetupOneFile(t *testing.T) {
 	True(t, exist)
 	NotNil(t, p)
 
-	file := writeTmpfile(testfile)
+	files := writeTmpfile(testfile)
 	backend, err := p(map[string]string{
-		"file": file,
+		"file": files[0],
 	})
 
 	NoError(t, err)
 	Equal(t,
-		[]File{File{name: file}},
+		[]File{File{name: files[0]}},
 		backend.(*Backend).auth.filenames)
 }
 
@@ -28,7 +28,7 @@ func TestSetupTwoFiles(t *testing.T) {
 	True(t, exist)
 	NotNil(t, p)
 
-	filenames := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	filenames := writeTmpfile(testfile, testfile)
 
 	var morphed []File
 	for _, curFile := range filenames {
@@ -49,8 +49,8 @@ func TestSetupTwoConfigs(t *testing.T) {
 	True(t, exist)
 	NotNil(t, p)
 
-	configFiles := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
-	configFile := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	configFiles := writeTmpfile(testfile, testfile)
+	configFile := writeTmpfile(testfile, testfile)
 
 	var morphed []File
 	for _, curFile := range append(configFiles, configFile...) {
@@ -78,7 +78,7 @@ func TestSetup_Error(t *testing.T) {
 }
 
 func TestSimpleBackend_Authenticate(t *testing.T) {
-	backend, err := NewBackend([]string{writeTmpfile(testfile)})
+	backend, err := NewBackend(writeTmpfile(testfile))
 	NoError(t, err)
 
 	authenticated, userInfo, err := backend.Authenticate("bob-bcrypt", "secret")
