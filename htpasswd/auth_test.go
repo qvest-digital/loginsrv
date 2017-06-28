@@ -67,6 +67,21 @@ func TestAuth_ReloadFile(t *testing.T) {
 	True(t, authenticated)
 }
 
+func TestAuth_FromTwoFiles(t *testing.T) {
+	files := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`, `alice:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
+
+	auth, err := NewAuth(files)
+	NoError(t, err)
+
+	authenticated, err := auth.Authenticate("bob", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+
+	authenticated, err = auth.Authenticate("alice", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+}
+
 func TestAuth_ReloadFileDeleted(t *testing.T) {
 	files := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
 
