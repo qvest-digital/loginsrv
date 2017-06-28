@@ -19,7 +19,7 @@ func TestSetupOneFile(t *testing.T) {
 
 	NoError(t, err)
 	Equal(t,
-		[]string{file},
+		[]File{File{name: file}},
 		backend.(*Backend).auth.filenames)
 }
 
@@ -29,13 +29,18 @@ func TestSetupTwoFiles(t *testing.T) {
 	NotNil(t, p)
 
 	filenames := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+
+	var morphed []File
+	for _, curFile := range filenames {
+		morphed = append(morphed, File{name: curFile})
+	}
 	backend, err := p(map[string]string{
 		"file": strings.Join(filenames, ","),
 	})
 
 	NoError(t, err)
 	Equal(t,
-		filenames,
+		morphed,
 		backend.(*Backend).auth.filenames)
 }
 
@@ -46,7 +51,12 @@ func TestSetupTwoConfigs(t *testing.T) {
 
 	configFiles := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
 	configFile := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
-	compared := append(configFiles, configFile...)
+
+	var morphed []File
+	for _, curFile := range append(configFiles, configFile...) {
+		morphed = append(morphed, File{name: curFile})
+	}
+
 	backend, err := p(map[string]string{
 		"files": strings.Join(configFiles, ","),
 		"file":  strings.Join(configFile, ","),
@@ -54,7 +64,7 @@ func TestSetupTwoConfigs(t *testing.T) {
 
 	NoError(t, err)
 	Equal(t,
-		compared,
+		morphed,
 		backend.(*Backend).auth.filenames)
 }
 

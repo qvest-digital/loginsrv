@@ -16,37 +16,47 @@ import (
 	"time"
 )
 
-// Auth is the htpassword authenticater
-type Auth struct {
-	filenames []string
-	userHash  map[string]string
+// File is a struct to serve an individual modTime
+type File struct {
+	name string
 	// Used in func reloadIfChanged to reload htpasswd file if it changed
 	modTime time.Time
-	mu      sync.RWMutex
+}
+
+// Auth is the htpassword authenticater
+type Auth struct {
+	filenames  []File
+	userHash   map[string]string
+	muUserHash sync.RWMutex
 }
 
 // NewAuth creates an htpassword authenticater
 func NewAuth(filenames []string) (*Auth, error) {
-	a := &Auth{
-		filenames: filenames,
+	var htpasswdFiles []File
+	for _, file := range filenames {
+		htpasswdFiles = append(htpasswdFiles, File{name: file})
 	}
-	return a, a.parse(filenames)
+
+	a := &Auth{
+		filenames: htpasswdFiles,
+	}
+	return a, a.parse(htpasswdFiles)
 }
 
-func (a *Auth) parse(filenames []string) error {
+func (a *Auth) parse(filenames []File) error {
 	tmpUserHash := map[string]string{}
 
-	for _, filename := range filenames {
-		r, err := os.Open(filename)
+	for _, filename := range a.filenames {
+		r, err := os.Open(filename.name)
 		if err != nil {
 			return err
 		}
 
-		fileInfo, err := os.Stat(filename)
+		fileInfo, err := os.Stat(filename.name)
 		if err != nil {
 			return err
 		}
-		a.modTime = fileInfo.ModTime()
+		filename.modTime = fileInfo.ModTime()
 
 		cr := csv.NewReader(r)
 		cr.Comma = ':'
@@ -66,18 +76,18 @@ func (a *Auth) parse(filenames []string) error {
 			}
 			tmpUserHash[record[0]] = record[1]
 		}
+		a.muUserHash.Lock()
+		a.userHash = tmpUserHash
+		a.muUserHash.Unlock()
 	}
-	a.mu.Lock()
-	a.userHash = tmpUserHash
-	defer a.mu.Unlock()
 	return nil
 }
 
 // Authenticate the user
 func (a *Auth) Authenticate(username, password string) (bool, error) {
 	reloadIfChanged(a)
-	a.mu.RLock()
-	defer a.mu.RUnlock()
+	a.muUserHash.RLock()
+	defer a.muUserHash.RUnlock()
 	if hash, exist := a.userHash[username]; exist {
 		h := []byte(hash)
 		p := []byte(password)
@@ -98,23 +108,20 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 
 // Reload htpasswd file if it changed during current run
 func reloadIfChanged(a *Auth) {
-	reload := false
-	currentmodTime := a.modTime
-	for _, filename := range a.filenames {
-		fileInfo, err := os.Stat(filename)
+	parse := false
+	for _, file := range a.filenames {
+		fileInfo, err := os.Stat(file.name)
 		if err != nil {
 			//On error, retain current file
-			return
-		}
-		if fileInfo.ModTime() != a.modTime {
-			currentmodTime = fileInfo.ModTime()
-			reload = true
 			break
 		}
+		currentmodTime := fileInfo.ModTime()
+		if currentmodTime != file.modTime {
+			file.modTime = currentmodTime
+			parse = true
+		}
 	}
-
-	if reload {
-		a.modTime = currentmodTime
+	if parse {
 		a.parse(a.filenames)
 	}
 }
