@@ -74,12 +74,14 @@ func (a *Auth) parse(filenames []File) error {
 			if len(record) != 2 {
 				return fmt.Errorf("password file in wrong format (%v)", filename)
 			}
+
 			tmpUserHash[record[0]] = record[1]
 		}
-		a.muUserHash.Lock()
-		a.userHash = tmpUserHash
-		a.muUserHash.Unlock()
 	}
+	a.muUserHash.Lock()
+	a.userHash = tmpUserHash
+	a.muUserHash.Unlock()
+
 	return nil
 }
 
@@ -108,7 +110,6 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 
 // Reload htpasswd file if it changed during current run
 func reloadIfChanged(a *Auth) {
-	parse := false
 	for _, file := range a.filenames {
 		fileInfo, err := os.Stat(file.name)
 		if err != nil {
@@ -117,12 +118,9 @@ func reloadIfChanged(a *Auth) {
 		}
 		currentmodTime := fileInfo.ModTime()
 		if currentmodTime != file.modTime {
-			file.modTime = currentmodTime
-			parse = true
+			a.parse(a.filenames)
+			return
 		}
-	}
-	if parse {
-		a.parse(a.filenames)
 	}
 }
 
