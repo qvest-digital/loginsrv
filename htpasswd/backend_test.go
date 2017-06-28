@@ -44,15 +44,17 @@ func TestSetupTwoConfigs(t *testing.T) {
 	True(t, exist)
 	NotNil(t, p)
 
-	filenames := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	configFiles := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	configFile := []string{writeTmpfile(testfile), writeTmpfile(testfile)}
+	compared := append(configFiles, configFile...)
 	backend, err := p(map[string]string{
-		"files": strings.Join(filenames, ","),
-		"file":  "willnotb,used",
+		"files": strings.Join(configFiles, ","),
+		"file":  strings.Join(configFile, ","),
 	})
 
 	NoError(t, err)
 	Equal(t,
-		filenames,
+		compared,
 		backend.(*Backend).auth.filenames)
 }
 

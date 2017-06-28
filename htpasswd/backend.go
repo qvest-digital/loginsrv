@@ -21,14 +21,25 @@ func init() {
 
 // BackendFactory creates a htpasswd backend
 func BackendFactory(config map[string]string) (login.Backend, error) {
+	var files []string
+
 	if f, exist := config["files"]; exist {
-		filemap := strings.Split(f, ",")
-		return NewBackend(filemap)
-	} else if f, exist := config["file"]; exist {
-		filemap := strings.Split(f, ",")
-		return NewBackend(filemap)
+		for _, file := range strings.Split(f, ",") {
+			files = append(files, file)
+		}
 	}
-	return nil, errors.New(`missing parameter "file" for htpasswd provider`)
+
+	if f, exist := config["file"]; exist {
+		for _, file := range strings.Split(f, ",") {
+			files = append(files, file)
+		}
+	}
+
+	if len(files) == 0 {
+		return nil, errors.New(`missing parameter "file" for htpasswd provider`)
+	}
+
+	return NewBackend(files)
 }
 
 // Backend is a htpasswd based authentication backend.
