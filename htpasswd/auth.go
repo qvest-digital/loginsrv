@@ -8,6 +8,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/abbot/go-http-auth"
+	"github.com/tarent/loginsrv/logging"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"os"
@@ -75,6 +76,9 @@ func (a *Auth) parse(filenames []File) error {
 				return fmt.Errorf("password file in wrong format (%v)", filename)
 			}
 
+			if _, exist := tmpUserHash[record[0]]; exist {
+				logging.Logger.Warnf("Found duplicate entry for user: (%v)", record[0])
+			}
 			tmpUserHash[record[0]] = record[1]
 		}
 	}
