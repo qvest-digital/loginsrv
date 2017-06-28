@@ -3,6 +3,7 @@ package htpasswd
 import (
 	. "github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 )
@@ -38,8 +39,9 @@ func TestAuth_Hashes(t *testing.T) {
 }
 
 func TestAuth_ReloadFile(t *testing.T) {
-	filename := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
-	auth, err := NewAuth(filename)
+	files := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
+
+	auth, err := NewAuth(files)
 	NoError(t, err)
 
 	authenticated, err := auth.Authenticate("bob", "secret")
@@ -53,7 +55,7 @@ func TestAuth_ReloadFile(t *testing.T) {
 	// The refresh is time based, so we have to wait a second, here
 	time.Sleep(time.Second)
 
-	err = ioutil.WriteFile(filename, []byte(`alice:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`), 06644)
+	err = ioutil.WriteFile(files[0], []byte(`alice:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`), 06644)
 	NoError(t, err)
 
 	authenticated, err = auth.Authenticate("bob", "secret")
@@ -63,6 +65,47 @@ func TestAuth_ReloadFile(t *testing.T) {
 	authenticated, err = auth.Authenticate("alice", "secret")
 	NoError(t, err)
 	True(t, authenticated)
+}
+
+func TestAuth_FromTwoFiles(t *testing.T) {
+	files := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`, `alice:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
+
+	auth, err := NewAuth(files)
+	NoError(t, err)
+
+	authenticated, err := auth.Authenticate("bob", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+
+	authenticated, err = auth.Authenticate("alice", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+}
+
+func TestAuth_ReloadFileDeleted(t *testing.T) {
+	files := writeTmpfile(`bob:$apr1$IDZSCL/o$N68zaFDDRivjour94OVeB.`)
+
+	auth, err := NewAuth(files)
+	NoError(t, err)
+
+	authenticated, err := auth.Authenticate("bob", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+
+	authenticated, err = auth.Authenticate("alice", "secret")
+	NoError(t, err)
+	False(t, authenticated)
+
+	// The refresh is time based, so we have to wait a second, here
+	time.Sleep(time.Second)
+
+	// delete file and load auth from "cache"
+	_ = os.Remove(files[0])
+
+	authenticated, err = auth.Authenticate("bob", "secret")
+	NoError(t, err)
+	True(t, authenticated)
+
 }
 
 func TestAuth_UnknownUser(t *testing.T) {
@@ -75,7 +118,7 @@ func TestAuth_UnknownUser(t *testing.T) {
 }
 
 func TestAuth_ErrorOnMissingFile(t *testing.T) {
-	_, err := NewAuth("/tmp/foo/bar/nothing")
+	_, err := NewAuth([]string{"/tmp/foo/bar/nothing"})
 	Error(t, err)
 }
 
@@ -106,15 +149,19 @@ func TestAuth_Hashes_UnknownAlgoError(t *testing.T) {
 	False(t, authenticated)
 }
 
-func writeTmpfile(contents string) string {
-	f, err := ioutil.TempFile("", "loginsrv_htpasswdtest")
-	if err != nil {
-		panic(err)
+func writeTmpfile(contents ...string) []string {
+	var names []string
+	for _, curContent := range contents {
+		f, err := ioutil.TempFile("", "loginsrv_htpasswdtest")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		_, err = f.WriteString(curContent)
+		if err != nil {
+			panic(err)
+		}
+		names = append(names, f.Name())
 	}
-	defer f.Close()
-	_, err = f.WriteString(contents)
-	if err != nil {
-		panic(err)
-	}
-	return f.Name()
+	return names
 }

@@ -8,6 +8,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/abbot/go-http-auth"
+	"github.com/tarent/loginsrv/logging"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"os"
@@ -16,64 +17,83 @@ import (
 	"time"
 )
 
-// Auth is the htpassword authenticater
-type Auth struct {
-	filename string
-	userHash map[string]string
+// File is a struct to serve an individual modTime
+type File struct {
+	name string
 	// Used in func reloadIfChanged to reload htpasswd file if it changed
 	modTime time.Time
-	mu      sync.RWMutex
+}
+
+// Auth is the htpassword authenticater
+type Auth struct {
+	filenames  []File
+	userHash   map[string]string
+	muUserHash sync.RWMutex
 }
 
 // NewAuth creates an htpassword authenticater
-func NewAuth(filename string) (*Auth, error) {
-	a := &Auth{
-		filename: filename,
+func NewAuth(filenames []string) (*Auth, error) {
+	var htpasswdFiles []File
+	for _, file := range filenames {
+		htpasswdFiles = append(htpasswdFiles, File{name: file})
 	}
-	return a, a.parse(filename)
+
+	a := &Auth{
+		filenames: htpasswdFiles,
+	}
+	return a, a.parse(htpasswdFiles)
 }
 
-func (a *Auth) parse(filename string) error {
-	r, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
+func (a *Auth) parse(filenames []File) error {
+	tmpUserHash := map[string]string{}
 
-	fileInfo, err := os.Stat(filename)
-	if err != nil {
-		return err
-	}
-	a.modTime = fileInfo.ModTime()
-
-	cr := csv.NewReader(r)
-	cr.Comma = ':'
-	cr.Comment = '#'
-	cr.TrimLeadingSpace = true
-
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.userHash = map[string]string{}
-	for {
-		record, err := cr.Read()
-		if err == io.EOF {
-			break
-		}
+	for _, filename := range a.filenames {
+		r, err := os.Open(filename.name)
 		if err != nil {
 			return err
 		}
-		if len(record) != 2 {
-			return fmt.Errorf("password file in wrong format (%v)", filename)
+
+		fileInfo, err := os.Stat(filename.name)
+		if err != nil {
+			return err
 		}
-		a.userHash[record[0]] = record[1]
+		filename.modTime = fileInfo.ModTime()
+
+		cr := csv.NewReader(r)
+		cr.Comma = ':'
+		cr.Comment = '#'
+		cr.TrimLeadingSpace = true
+
+		for {
+			record, err := cr.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return err
+			}
+			if len(record) != 2 {
+				return fmt.Errorf("password file in wrong format (%v)", filename)
+			}
+
+			if _, exist := tmpUserHash[record[0]]; exist {
+				logging.Logger.Warnf("Found duplicate entry for user: (%v)", record[0])
+			}
+			tmpUserHash[record[0]] = record[1]
+		}
 	}
+	a.muUserHash.Lock()
+	a.userHash = tmpUserHash
+	a.muUserHash.Unlock()
+
 	return nil
 }
 
 // Authenticate the user
 func (a *Auth) Authenticate(username, password string) (bool, error) {
 	reloadIfChanged(a)
-	a.mu.RLock()
-	defer a.mu.RUnlock()
+	a.muUserHash.RLock()
+	defer a.muUserHash.RUnlock()
 	if hash, exist := a.userHash[username]; exist {
 		h := []byte(hash)
 		p := []byte(password)
@@ -94,17 +114,17 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 
 // Reload htpasswd file if it changed during current run
 func reloadIfChanged(a *Auth) {
-	fileInfo, err := os.Stat(a.filename)
-	if err != nil {
-		//On error, retain current file
-		return
-	}
-
-	currentmodTime := fileInfo.ModTime()
-
-	if currentmodTime != a.modTime {
-		a.modTime = currentmodTime
-		a.parse(a.filename)
+	for _, file := range a.filenames {
+		fileInfo, err := os.Stat(file.name)
+		if err != nil {
+			//On error, retain current file
+			break
+		}
+		currentmodTime := fileInfo.ModTime()
+		if currentmodTime != file.modTime {
+			a.parse(a.filenames)
+			return
+		}
 	}
 }
 

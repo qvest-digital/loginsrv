@@ -3,23 +3,69 @@ package htpasswd
 import (
 	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/login"
+	"strings"
 	"testing"
 )
 
-func TestSetup(t *testing.T) {
+func TestSetupOneFile(t *testing.T) {
 	p, exist := login.GetProvider(ProviderName)
 	True(t, exist)
 	NotNil(t, p)
 
-	file := writeTmpfile(testfile)
+	files := writeTmpfile(testfile)
 	backend, err := p(map[string]string{
-		"file": file,
+		"file": files[0],
 	})
 
 	NoError(t, err)
 	Equal(t,
-		file,
-		backend.(*Backend).auth.filename)
+		[]File{File{name: files[0]}},
+		backend.(*Backend).auth.filenames)
+}
+
+func TestSetupTwoFiles(t *testing.T) {
+	p, exist := login.GetProvider(ProviderName)
+	True(t, exist)
+	NotNil(t, p)
+
+	filenames := writeTmpfile(testfile, testfile)
+
+	var morphed []File
+	for _, curFile := range filenames {
+		morphed = append(morphed, File{name: curFile})
+	}
+	backend, err := p(map[string]string{
+		"file": strings.Join(filenames, ","),
+	})
+
+	NoError(t, err)
+	Equal(t,
+		morphed,
+		backend.(*Backend).auth.filenames)
+}
+
+func TestSetupTwoConfigs(t *testing.T) {
+	p, exist := login.GetProvider(ProviderName)
+	True(t, exist)
+	NotNil(t, p)
+
+	configFiles := writeTmpfile(testfile, testfile)
+	configFile := writeTmpfile(testfile, testfile)
+
+	var morphed []File
+	for _, curFile := range append(configFiles, configFile...) {
+		morphed = append(morphed, File{name: curFile})
+	}
+
+	backend, err := p(map[string]string{
+		"files": strings.Join(configFiles, ","),
+		"file":  strings.Join(configFile, ","),
+	})
+
+	NoError(t, err)
+	Equal(t,
+		morphed,
+		backend.(*Backend).auth.filenames)
 }
 
 func TestSetup_Error(t *testing.T) {
