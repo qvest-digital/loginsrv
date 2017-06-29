@@ -35,7 +35,7 @@ func TestSetupTwoFiles(t *testing.T) {
 		morphed = append(morphed, File{name: curFile})
 	}
 	backend, err := p(map[string]string{
-		"file": strings.Join(filenames, ","),
+		"file": strings.Join(filenames, ";"),
 	})
 
 	NoError(t, err)
@@ -58,8 +58,8 @@ func TestSetupTwoConfigs(t *testing.T) {
 	}
 
 	backend, err := p(map[string]string{
-		"files": strings.Join(configFiles, ","),
-		"file":  strings.Join(configFile, ","),
+		"files": strings.Join(configFiles, ";"),
+		"file":  strings.Join(configFile, ";"),
 	})
 
 	NoError(t, err)
