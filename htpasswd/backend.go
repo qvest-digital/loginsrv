@@ -24,13 +24,13 @@ func BackendFactory(config map[string]string) (login.Backend, error) {
 	var files []string
 
 	if f, exist := config["files"]; exist {
-		for _, file := range strings.Split(f, ",") {
+		for _, file := range strings.Split(f, ";") {
 			files = append(files, file)
 		}
 	}
 
 	if f, exist := config["file"]; exist {
-		for _, file := range strings.Split(f, ",") {
+		for _, file := range strings.Split(f, ";") {
 			files = append(files, file)
 		}
 	}
