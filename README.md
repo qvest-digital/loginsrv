@@ -202,6 +202,7 @@ loginsrv -htpasswd file=users
 Authentication against an upstream http server by performing a http basic authenticated request and checking the response for a http 200 OK status code. Anything other than a 200 OK status code will result in a failure to authenticate.
 
 Parameters for the provider:
+
 | Parameter-Name    | Description                                                               |
 | ------------------|---------------------------------------------------------------------------|
 | upstream          | http/https url to call                                                    |
