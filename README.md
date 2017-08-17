@@ -49,7 +49,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -cookie-http-only | boolean     | true         | X     | Set the cookie with the http only flag                                               |
 | -cookie-name      | string      | "jwt_token"  | X     | The name of the jwt cookie                                                           |
 | -github           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..] |
-| -google           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..] |
+| -google           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..] |
 | -host             | string      | "localhost"  | -     | The host to listen on                                                                |
 | -htpasswd         | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                   |
 | -jwt-expiry       | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                              |
