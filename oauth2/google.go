@@ -57,7 +57,7 @@ var providerGoogle = Provider{
 		}
 
 		if len(gu.Emails) == 0 {
-			return model.UserInfo{}, "", fmt.Errorf("invalid google response: no email address returned.", err)
+			return model.UserInfo{}, "", fmt.Errorf("invalid google response: no email address returned.")
 		}
 
 		return model.UserInfo{
