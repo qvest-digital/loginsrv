@@ -16,6 +16,6 @@ func Test_ProviderRegistration(t *testing.T) {
 
 	list := ProviderList()
 	Equal(t, 2, len(list))
-	Equal(t, "github", list[0])
-	Equal(t, "google", list[1])
+	Contains(t, list, "github")
+	Contains(t, list, "google")
 }
