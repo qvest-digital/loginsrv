@@ -50,7 +50,7 @@ func Test_Authenticate(t *testing.T) {
 		Equal(t, "application/json", r.Header.Get("Accept"))
 
 		body, _ := ioutil.ReadAll(r.Body)
-		Equal(t, "client_id=client42&client_secret=secret&code=theCode", string(body))
+		Equal(t, "client_id=client42&client_secret=secret&code=theCode&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%2Fcallback", string(body))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"access_token":"e72e16c7e42f292c6912e7710c838347ae178b4a", "scope":"repo gist", "token_type":"bearer"}`))
