@@ -56,6 +56,10 @@ var providerGoogle = Provider{
 			return model.UserInfo{}, "", fmt.Errorf("error parsing google get user info: %v", err)
 		}
 
+		if len(gu.Emails) == 0 {
+			return model.UserInfo{}, "", fmt.Errorf("invalid google response: no email address returned.", err)
+		}
+
 		return model.UserInfo{
 			Sub:     gu.Emails[0].Value,
 			Picture: gu.Image.Url,
