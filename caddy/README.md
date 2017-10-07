@@ -16,14 +16,14 @@ so that caddy-jwt looks up the same shared secret.
 ### Basic configuration
 Provide a login resource under /login, for user bob with password secret:
 ```
-login / {
+login {
     simple bob=secret
 }
 ```
 
 ### Full configuration example
 ```
-login / {
+login {
     success_url /after/login
     cookie_name alternativeName
     cookie_http_only true
@@ -46,7 +46,7 @@ jwt {
     allow sub bob
 }
 
-login / {
-         simple bob=secret,alice=secret
+login {
+    simple bob=secret,alice=secret
 }
 ```
