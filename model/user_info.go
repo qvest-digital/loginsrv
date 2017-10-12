@@ -15,6 +15,7 @@ type UserInfo struct {
 	Origin    string `json:"origin,omitempty"`
 	Expiry    int64  `json:"exp,omitempty"`
 	Refreshes int    `json:"refs,omitempty"`
+	Domain    string `json:"domain,omitempty"`
 }
 
 // Valid lets us use the user info as Claim for jwt-go.

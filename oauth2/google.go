@@ -3,10 +3,11 @@ package oauth2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 var googleAPI = "https://www.googleapis.com/plus/v1"
@@ -23,6 +24,7 @@ type GoogleUser struct {
 	Image struct {
 		Url string
 	}
+	Domain string
 }
 
 var providerGoogle = Provider{
@@ -66,6 +68,7 @@ var providerGoogle = Provider{
 			Name:    gu.DisplayName,
 			Email:   gu.Emails[0].Value,
 			Origin:  "google",
+			Domain:  gu.Domain,
 		}, string(b), nil
 	},
 }
