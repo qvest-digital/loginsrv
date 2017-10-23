@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/tarent/loginsrv/model"
@@ -62,9 +63,11 @@ var providerGoogle = Provider{
 			return model.UserInfo{}, "", fmt.Errorf("invalid google response: no email address returned.")
 		}
 
+		reg := regexp.MustCompile(`\?.*$`)
+
 		return model.UserInfo{
 			Sub:     gu.Emails[0].Value,
-			Picture: gu.Image.Url,
+			Picture: reg.ReplaceAllString(gu.Image.Url, "${1}"),
 			Name:    gu.DisplayName,
 			Email:   gu.Emails[0].Value,
 			Origin:  "google",

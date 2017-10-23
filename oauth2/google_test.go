@@ -50,6 +50,7 @@ func Test_Google_getUserInfo(t *testing.T) {
 	NoError(t, err)
 	Equal(t, "test@gmail.com", u.Sub)
 	Equal(t, "test@gmail.com", u.Email)
+	Equal(t, "https://lh3.googleusercontent.com/X/X/X/X/photo.jpg", u.Picture)
 	Equal(t, "Testy Test", u.Name)
 	Equal(t, "gmail.com", u.Domain)
 	Equal(t, googleTestUserResponse, rawJSON)
