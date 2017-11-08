@@ -246,7 +246,7 @@ func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
 	return token.SignedString([]byte(h.config.JwtSecret))
 }
 
-func (h *Handler) getToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
+func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
 	c, err := r.Cookie(h.config.CookieName)
 	if err != nil {
 		return model.UserInfo{}, false

@@ -25,9 +25,17 @@ func NewCaddyHandler(next httpserver.Handler, loginHandler *login.Handler, confi
 }
 
 func (h *CaddyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, error) {
+	//Fetch jwt token. If valid set a Caddy replacer for {user}
+	userInfo, valid := h.loginHandler.GetToken(r)
+	if valid {
+		repl := httpserver.NewReplacer(r, nil, "-")
+		repl.Set("user", userInfo.Sub)
+	}
+
 	if strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
 		h.loginHandler.ServeHTTP(w, r)
 		return 0, nil
 	}
+		
 	return h.next.ServeHTTP(w, r)
 }
