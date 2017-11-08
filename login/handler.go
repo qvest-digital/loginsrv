@@ -131,7 +131,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		userInfo, valid := h.getToken(r)
+		userInfo, valid := h.GetToken(r)
 		writeLoginForm(w,
 			loginFormData{
 				Config:        h.config,
@@ -152,7 +152,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.handleAuthentication(w, r, username, password)
 			return
 		}
-		userInfo, valid := h.getToken(r)
+		userInfo, valid := h.GetToken(r)
 		if valid {
 			h.handleRefresh(w, r, userInfo)
 			return
