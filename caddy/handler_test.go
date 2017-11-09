@@ -47,6 +47,7 @@ func Test_ServeHTTP_200(t *testing.T) {
 	}
 	
 	//Set cookie for user token on the ServeHTTP http.ResponseWriter
+	cookie := http.Cookie{Name: "jwt_token",Value: validToken, HttpOnly: true}
     http.SetCookie(w, &cookie)
 	
 	//Add the cookie to the request
