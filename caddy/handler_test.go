@@ -1,14 +1,17 @@
 package caddy
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/loginsrv/login"
+	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
-func Test_ServeHTTP_200(t *testing.T) {
+func Test_ServeHTTP_200(t *testing.T) {	
 	//Set the ServeHTTP *http.Request
 	r, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
@@ -34,6 +37,18 @@ func Test_ServeHTTP_200(t *testing.T) {
 	config:       login.DefaultConfig(),
 	loginHandler: loginh,
 	}
+	
+	//Set user token
+	userInfo := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix()}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, userInfo)
+	validToken, err := token.SignedString([]byte(h.config.JwtSecret))
+	if err != nil {
+		t.Errorf("Expected nil error, got: %v", err)
+	}
+	
+	//Set cookie for user token on the ServeHTTP http.ResponseWriter
+	cookie := http.Cookie{Name: "jwt_token",Value: validToken}
+    http.SetCookie(w, &cookie)
 	
 	status, err := h.ServeHTTP(w, r)
 	
