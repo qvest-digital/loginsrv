@@ -11,16 +11,16 @@ import (
 	"time"
 )
 
-func Test_ServeHTTP_200(t *testing.T) {	
+func Test_ServeHTTP_200(t *testing.T) {
 	//Set the ServeHTTP *http.Request
 	r, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatalf("Unable to create request: %v", err)
 	}
-	
+
 	//Set the ServeHTTP http.ResponseWriter
 	w := httptest.NewRecorder()
-	
+
 	//Set the CaddyHandler config
 	configh := login.DefaultConfig()
 	configh.Backends = login.Options{"simple": {"bob": "secret"}}
@@ -28,16 +28,16 @@ func Test_ServeHTTP_200(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected nil error, got: %v", err)
 	}
-	
+
 	//Set the CaddyHandler that will use ServeHTTP
 	h := &CaddyHandler{
-	next: httpserver.HandlerFunc(func(w http.ResponseWriter, r *http.Request) (int, error) {
-		return http.StatusOK, nil // not t.Fatalf, or we will not see what other methods yield
+		next: httpserver.HandlerFunc(func(w http.ResponseWriter, r *http.Request) (int, error) {
+			return http.StatusOK, nil // not t.Fatalf, or we will not see what other methods yield
 		}),
-	config:       login.DefaultConfig(),
-	loginHandler: loginh,
+		config:       login.DefaultConfig(),
+		loginHandler: loginh,
 	}
-	
+
 	//Set user token
 	userInfo := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix()}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, userInfo)
@@ -45,26 +45,26 @@ func Test_ServeHTTP_200(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected nil error, got: %v", err)
 	}
-	
+
 	//Set cookie for user token on the ServeHTTP http.ResponseWriter
-	cookie := http.Cookie{Name: "jwt_token",Value: validToken, HttpOnly: true}
-    http.SetCookie(w, &cookie)
-	
+	cookie := http.Cookie{Name: "jwt_token", Value: validToken, HttpOnly: true}
+	http.SetCookie(w, &cookie)
+
 	//Add the cookie to the request
 	r.AddCookie(&cookie)
-	
+
 	//Test that cookie is a valid token
-	_ ,valid := loginh.GetToken(r)
+	_, valid := loginh.GetToken(r)
 	if !valid {
 		t.Errorf("loginHandler cookie is not valid")
 	}
-	
+
 	status, err := h.ServeHTTP(w, r)
-	
+
 	if err != nil {
 		t.Errorf("Expected nil error, got: %v", err)
 	}
-	
+
 	if status != 200 {
 		t.Errorf("Expected returned status code to be %d, got %d", 0, status)
 	}
@@ -76,10 +76,10 @@ func Test_ServeHTTP_login(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create request: %v", err)
 	}
-	
+
 	//Set the ServeHTTP http.ResponseWriter
 	w := httptest.NewRecorder()
-	
+
 	//Set the CaddyHandler config
 	configh := login.DefaultConfig()
 	configh.Backends = login.Options{"simple": {"bob": "secret"}}
@@ -87,22 +87,22 @@ func Test_ServeHTTP_login(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected nil error, got: %v", err)
 	}
-	
+
 	//Set the CaddyHandler that will use ServeHTTP
 	h := &CaddyHandler{
-	next: httpserver.HandlerFunc(func(w http.ResponseWriter, r *http.Request) (int, error) {
-		return http.StatusOK, nil // not t.Fatalf, or we will not see what other methods yield
+		next: httpserver.HandlerFunc(func(w http.ResponseWriter, r *http.Request) (int, error) {
+			return http.StatusOK, nil // not t.Fatalf, or we will not see what other methods yield
 		}),
-	config:       login.DefaultConfig(),
-	loginHandler: loginh,
+		config:       login.DefaultConfig(),
+		loginHandler: loginh,
 	}
-	
+
 	status, err := h.ServeHTTP(w, r)
-	
+
 	if err != nil {
 		t.Errorf("Expected nil error, got: %v", err)
 	}
-	
+
 	if status != 0 {
 		t.Errorf("Expected returned status code to be %d, got %d", 0, status)
 	}

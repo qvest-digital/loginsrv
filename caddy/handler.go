@@ -36,6 +36,6 @@ func (h *CaddyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, e
 		h.loginHandler.ServeHTTP(w, r)
 		return 0, nil
 	}
-		
+
 	return h.next.ServeHTTP(w, r)
 }
