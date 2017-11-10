@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -61,6 +63,16 @@ func NewHandler(config *Config) (*Handler, error) {
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	if h.config.SuccessURLQueryParameter != "" {
+		queries, _ := url.ParseQuery(r.URL.RawQuery)
+		if val, ok := queries[h.config.SuccessURLQueryParameter]; ok {
+			if len(val) > 0 {
+				h.config.SuccessURL = val[0]
+			}
+		}
+	}
+
 	if !strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
 		h.respondNotFound(w, r)
 		return

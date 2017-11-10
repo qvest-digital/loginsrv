@@ -44,9 +44,11 @@ browse
 jwt {
     path /
     allow sub bob
+    redirect /login?backTo={rewrite_uri}
 }
 
 login {
     simple bob=secret,alice=secret
+    success_url_query_parameter backTo
 }
 ```
