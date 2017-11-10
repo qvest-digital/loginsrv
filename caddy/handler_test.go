@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+//Tests a page while being logged in as a user (doesn't test that the {user} replacer changes)
 func Test_ServeHTTP_200(t *testing.T) {
 	//Set the ServeHTTP *http.Request
 	r, err := http.NewRequest("GET", "/", nil)
@@ -70,6 +71,7 @@ func Test_ServeHTTP_200(t *testing.T) {
 	}
 }
 
+//Tests the login page without being logged as a user (doesn't test that the {user} replacer stays as-is)
 func Test_ServeHTTP_login(t *testing.T) {
 	//Set the ServeHTTP *http.Request
 	r, err := http.NewRequest("GET", "/login", nil)
