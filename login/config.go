@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/tarent/loginsrv/logging"
-	"github.com/tarent/loginsrv/oauth2"
+	"github.com/tarent/loginsrv/backends/oauth2"
 	"math/rand"
 	"os"
 	"strings"

@@ -7,7 +7,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
-	"github.com/tarent/loginsrv/oauth2"
+	"github.com/tarent/loginsrv/backends/oauth2"
 	"io/ioutil"
 	"net/http"
 	"strings"
