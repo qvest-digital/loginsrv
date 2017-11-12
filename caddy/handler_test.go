@@ -1,6 +1,7 @@
 package caddy
 
 import (
+	"context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/loginsrv/login"
@@ -18,6 +19,9 @@ func Test_ServeHTTP_200(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create request: %v", err)
 	}
+
+	// Associate a replacer with the request:
+	r = r.WithContext(context.WithValue(context.Background(), httpserver.ReplacerCtxKey, httpserver.NewReplacer(r, nil, "-")))
 
 	//Set the ServeHTTP http.ResponseWriter
 	w := httptest.NewRecorder()
@@ -68,6 +72,18 @@ func Test_ServeHTTP_200(t *testing.T) {
 
 	if status != 200 {
 		t.Errorf("Expected returned status code to be %d, got %d", 0, status)
+	}
+
+	// Check that the replacer now is able to substitute the user variable in log lines
+	replacer, replacerOk := r.Context().Value(httpserver.ReplacerCtxKey).(httpserver.Replacer)
+	if !replacerOk {
+		t.Errorf("no replacer associated with request")
+
+	} else {
+		replacement := replacer.Replace("{user}")
+		if replacement != "bob" {
+			t.Errorf(`wrong replacement: expected "bob", but got %q`, replacement)
+		}
 	}
 }
 
