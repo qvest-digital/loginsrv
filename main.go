@@ -1,9 +1,9 @@
 package main
 
 import (
-	_ "github.com/tarent/loginsrv/htpasswd"
-	_ "github.com/tarent/loginsrv/httpupstream"
-	_ "github.com/tarent/loginsrv/osiam"
+	_ "github.com/tarent/loginsrv/backends/htpasswd"
+	_ "github.com/tarent/loginsrv/backends/httpupstream"
+	_ "github.com/tarent/loginsrv/backends/osiam"
 
 	"github.com/tarent/loginsrv/login"
 

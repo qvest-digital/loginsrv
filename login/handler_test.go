@@ -6,7 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/model"
-	"github.com/tarent/loginsrv/oauth2"
+	"github.com/tarent/loginsrv/backends/oauth2"
 	"net/http"
 	"net/http/httptest"
 	"strconv"

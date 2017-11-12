@@ -14,10 +14,10 @@ import (
 	"github.com/tarent/loginsrv/login"
 
 	// Import all backends, packaged with the caddy plugin
-	_ "github.com/tarent/loginsrv/htpasswd"
-	_ "github.com/tarent/loginsrv/httpupstream"
-	_ "github.com/tarent/loginsrv/oauth2"
-	_ "github.com/tarent/loginsrv/osiam"
+	_ "github.com/tarent/loginsrv/backends/htpasswd"
+	_ "github.com/tarent/loginsrv/backends/httpupstream"
+	_ "github.com/tarent/loginsrv/backends/oauth2"
+	_ "github.com/tarent/loginsrv/backends/osiam"
 )
 
 func init() {
