@@ -131,7 +131,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		userInfo, valid := h.getToken(r)
+		userInfo, valid := h.GetToken(r)
 		writeLoginForm(w,
 			loginFormData{
 				Config:        h.config,
@@ -152,7 +152,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.handleAuthentication(w, r, username, password)
 			return
 		}
-		userInfo, valid := h.getToken(r)
+		userInfo, valid := h.GetToken(r)
 		if valid {
 			h.handleRefresh(w, r, userInfo)
 			return
@@ -246,7 +246,7 @@ func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
 	return token.SignedString([]byte(h.config.JwtSecret))
 }
 
-func (h *Handler) getToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
+func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
 	c, err := r.Cookie(h.config.CookieName)
 	if err != nil {
 		return model.UserInfo{}, false

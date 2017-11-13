@@ -3,10 +3,12 @@ package oauth2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 var googleAPI = "https://www.googleapis.com/plus/v1"
@@ -23,6 +25,7 @@ type GoogleUser struct {
 	Image struct {
 		Url string
 	}
+	Domain string
 }
 
 var providerGoogle = Provider{
@@ -60,12 +63,15 @@ var providerGoogle = Provider{
 			return model.UserInfo{}, "", fmt.Errorf("invalid google response: no email address returned.")
 		}
 
+		reg := regexp.MustCompile(`\?.*$`)
+
 		return model.UserInfo{
 			Sub:     gu.Emails[0].Value,
-			Picture: gu.Image.Url,
+			Picture: reg.ReplaceAllString(gu.Image.Url, "${1}"),
 			Name:    gu.DisplayName,
 			Email:   gu.Emails[0].Value,
 			Origin:  "google",
+			Domain:  gu.Domain,
 		}, string(b), nil
 	},
 }

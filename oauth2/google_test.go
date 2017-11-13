@@ -1,10 +1,11 @@
 package oauth2
 
 import (
-	. "github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 var googleTestUserResponse = `{
@@ -31,7 +32,8 @@ var googleTestUserResponse = `{
   },
   "isPlusUser": true,
   "circledByCount": 0,
-  "verified": false
+  "verified": false,
+  "domain": "gmail.com"
 }`
 
 func Test_Google_getUserInfo(t *testing.T) {
@@ -48,6 +50,8 @@ func Test_Google_getUserInfo(t *testing.T) {
 	NoError(t, err)
 	Equal(t, "test@gmail.com", u.Sub)
 	Equal(t, "test@gmail.com", u.Email)
+	Equal(t, "https://lh3.googleusercontent.com/X/X/X/X/photo.jpg", u.Picture)
 	Equal(t, "Testy Test", u.Name)
+	Equal(t, "gmail.com", u.Domain)
 	Equal(t, googleTestUserResponse, rawJSON)
 }

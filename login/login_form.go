@@ -2,12 +2,13 @@ package login
 
 import (
 	"bytes"
-	"github.com/tarent/loginsrv/logging"
-	"github.com/tarent/loginsrv/model"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/tarent/loginsrv/logging"
+	"github.com/tarent/loginsrv/model"
 )
 
 const partials = `
@@ -46,6 +47,7 @@ const partials = `
        width: 120px;
        height: 120px;
        border-radius: 3px;
+       margin-bottom: 10px;
      }
     </style>
 {{end}}

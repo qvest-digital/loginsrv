@@ -7,6 +7,7 @@ import (
 	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/login"
 	"io/ioutil"
+	"path/filepath"
 	"os"
 	"testing"
 	"time"
@@ -176,8 +177,8 @@ func TestSetup(t *testing.T) {
 func TestSetup_RelativeTemplateFile(t *testing.T) {
 	caddyfile := "loginsrv {\n  template myTemplate.tpl\n  simple bob=secret\n}"
 	root, _ := ioutil.TempDir("", "")
-	expectedPath := root + "/myTemplate.tpl"
-
+	expectedPath := filepath.FromSlash(root + "/myTemplate.tpl")
+	
 	c := caddy.NewTestController("http", caddyfile)
 	c.Key = "RelativeTemplateFileTest"
 	config := httpserver.GetConfig(c)

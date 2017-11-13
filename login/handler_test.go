@@ -393,7 +393,7 @@ func TestHandler_getToken_Valid(t *testing.T) {
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
-	userInfo, valid := h.getToken(r)
+	userInfo, valid := h.GetToken(r)
 	True(t, valid)
 	Equal(t, input, userInfo)
 }
@@ -410,7 +410,7 @@ func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	// modify secret
 	h.config.JwtSecret = "foobar"
 
-	_, valid := h.getToken(r)
+	_, valid := h.GetToken(r)
 	False(t, valid)
 }
 
@@ -420,13 +420,13 @@ func TestHandler_getToken_InvalidToken(t *testing.T) {
 		Header: http.Header{"Cookie": {h.config.CookieName + "=asdcsadcsadc"}},
 	}
 
-	_, valid := h.getToken(r)
+	_, valid := h.GetToken(r)
 	False(t, valid)
 }
 
 func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 	h := testHandler()
-	_, valid := h.getToken(&http.Request{})
+	_, valid := h.GetToken(&http.Request{})
 	False(t, valid)
 }
 
