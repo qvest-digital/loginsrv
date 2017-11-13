@@ -10,6 +10,7 @@ import (
 )
 
 var bitbucketAPI = "https://api.bitbucket.org/2.0"
+
 // Using the avatar url to be able to fetch 128px image. By default BitbucketAPI return 32px image.
 var bitbucketAvatarURL = "https://bitbucket.org/account/%v/avatar/128/"
 
@@ -45,8 +46,8 @@ type email struct {
 	Type string `json:"type,omitempty"`
 }
 
-// GetPrimaryEmailAddress retrieve the primary email address of the user
-func (e *emails) GetPrimaryEmailAddress() string {
+// getPrimaryEmailAddress retrieve the primary email address of the user
+func (e *emails) getPrimaryEmailAddress() string {
 	for _, val := range e.Values {
 		if val.IsPrimary {
 			return val.Email
@@ -124,7 +125,7 @@ var providerBitbucket = Provider{
 			Sub:     gu.Username,
 			Picture: fmt.Sprintf(bitbucketAvatarURL, gu.Username),
 			Name:    gu.DisplayName,
-			Email:   userEmails.GetPrimaryEmailAddress(),
+			Email:   userEmails.getPrimaryEmailAddress(),
 			Origin:  "bitbucket",
 		}, string(b), nil
 	},

@@ -123,7 +123,7 @@ func (suite *BitbucketTestSuite) Test_Bitbucket_getPrimaryEmailAddress()  {
 	userEmails := emails{}
 	err := json.Unmarshal([]byte(bitbucketTestUserEmailResponse), &userEmails)
 	suite.NoError(err)
-	suite.Equal("tutorials@bitbucket.com", userEmails.GetPrimaryEmailAddress())
+	suite.Equal("tutorials@bitbucket.com", userEmails.getPrimaryEmailAddress())
 }
 
 // Test_Bitbucket_Suite Runs the entire suite for Bitbucket
