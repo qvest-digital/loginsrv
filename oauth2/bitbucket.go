@@ -18,8 +18,8 @@ func init() {
 	RegisterProvider(providerBitbucket)
 }
 
-// BitbucketUser is used for parsing the github response
-type BitbucketUser struct {
+// bitbucketUser is used for parsing the github response
+type bitbucketUser struct {
 	Username    string `json:"username,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
 	Email       string `json:"email,omitempty"`
@@ -93,7 +93,7 @@ var providerBitbucket = Provider{
 	AuthURL:  "https://bitbucket.org/site/oauth2/authorize",
 	TokenURL: "https://bitbucket.org/site/oauth2/access_token",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
-		gu := BitbucketUser{}
+		gu := bitbucketUser{}
 		url := fmt.Sprintf("%v/user?access_token=%v", bitbucketAPI, token.AccessToken)
 		resp, err := http.Get(url)
 		if err != nil {
