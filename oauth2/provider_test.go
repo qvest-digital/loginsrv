@@ -14,8 +14,13 @@ func Test_ProviderRegistration(t *testing.T) {
 	NotNil(t, google)
 	True(t, exist)
 
+	bitbucket, exist := GetProvider("bitbucket")
+	NotNil(t, bitbucket)
+	True(t, exist)
+
 	list := ProviderList()
-	Equal(t, 2, len(list))
+	Equal(t, 3, len(list))
 	Contains(t, list, "github")
 	Contains(t, list, "google")
+	Contains(t, list, "bitbucket")
 }
