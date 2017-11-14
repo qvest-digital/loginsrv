@@ -1,7 +1,6 @@
 package caddy
 
 import (
-	"context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/loginsrv/login"
