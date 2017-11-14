@@ -20,8 +20,12 @@ func Test_ServeHTTP_200(t *testing.T) {
 		t.Fatalf("Unable to create request: %v", err)
 	}
 
+	/**
+	TODO: This will only work with the caddy master branch or the next caddy release
+
 	// Associate a replacer with the request:
 	r = r.WithContext(context.WithValue(context.Background(), httpserver.ReplacerCtxKey, httpserver.NewReplacer(r, nil, "-")))
+	*/
 
 	//Set the ServeHTTP http.ResponseWriter
 	w := httptest.NewRecorder()
