@@ -169,17 +169,10 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 		}
 	})
 
+	// prefer flags over environment settings
 	err := f.Parse(args)
 	if err != nil {
 		return nil, err
-	}
-
-	if config.JwtSecret == "random key" {
-		if s, set := os.LookupEnv("LOGINSRV_JWT_SECRET"); set {
-			config.JwtSecret = s
-		} else {
-			config.JwtSecret = jwtDefaultSecret
-		}
 	}
 
 	return config, err
