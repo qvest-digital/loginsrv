@@ -4,12 +4,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/tarent/loginsrv/logging"
-	"github.com/tarent/loginsrv/oauth2"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/tarent/loginsrv/logging"
+	"github.com/tarent/loginsrv/oauth2"
 )
 
 var jwtDefaultSecret string
@@ -95,7 +96,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.Port, "port", c.Port, "The port to listen on")
 	f.StringVar(&c.LogLevel, "log-level", c.LogLevel, "The log level")
 	f.BoolVar(&c.TextLogging, "text-logging", c.TextLogging, "Log in text format instead of json")
-	f.StringVar(&c.JwtSecret, "jwt-secret", "random key", "The secret to sign the jwt token")
+	f.StringVar(&c.JwtSecret, "jwt-secret", c.JwtSecret, "The secret to sign the jwt token")
 	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
 	f.IntVar(&c.JwtRefreshes, "jwt-refreshes", c.JwtRefreshes, "The maximum amount of jwt refreshes. 0 by Default")
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
@@ -168,17 +169,10 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 		}
 	})
 
+	// prefer flags over environment settings
 	err := f.Parse(args)
 	if err != nil {
 		return nil, err
-	}
-
-	if config.JwtSecret == "random key" {
-		if s, set := os.LookupEnv("LOGINSRV_JWT_SECRET"); set {
-			config.JwtSecret = s
-		} else {
-			config.JwtSecret = jwtDefaultSecret
-		}
 	}
 
 	return config, err
