@@ -241,7 +241,7 @@ The Oauth Web Flow (aka 3-leged-Oauth flow) is also supported.
 Currently the following oauth Provider is supported:
 
 * github
-* google
+* google (see a note below)
 * bitbucket
 
 An Oauth Provider supports the following parameters:
@@ -261,6 +261,10 @@ if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host`
 ```
 $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
+
+### Note for Google's OAuth 2 
+When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
+For example, for `scope=https://www.googleapis.com/auth/userinfo.profile` [Google People API](https://console.cloud.google.com/apis/library/people.googleapis.com/) must be enabled for your project. Keep in mind that it usually takes a few minutes for this setting to take effect.
 
 ## Templating
 
