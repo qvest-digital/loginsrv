@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/davecgh/go-spew/spew"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -71,9 +74,32 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleOauth(w, r)
 		return
 	}
+	if h.shouldSetCookie(r) {
+		queries, _ := url.ParseQuery(r.URL.RawQuery)
+		cookie := http.Cookie{Name: "redirect_url", Value: queries.Get("backTo")}
+		http.SetCookie(w, &cookie)
+	}
 
 	h.handleLogin(w, r)
 	return
+}
+
+func (h *Handler) shouldSetCookie(r *http.Request) bool {
+	if h.config.AllowRedirects {
+		if h.config.CheckRefererOnRedirects {
+			referer, _ := url.Parse(r.Header.Get("Referer"))
+			if referer.Host != r.Host {
+				logging.Application(r.Header).Warnf(
+					"Referer domain: '%s' does not match current domain '%s'",
+					referer.Host,
+					r.Host,
+				)
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +257,10 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 
 		http.SetCookie(w, cookie)
 
-		w.Header().Set("Location", h.config.SuccessURL)
+		//redirectURL := h.config.SuccessURL
+		//fmt.Printf("redirectURL is: %s\n", h.redirectURL(r))
+
+		w.Header().Set("Location", h.redirectURL(r))
 		w.WriteHeader(303)
 		return
 	}
@@ -239,6 +268,63 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 	w.Header().Set("Content-Type", contentTypeJWT)
 	w.WriteHeader(200)
 	fmt.Fprintf(w, "%s", token)
+}
+
+func (h *Handler) redirectURL(r *http.Request) string {
+	origin, _ := url.Parse(r.Header.Get("Origin"))
+	originScheme := origin.Scheme
+	originHost := origin.Host
+	redirectURL := fmt.Sprintf("%s://%s%s", originScheme, originHost, h.config.SuccessURL)
+	if h.config.AllowRedirects {
+		cookie, _ := r.Cookie("redirect_url")
+		parsedURL, err := url.Parse(cookie.Value)
+		if err != nil {
+			spew.Dump("oops can't parse that url")
+		}
+		scheme := parsedURL.Scheme
+		host := parsedURL.Host
+		path := parsedURL.Path
+		//spew.Dump(scheme)
+		//spew.Dump(host)
+		//spew.Dump(path)
+
+		if scheme == "" {
+			scheme = originScheme
+		}
+
+		if host == "" {
+			host = originHost
+		} else {
+			if h.config.PreventExternalRedirects {
+				if host != originHost {
+					logging.Application(r.Header).Warnf(
+						"Redirect attempt to '%s' but -prevent-external-redirects is set to true",
+						host,
+					)
+					return redirectURL
+				} else {
+					host = originHost
+				}
+			} else {
+				//TODO read domains from file
+				domains := "2google.com"
+				if host != domains {
+					logging.Application(r.Header).Warnf(
+						"Redirect attempt to '%s' but it is not in domain whitelist",
+						host,
+					)
+					return redirectURL
+				}
+			}
+		}
+
+		if path == "" {
+			path = h.config.SuccessURL
+		}
+
+		redirectURL = fmt.Sprintf("%s://%s%s", scheme, host, path)
+	}
+	return redirectURL
 }
 
 func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
