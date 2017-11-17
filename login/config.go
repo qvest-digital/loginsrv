@@ -23,20 +23,23 @@ func init() {
 // DefaultConfig for the loginsrv handler
 func DefaultConfig() *Config {
 	return &Config{
-		Host:           "localhost",
-		Port:           "6789",
-		LogLevel:       "info",
-		JwtSecret:      jwtDefaultSecret,
-		JwtExpiry:      24 * time.Hour,
-		JwtRefreshes:   0,
-		SuccessURL:     "/",
-		LogoutURL:      "",
-		LoginPath:      "/login",
-		CookieName:     "jwt_token",
-		CookieHTTPOnly: true,
-		Backends:       Options{},
-		Oauth:          Options{},
-		GracePeriod:    5 * time.Second,
+		Host:                     "localhost",
+		Port:                     "6789",
+		LogLevel:                 "info",
+		JwtSecret:                jwtDefaultSecret,
+		JwtExpiry:                24 * time.Hour,
+		JwtRefreshes:             0,
+		SuccessURL:               "/",
+		AllowRedirects:           true,
+		PreventExternalRedirects: true,
+		CheckRefererOnRedirects:  true,
+		LogoutURL:                "",
+		LoginPath:                "/login",
+		CookieName:               "jwt_token",
+		CookieHTTPOnly:           true,
+		Backends:                 Options{},
+		Oauth:                    Options{},
+		GracePeriod:              5 * time.Second,
 	}
 }
 
@@ -44,24 +47,27 @@ const envPrefix = "LOGINSRV_"
 
 // Config for the loginsrv handler
 type Config struct {
-	Host           string
-	Port           string
-	LogLevel       string
-	TextLogging    bool
-	JwtSecret      string
-	JwtExpiry      time.Duration
-	JwtRefreshes   int
-	SuccessURL     string
-	LogoutURL      string
-	Template       string
-	LoginPath      string
-	CookieName     string
-	CookieExpiry   time.Duration
-	CookieDomain   string
-	CookieHTTPOnly bool
-	Backends       Options
-	Oauth          Options
-	GracePeriod    time.Duration
+	Host                     string
+	Port                     string
+	LogLevel                 string
+	TextLogging              bool
+	JwtSecret                string
+	JwtExpiry                time.Duration
+	JwtRefreshes             int
+	SuccessURL               string
+	AllowRedirects           bool
+	PreventExternalRedirects bool
+	CheckRefererOnRedirects  bool
+	LogoutURL                string
+	Template                 string
+	LoginPath                string
+	CookieName               string
+	CookieExpiry             time.Duration
+	CookieDomain             string
+	CookieHTTPOnly           bool
+	Backends                 Options
+	Oauth                    Options
+	GracePeriod              time.Duration
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -104,6 +110,10 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.DurationVar(&c.CookieExpiry, "cookie-expiry", c.CookieExpiry, "The expiry duration for the cookie, e.g. 2h or 3h30m. Default is browser session")
 	f.StringVar(&c.CookieDomain, "cookie-domain", c.CookieDomain, "The optional domain parameter for the cookie")
 	f.StringVar(&c.SuccessURL, "success-url", c.SuccessURL, "The url to redirect after login")
+	f.BoolVar(&c.AllowRedirects, "allow-redirects", c.AllowRedirects, "Allow dynamic redirects by parameter")
+	f.BoolVar(&c.PreventExternalRedirects, "prevent-external-redirects", c.PreventExternalRedirects, "Prevent dynamic redirects from redirecting to an external domain")
+	f.BoolVar(&c.CheckRefererOnRedirects, "check-referer-on-redirects", c.CheckRefererOnRedirects, "When redirecting check that the referer is the same domain")
+
 	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")
 	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
