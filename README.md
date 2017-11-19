@@ -30,6 +30,7 @@ The following providers (login backends) are supported.
 * [Oauth2](#oauth2)
   * Github Login
   * Google Login
+  * Bitbucket Login
   
 ## Questions
 
