@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
@@ -76,7 +75,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Name:  h.config.RedirectQueryParameter,
 				Value: queries.Get(h.config.RedirectQueryParameter),
 			}
-			spew.Dump(cookie)
 			http.SetCookie(w, &cookie)
 		}
 	}
