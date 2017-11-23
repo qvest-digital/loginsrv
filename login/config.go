@@ -31,8 +31,10 @@ func DefaultConfig() *Config {
 		JwtRefreshes:             0,
 		SuccessURL:               "/",
 		AllowRedirects:           true,
+		RedirectQueryParameter:   "backTo",
 		PreventExternalRedirects: true,
 		CheckRefererOnRedirects:  true,
+		WhitelistDomainsFile:     "",
 		LogoutURL:                "",
 		LoginPath:                "/login",
 		CookieName:               "jwt_token",
@@ -56,8 +58,10 @@ type Config struct {
 	JwtRefreshes             int
 	SuccessURL               string
 	AllowRedirects           bool
+	RedirectQueryParameter   string
 	PreventExternalRedirects bool
 	CheckRefererOnRedirects  bool
+	WhitelistDomainsFile     string
 	LogoutURL                string
 	Template                 string
 	LoginPath                string
@@ -111,8 +115,10 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.CookieDomain, "cookie-domain", c.CookieDomain, "The optional domain parameter for the cookie")
 	f.StringVar(&c.SuccessURL, "success-url", c.SuccessURL, "The url to redirect after login")
 	f.BoolVar(&c.AllowRedirects, "allow-redirects", c.AllowRedirects, "Allow dynamic redirects by parameter")
+	f.StringVar(&c.RedirectQueryParameter, "redirect-query-parameter", c.RedirectQueryParameter, "Allow dynamic redirects by parameter")
 	f.BoolVar(&c.PreventExternalRedirects, "prevent-external-redirects", c.PreventExternalRedirects, "Prevent dynamic redirects from redirecting to an external domain")
 	f.BoolVar(&c.CheckRefererOnRedirects, "check-referer-on-redirects", c.CheckRefererOnRedirects, "When redirecting check that the referer is the same domain")
+	f.StringVar(&c.WhitelistDomainsFile, "whitelist-domains-file", c.WhitelistDomainsFile, "the file containing a list of domains that redirects are allowed to, one domain per line")
 
 	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")
