@@ -69,37 +69,26 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if (h.shouldRedirect(r)) && (r.Method != "POST") {
+		queries, _ := url.ParseQuery(r.URL.RawQuery)
+		if queries.Get(h.config.RedirectQueryParameter) != "" {
+			cookie := http.Cookie{
+				Name:  h.config.RedirectQueryParameter,
+				Value: queries.Get(h.config.RedirectQueryParameter),
+			}
+			spew.Dump(cookie)
+			http.SetCookie(w, &cookie)
+		}
+	}
+
 	_, err := h.oauth.GetConfigFromRequest(r)
 	if err == nil {
 		h.handleOauth(w, r)
 		return
 	}
-	if h.shouldSetCookie(r) {
-		queries, _ := url.ParseQuery(r.URL.RawQuery)
-		cookie := http.Cookie{Name: "redirect_url", Value: queries.Get("backTo")}
-		http.SetCookie(w, &cookie)
-	}
 
 	h.handleLogin(w, r)
 	return
-}
-
-func (h *Handler) shouldSetCookie(r *http.Request) bool {
-	if h.config.AllowRedirects {
-		if h.config.CheckRefererOnRedirects {
-			referer, _ := url.Parse(r.Header.Get("Referer"))
-			if referer.Host != r.Host {
-				logging.Application(r.Header).Warnf(
-					"Referer domain: '%s' does not match current domain '%s'",
-					referer.Host,
-					r.Host,
-				)
-				return false
-			}
-		}
-		return true
-	}
-	return false
 }
 
 func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +132,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	if r.Method == "DELETE" || r.FormValue("logout") == "true" {
-		h.deleteToken(w)
+		h.deleteCookie(w, h.config.CookieName)
 		if h.config.LogoutURL != "" {
 			w.Header().Set("Location", h.config.LogoutURL)
 			w.WriteHeader(303)
@@ -218,9 +207,9 @@ func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo
 	}
 }
 
-func (h *Handler) deleteToken(w http.ResponseWriter) {
+func (h *Handler) deleteCookie(w http.ResponseWriter, cookieName string) {
 	cookie := &http.Cookie{
-		Name:     h.config.CookieName,
+		Name:     cookieName,
 		Value:    "delete",
 		HttpOnly: true,
 		Expires:  time.Unix(0, 0),
@@ -257,10 +246,11 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 
 		http.SetCookie(w, cookie)
 
-		//redirectURL := h.config.SuccessURL
-		//fmt.Printf("redirectURL is: %s\n", h.redirectURL(r))
-
-		w.Header().Set("Location", h.redirectURL(r))
+		w.Header().Set("Location", h.redirectURL(r, w))
+		_, err := r.Cookie(h.config.RedirectQueryParameter)
+		if err == nil {
+			h.deleteCookie(w, h.config.RedirectQueryParameter)
+		}
 		w.WriteHeader(303)
 		return
 	}
@@ -268,63 +258,6 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 	w.Header().Set("Content-Type", contentTypeJWT)
 	w.WriteHeader(200)
 	fmt.Fprintf(w, "%s", token)
-}
-
-func (h *Handler) redirectURL(r *http.Request) string {
-	origin, _ := url.Parse(r.Header.Get("Origin"))
-	originScheme := origin.Scheme
-	originHost := origin.Host
-	redirectURL := fmt.Sprintf("%s://%s%s", originScheme, originHost, h.config.SuccessURL)
-	if h.config.AllowRedirects {
-		cookie, _ := r.Cookie("redirect_url")
-		parsedURL, err := url.Parse(cookie.Value)
-		if err != nil {
-			spew.Dump("oops can't parse that url")
-		}
-		scheme := parsedURL.Scheme
-		host := parsedURL.Host
-		path := parsedURL.Path
-		//spew.Dump(scheme)
-		//spew.Dump(host)
-		//spew.Dump(path)
-
-		if scheme == "" {
-			scheme = originScheme
-		}
-
-		if host == "" {
-			host = originHost
-		} else {
-			if h.config.PreventExternalRedirects {
-				if host != originHost {
-					logging.Application(r.Header).Warnf(
-						"Redirect attempt to '%s' but -prevent-external-redirects is set to true",
-						host,
-					)
-					return redirectURL
-				} else {
-					host = originHost
-				}
-			} else {
-				//TODO read domains from file
-				domains := "2google.com"
-				if host != domains {
-					logging.Application(r.Header).Warnf(
-						"Redirect attempt to '%s' but it is not in domain whitelist",
-						host,
-					)
-					return redirectURL
-				}
-			}
-		}
-
-		if path == "" {
-			path = h.config.SuccessURL
-		}
-
-		redirectURL = fmt.Sprintf("%s://%s%s", scheme, host, path)
-	}
-	return redirectURL
 }
 
 func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {

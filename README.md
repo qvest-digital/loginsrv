@@ -42,29 +42,34 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
 
 _Note for Caddy users_: Not all parameters are available in Caddy. See the table for details. With Caddy, the parameter names can be also be used with `_` in the names, e.g. `cookie_http_only`.
 
-| Parameter         | Type        | Default      | Caddy | Description                                                                          |
-|-------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------|
-| -cookie-domain    | string      |              | X     | The optional domain parameter for the cookie                                         |
-| -cookie-expiry    | string      | session      | X     | The expiry duration for the cookie, e.g. 2h or 3h30m                                 |
-| -cookie-http-only | boolean     | true         | X     | Set the cookie with the http only flag                                               |
-| -cookie-name      | string      | "jwt_token"  | X     | The name of the jwt cookie                                                           |
-| -github           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..] |
-| -google           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..] |
-| -host             | string      | "localhost"  | -     | The host to listen on                                                                |
-| -htpasswd         | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                   |
-| -jwt-expiry       | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                              |
-| -jwt-secret       | string      | "random key" | X     | The secret to sign the jwt token                                                     |
-| -log-level        | string      | "info"       | -     | The log level                                                                        |
-| -login-path       | string      | "/login"     | X     | The path of the login resource                                                       |
-| -logout-url       | string      |              | X     | The url or path to redirect after logout                                             |
-| -osiam            | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                  |
-| -port             | string      | "6789"       | -     | The port to listen on                                                                |
-| -simple           | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                          |
-| -success-url      | string      | "/"          | X     | The url to redirect after login                                                      |
-| -template         | string      |              | X     | An alternative template for the login form                                           |
-| -text-logging     | boolean     | true         | -     | Log in text format instead of json                                                   |
-| -jwt-refreshes    | int         | 0            | X     | The maximum amount of jwt refreshes.                                                 |
-| -grace-period     | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted.                                                   |
+| Parameter                   | Type        | Default      | Caddy | Description                                                                                |
+|-----------------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------------|
+| -cookie-domain              | string      |              | X     | The optional domain parameter for the cookie                                               |
+| -cookie-expiry              | string      | session      | X     | The expiry duration for the cookie, e.g. 2h or 3h30m                                       |
+| -cookie-http-only           | boolean     | true         | X     | Set the cookie with the http only flag                                                     |
+| -cookie-name                | string      | "jwt_token"  | X     | The name of the jwt cookie                                                                 |
+| -github                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
+| -google                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
+| -host                       | string      | "localhost"  | -     | The host to listen on                                                                      |
+| -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
+| -jwt-expiry                 | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                                    |
+| -jwt-secret                 | string      | "random key" | X     | The secret to sign the jwt token                                                           |
+| -log-level                  | string      | "info"       | -     | The log level                                                                              |
+| -login-path                 | string      | "/login"     | X     | The path of the login resource                                                             |
+| -logout-url                 | string      |              | X     | The url or path to redirect after logout                                                   |
+| -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                        |
+| -port                       | string      | "6789"       | -     | The port to listen on                                                                      |
+| -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                |
+| -success-url                | string      | "/"          | X     | The url to redirect after login                                                            |
+| -allow-redirects            | boolean     | true         | X     | Allow dynamic redirects                                                                    |
+| -redirect-query-parameter   | string      | "backTo"     | X     | The query parameter to find the dynamic redirect in                                        |
+| -prevent-external-redirects | boolean     | true         | X     | Prevent dynamic redirects to external domains                                              |
+| -check-referer-on-redirects | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects         |
+| -whitelist-domains-file     | string      | ""           | X     | File containing whitelist of domains for dynamic redirects, one domain per line            |
+| -template                   | string      |              | X     | An alternative template for the login form                                                 |
+| -text-logging               | boolean     | true         | -     | Log in text format instead of json                                                         |
+| -jwt-refreshes              | int         | 0            | X     | The maximum amount of jwt refreshes.                                                       |
+| -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted. |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
