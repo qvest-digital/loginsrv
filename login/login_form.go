@@ -44,7 +44,6 @@ const partials = `
        background-color: #FFF;
      }
      .login-picture {
-       width: 120px;
        height: 120px;
        border-radius: 3px;
        margin-bottom: 10px;
