@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -64,6 +66,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
 		h.respondNotFound(w, r)
 		return
+	}
+
+	if (h.shouldRedirect(r)) && (r.Method != "POST") {
+		queries, _ := url.ParseQuery(r.URL.RawQuery)
+		if queries.Get(h.config.RedirectQueryParameter) != "" {
+			cookie := http.Cookie{
+				Name:  h.config.RedirectQueryParameter,
+				Value: queries.Get(h.config.RedirectQueryParameter),
+			}
+			http.SetCookie(w, &cookie)
+		}
 	}
 
 	_, err := h.oauth.GetConfigFromRequest(r)
@@ -231,7 +244,16 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 
 		http.SetCookie(w, cookie)
 
-		w.Header().Set("Location", h.config.SuccessURL)
+		w.Header().Set("Location", h.redirectURL(r, w))
+		_, err := r.Cookie(h.config.RedirectQueryParameter)
+		if err == nil {
+			cookie := http.Cookie{
+				Name:    h.config.RedirectQueryParameter,
+				Value:   "delete",
+				Expires: time.Unix(0, 0),
+			}
+			http.SetCookie(w, &cookie)
+		}
 		w.WriteHeader(303)
 		return
 	}
