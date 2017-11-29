@@ -41,7 +41,7 @@ func (h *Handler) redirectURL(r *http.Request, w http.ResponseWriter) string {
 		parsedURL, err := h.parseURL(r)
 		if err != nil {
 			logging.Application(r.Header).Warnf(
-				"error parsing redict URL: %s",
+				"error parsing redirect URL: %s",
 				err,
 			)
 			return h.config.SuccessURL
