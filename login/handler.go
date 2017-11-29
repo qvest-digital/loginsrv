@@ -130,7 +130,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	if r.Method == "DELETE" || r.FormValue("logout") == "true" {
-		h.deleteCookie(w, h.config.CookieName)
+		h.deleteToken(w)
 		if h.config.LogoutURL != "" {
 			w.Header().Set("Location", h.config.LogoutURL)
 			w.WriteHeader(303)
@@ -205,9 +205,9 @@ func (h *Handler) handleRefresh(w http.ResponseWriter, r *http.Request, userInfo
 	}
 }
 
-func (h *Handler) deleteCookie(w http.ResponseWriter, cookieName string) {
+func (h *Handler) deleteToken(w http.ResponseWriter) {
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     h.config.CookieName,
 		Value:    "delete",
 		HttpOnly: true,
 		Expires:  time.Unix(0, 0),
@@ -247,7 +247,12 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 		w.Header().Set("Location", h.redirectURL(r, w))
 		_, err := r.Cookie(h.config.RedirectQueryParameter)
 		if err == nil {
-			h.deleteCookie(w, h.config.RedirectQueryParameter)
+			cookie := http.Cookie{
+				Name:    h.config.RedirectQueryParameter,
+				Value:   "delete",
+				Expires: time.Unix(0, 0),
+			}
+			http.SetCookie(w, &cookie)
 		}
 		w.WriteHeader(303)
 		return
