@@ -68,6 +68,7 @@ jwt {
 
 login {
     simple bob=secret,alice=secret
-    check_referer_on_redirects false
+    redirect_check_referer false
+    redirect_host_file ../redirect_hosts.txt
 }
 ```
