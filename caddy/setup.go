@@ -43,6 +43,10 @@ func setup(c *caddy.Controller) error {
 			config.Template = filepath.Join(httpserver.GetConfig(c).Root, config.Template)
 		}
 
+		if config.WhitelistDomainsFile != "" && !filepath.IsAbs(config.WhitelistDomainsFile) {
+			config.WhitelistDomainsFile = filepath.Join(httpserver.GetConfig(c).Root, config.WhitelistDomainsFile)
+		}
+
 		if len(args) == 1 {
 			logging.Logger.Warnf("DEPRECATED: Please set the login path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
 			config.LoginPath = path.Join(args[0], "/login")
@@ -89,11 +93,11 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 
 		f := fs.Lookup(name)
 		if f == nil {
-			return cfg, c.ArgErr()
+			return cfg, fmt.Errorf("Unknown parameter for login directive: %v (%v:%v)", name, c.File(), c.Line())
 		}
 		err := f.Value.Set(value)
 		if err != nil {
-			return cfg, c.Err(err.Error())
+			return cfg, fmt.Errorf("Invalid value for parameter %v: %v (%v:%v)", name, value, c.File(), c.Line())
 		}
 	}
 

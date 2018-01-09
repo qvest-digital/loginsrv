@@ -29,10 +29,9 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--jwt-secret=jwtsecret",
 		"--jwt-expiry=42h42m",
 		"--success-url=successurl",
-		"--allow-redirects=true",
-		"--redirect-query-parameter=backTo",
-		"--prevent-external-redirects=true",
-		"--check-referer-on-redirects=true",
+		"--allow-redirects=false",
+		"--redirect-query-parameter=comingFrom",
+		"--check-referer-on-redirects=false",
 		"--whitelist-domains-file=File",
 		"--logout-url=logouturl",
 		"--template=template",
@@ -48,25 +47,24 @@ func TestConfig_ReadConfig(t *testing.T) {
 	}
 
 	expected := &Config{
-		Host:                     "host",
-		Port:                     "port",
-		LogLevel:                 "loglevel",
-		TextLogging:              true,
-		JwtSecret:                "jwtsecret",
-		JwtExpiry:                42*time.Hour + 42*time.Minute,
-		SuccessURL:               "successurl",
-		AllowRedirects:           true,
-		RedirectQueryParameter:   "backTo",
-		PreventExternalRedirects: true,
-		CheckRefererOnRedirects:  true,
-		WhitelistDomainsFile:     "File",
-		LogoutURL:                "logouturl",
-		Template:                 "template",
-		LoginPath:                "loginpath",
-		CookieName:               "cookiename",
-		CookieExpiry:             23 * time.Minute,
-		CookieDomain:             "*.example.com",
-		CookieHTTPOnly:           false,
+		Host:                    "host",
+		Port:                    "port",
+		LogLevel:                "loglevel",
+		TextLogging:             true,
+		JwtSecret:               "jwtsecret",
+		JwtExpiry:               42*time.Hour + 42*time.Minute,
+		SuccessURL:              "successurl",
+		AllowRedirects:          false,
+		RedirectQueryParameter:  "comingFrom",
+		CheckRefererOnRedirects: false,
+		WhitelistDomainsFile:    "File",
+		LogoutURL:               "logouturl",
+		Template:                "template",
+		LoginPath:               "loginpath",
+		CookieName:              "cookiename",
+		CookieExpiry:            23 * time.Minute,
+		CookieDomain:            "*.example.com",
+		CookieHTTPOnly:          false,
 		Backends: Options{
 			"simple": map[string]string{},
 			"foo":    map[string]string{},
@@ -93,10 +91,9 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "jwtsecret"))
 	NoError(t, os.Setenv("LOGINSRV_JWT_EXPIRY", "42h42m"))
 	NoError(t, os.Setenv("LOGINSRV_SUCCESS_URL", "successurl"))
-	NoError(t, os.Setenv("LOGINSRV_ALLOW_REDIRECTS", "true"))
-	NoError(t, os.Setenv("LOGINSRV_REDIRECT_QUERY_PARAMETER", "backTo"))
-	NoError(t, os.Setenv("LOGINSRV_PREVENT_EXTERNAL_REDIRECTS", "true"))
-	NoError(t, os.Setenv("LOGINSRV_CHECK_REFERER_ON_REDIRECTS", "true"))
+	NoError(t, os.Setenv("LOGINSRV_ALLOW_REDIRECTS", "false"))
+	NoError(t, os.Setenv("LOGINSRV_REDIRECT_QUERY_PARAMETER", "comingFrom"))
+	NoError(t, os.Setenv("LOGINSRV_CHECK_REFERER_ON_REDIRECTS", "false"))
 	NoError(t, os.Setenv("LOGINSRV_WHITELIST_DOMAINS_FILE", "File"))
 	NoError(t, os.Setenv("LOGINSRV_LOGOUT_URL", "logouturl"))
 	NoError(t, os.Setenv("LOGINSRV_TEMPLATE", "template"))
@@ -110,25 +107,24 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_GRACE_PERIOD", "4s"))
 
 	expected := &Config{
-		Host:                     "host",
-		Port:                     "port",
-		LogLevel:                 "loglevel",
-		TextLogging:              true,
-		JwtSecret:                "jwtsecret",
-		JwtExpiry:                42*time.Hour + 42*time.Minute,
-		SuccessURL:               "successurl",
-		AllowRedirects:           true,
-		RedirectQueryParameter:   "backTo",
-		PreventExternalRedirects: true,
-		CheckRefererOnRedirects:  true,
-		WhitelistDomainsFile:     "File",
-		LogoutURL:                "logouturl",
-		Template:                 "template",
-		LoginPath:                "loginpath",
-		CookieName:               "cookiename",
-		CookieExpiry:             23 * time.Minute,
-		CookieDomain:             "*.example.com",
-		CookieHTTPOnly:           false,
+		Host:                    "host",
+		Port:                    "port",
+		LogLevel:                "loglevel",
+		TextLogging:             true,
+		JwtSecret:               "jwtsecret",
+		JwtExpiry:               42*time.Hour + 42*time.Minute,
+		SuccessURL:              "successurl",
+		AllowRedirects:          false,
+		RedirectQueryParameter:  "comingFrom",
+		CheckRefererOnRedirects: false,
+		WhitelistDomainsFile:    "File",
+		LogoutURL:               "logouturl",
+		Template:                "template",
+		LoginPath:               "loginpath",
+		CookieName:              "cookiename",
+		CookieExpiry:            23 * time.Minute,
+		CookieDomain:            "*.example.com",
+		CookieHTTPOnly:          false,
 		Backends: Options{
 			"simple": map[string]string{
 				"foo": "bar",
