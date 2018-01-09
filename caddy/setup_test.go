@@ -28,15 +28,15 @@ func TestSetup(t *testing.T) {
                                 }`,
 			shouldErr: false,
 			config: login.Config{
-				JwtSecret:               "jwtsecret",
-				JwtExpiry:               24 * time.Hour,
-				SuccessURL:              "/",
-				AllowRedirects:          true,
-				RedirectQueryParameter:  "backTo",
-				CheckRefererOnRedirects: true,
-				LoginPath:               "/login",
-				CookieName:              "jwt_token",
-				CookieHTTPOnly:          true,
+				JwtSecret:              "jwtsecret",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/login",
+				CookieName:             "jwt_token",
+				CookieHTTPOnly:         true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -50,10 +50,10 @@ func TestSetup(t *testing.T) {
                                         success_url successurl
                                         jwt_expiry 42h
                                         login_path /foo/bar
-                                        allow_redirects true
+                                        redirect true
                                         redirect_query_parameter comingFrom
-                                        check_referer_on_redirects true
-                                        whitelist_domains_file domainWhitelist.txt
+                                        redirect_check_referer true
+                                        redirect_host_file domainWhitelist.txt
                                         cookie_name cookiename
                                         cookie_http_only false
                                         cookie_domain example.com
@@ -63,18 +63,18 @@ func TestSetup(t *testing.T) {
                                 }`,
 			shouldErr: false,
 			config: login.Config{
-				JwtSecret:               "jwtsecret",
-				JwtExpiry:               42 * time.Hour,
-				SuccessURL:              "successurl",
-				AllowRedirects:          true,
-				RedirectQueryParameter:  "comingFrom",
-				CheckRefererOnRedirects: true,
-				WhitelistDomainsFile:    "domainWhitelist.txt",
-				LoginPath:               "/foo/bar",
-				CookieName:              "cookiename",
-				CookieDomain:            "example.com",
-				CookieExpiry:            23*time.Hour + 23*time.Minute,
-				CookieHTTPOnly:          false,
+				JwtSecret:              "jwtsecret",
+				JwtExpiry:              42 * time.Hour,
+				SuccessURL:             "successurl",
+				Redirect:               true,
+				RedirectQueryParameter: "comingFrom",
+				RedirectCheckReferer:   true,
+				RedirectHostFile:       "domainWhitelist.txt",
+				LoginPath:              "/foo/bar",
+				CookieName:             "cookiename",
+				CookieDomain:           "example.com",
+				CookieExpiry:           23*time.Hour + 23*time.Minute,
+				CookieHTTPOnly:         false,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -98,15 +98,15 @@ func TestSetup(t *testing.T) {
                                 }`,
 			shouldErr: false,
 			config: login.Config{
-				JwtSecret:               "jwtsecret",
-				JwtExpiry:               24 * time.Hour,
-				SuccessURL:              "/",
-				AllowRedirects:          true,
-				RedirectQueryParameter:  "backTo",
-				CheckRefererOnRedirects: true,
-				LoginPath:               "/context/login",
-				CookieName:              "cookiename",
-				CookieHTTPOnly:          true,
+				JwtSecret:              "jwtsecret",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/context/login",
+				CookieName:             "cookiename",
+				CookieHTTPOnly:         true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -125,15 +125,15 @@ func TestSetup(t *testing.T) {
                                 }`,
 			shouldErr: false,
 			config: login.Config{
-				JwtSecret:               "jwtsecret",
-				JwtExpiry:               24 * time.Hour,
-				SuccessURL:              "/",
-				AllowRedirects:          true,
-				RedirectQueryParameter:  "backTo",
-				CheckRefererOnRedirects: true,
-				LoginPath:               "/login",
-				CookieName:              "cookiename",
-				CookieHTTPOnly:          true,
+				JwtSecret:              "jwtsecret",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/login",
+				CookieName:             "cookiename",
+				CookieHTTPOnly:         true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -150,15 +150,15 @@ func TestSetup(t *testing.T) {
                                 }`,
 			shouldErr: false,
 			config: login.Config{
-				JwtSecret:               "jwtsecret",
-				JwtExpiry:               24 * time.Hour,
-				SuccessURL:              "/",
-				AllowRedirects:          true,
-				RedirectQueryParameter:  "backTo",
-				CheckRefererOnRedirects: true,
-				LoginPath:               "/login",
-				CookieName:              "jwt_token",
-				CookieHTTPOnly:          true,
+				JwtSecret:              "jwtsecret",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/login",
+				CookieName:             "jwt_token",
+				CookieHTTPOnly:         true,
 				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
@@ -197,7 +197,7 @@ func TestSetup(t *testing.T) {
 func TestSetup_RelativeFiles(t *testing.T) {
 	caddyfile := `loginsrv {
                         template myTemplate.tpl
-                        whitelist_domains_file redirectDomains.txt
+                        redirect_host_file redirectDomains.txt
                         simple bob=secret
                       }`
 	root, _ := ioutil.TempDir("", "")
@@ -216,5 +216,5 @@ func TestSetup_RelativeFiles(t *testing.T) {
 	middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 
 	Equal(t, root+"/myTemplate.tpl", middleware.config.Template)
-	Equal(t, root+"/redirectDomains.txt", middleware.config.WhitelistDomainsFile)
+	Equal(t, root+"/redirectDomains.txt", middleware.config.RedirectHostFile)
 }

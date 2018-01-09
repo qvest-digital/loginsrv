@@ -43,8 +43,8 @@ func setup(c *caddy.Controller) error {
 			config.Template = filepath.Join(httpserver.GetConfig(c).Root, config.Template)
 		}
 
-		if config.WhitelistDomainsFile != "" && !filepath.IsAbs(config.WhitelistDomainsFile) {
-			config.WhitelistDomainsFile = filepath.Join(httpserver.GetConfig(c).Root, config.WhitelistDomainsFile)
+		if config.RedirectHostFile != "" && !filepath.IsAbs(config.RedirectHostFile) {
+			config.RedirectHostFile = filepath.Join(httpserver.GetConfig(c).Root, config.RedirectHostFile)
 		}
 
 		if len(args) == 1 {

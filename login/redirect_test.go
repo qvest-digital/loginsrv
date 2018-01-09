@@ -28,9 +28,9 @@ func TestRedirect(t *testing.T) {
 }
 
 func TestRedirect_NotAllowed(t *testing.T) {
-	// redirect to SuccessURL if AllowRedirects is false
+	// redirect to SuccessURL if Redirect is false
 	cfg := DefaultConfig()
-	cfg.AllowRedirects = false
+	cfg.Redirect = false
 	h := &Handler{
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
@@ -55,9 +55,9 @@ func TestRedirect_NonMatchingReferrer(t *testing.T) {
 	setCookieList = readSetCookies(recorder.Header())
 	Equal(t, 0, len(setCookieList))
 
-	// set redirect cookie with mismatch referer if CheckRefererOnRedirects is false
+	// set redirect cookie with mismatch referer if RedirectCheckReferer is false
 	cfg := DefaultConfig()
-	cfg.CheckRefererOnRedirects = false
+	cfg.RedirectCheckReferer = false
 	h := &Handler{
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),
@@ -93,7 +93,7 @@ func TestRedirect_Whitelisting(t *testing.T) {
 
 	// redirect to success url if domains whitelist file doesn't exist
 	cfg := DefaultConfig()
-	cfg.WhitelistDomainsFile = whitelistFile.Name()
+	cfg.RedirectHostFile = whitelistFile.Name()
 	h := &Handler{
 		backends: []Backend{
 			NewSimpleBackend(map[string]string{"bob": "secret"}),

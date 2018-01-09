@@ -23,24 +23,24 @@ func init() {
 // DefaultConfig for the loginsrv handler
 func DefaultConfig() *Config {
 	return &Config{
-		Host:                    "localhost",
-		Port:                    "6789",
-		LogLevel:                "info",
-		JwtSecret:               jwtDefaultSecret,
-		JwtExpiry:               24 * time.Hour,
-		JwtRefreshes:            0,
-		SuccessURL:              "/",
-		AllowRedirects:          true,
-		RedirectQueryParameter:  "backTo",
-		CheckRefererOnRedirects: true,
-		WhitelistDomainsFile:    "",
-		LogoutURL:               "",
-		LoginPath:               "/login",
-		CookieName:              "jwt_token",
-		CookieHTTPOnly:          true,
-		Backends:                Options{},
-		Oauth:                   Options{},
-		GracePeriod:             5 * time.Second,
+		Host:                   "localhost",
+		Port:                   "6789",
+		LogLevel:               "info",
+		JwtSecret:              jwtDefaultSecret,
+		JwtExpiry:              24 * time.Hour,
+		JwtRefreshes:           0,
+		SuccessURL:             "/",
+		Redirect:               true,
+		RedirectQueryParameter: "backTo",
+		RedirectCheckReferer:   true,
+		RedirectHostFile:       "",
+		LogoutURL:              "",
+		LoginPath:              "/login",
+		CookieName:             "jwt_token",
+		CookieHTTPOnly:         true,
+		Backends:               Options{},
+		Oauth:                  Options{},
+		GracePeriod:            5 * time.Second,
 	}
 }
 
@@ -48,28 +48,28 @@ const envPrefix = "LOGINSRV_"
 
 // Config for the loginsrv handler
 type Config struct {
-	Host                    string
-	Port                    string
-	LogLevel                string
-	TextLogging             bool
-	JwtSecret               string
-	JwtExpiry               time.Duration
-	JwtRefreshes            int
-	SuccessURL              string
-	AllowRedirects          bool
-	RedirectQueryParameter  string
-	CheckRefererOnRedirects bool
-	WhitelistDomainsFile    string
-	LogoutURL               string
-	Template                string
-	LoginPath               string
-	CookieName              string
-	CookieExpiry            time.Duration
-	CookieDomain            string
-	CookieHTTPOnly          bool
-	Backends                Options
-	Oauth                   Options
-	GracePeriod             time.Duration
+	Host                   string
+	Port                   string
+	LogLevel               string
+	TextLogging            bool
+	JwtSecret              string
+	JwtExpiry              time.Duration
+	JwtRefreshes           int
+	SuccessURL             string
+	Redirect               bool
+	RedirectQueryParameter string
+	RedirectCheckReferer   bool
+	RedirectHostFile       string
+	LogoutURL              string
+	Template               string
+	LoginPath              string
+	CookieName             string
+	CookieExpiry           time.Duration
+	CookieDomain           string
+	CookieHTTPOnly         bool
+	Backends               Options
+	Oauth                  Options
+	GracePeriod            time.Duration
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -112,10 +112,10 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.DurationVar(&c.CookieExpiry, "cookie-expiry", c.CookieExpiry, "The expiry duration for the cookie, e.g. 2h or 3h30m. Default is browser session")
 	f.StringVar(&c.CookieDomain, "cookie-domain", c.CookieDomain, "The optional domain parameter for the cookie")
 	f.StringVar(&c.SuccessURL, "success-url", c.SuccessURL, "The url to redirect after login")
-	f.BoolVar(&c.AllowRedirects, "allow-redirects", c.AllowRedirects, "Allow dynamic redirects by parameter")
-	f.StringVar(&c.RedirectQueryParameter, "redirect-query-parameter", c.RedirectQueryParameter, "Allow dynamic redirects by parameter")
-	f.BoolVar(&c.CheckRefererOnRedirects, "check-referer-on-redirects", c.CheckRefererOnRedirects, "When redirecting check that the referer is the same domain")
-	f.StringVar(&c.WhitelistDomainsFile, "whitelist-domains-file", c.WhitelistDomainsFile, "A file containing a list of domains that redirects are allowed to, one domain per line")
+	f.BoolVar(&c.Redirect, "redirect", c.Redirect, "Allow dynamic overwriting of the the success by query parameter")
+	f.StringVar(&c.RedirectQueryParameter, "redirect-query-parameter", c.RedirectQueryParameter, "URL parameter for the redirect target")
+	f.BoolVar(&c.RedirectCheckReferer, "redirect-check-referer", c.RedirectCheckReferer, "When redirecting check that the referer is the same domain")
+	f.StringVar(&c.RedirectHostFile, "redirect-host-file", c.RedirectHostFile, "A file containing a list of domains that redirects are allowed to, one domain per line")
 
 	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")

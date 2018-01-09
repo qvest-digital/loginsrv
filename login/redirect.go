@@ -35,10 +35,10 @@ func (h *Handler) deleteRedirectCookie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) allowRedirect(r *http.Request) bool {
-	if !h.config.AllowRedirects {
+	if !h.config.Redirect {
 		return false
 	}
-	if !h.config.CheckRefererOnRedirects {
+	if !h.config.RedirectCheckReferer {
 		return true
 	}
 
@@ -56,7 +56,7 @@ func (h *Handler) allowRedirect(r *http.Request) bool {
 
 func (h *Handler) redirectURL(r *http.Request, w http.ResponseWriter) string {
 	targetURL, foundTarget := h.getRedirectTarget(r)
-	if foundTarget && h.config.AllowRedirects {
+	if foundTarget && h.config.Redirect {
 		sameHost := targetURL.Host == "" || r.Host == targetURL.Host
 		if sameHost && targetURL.Path != "" {
 			return targetURL.Path
@@ -93,9 +93,14 @@ func (h *Handler) getRedirectTarget(r *http.Request) (*url.URL, bool) {
 }
 
 func (h *Handler) isRedirectDomainWhitelisted(r *http.Request, host string) bool {
-	f, err := os.Open(h.config.WhitelistDomainsFile)
+	if h.config.RedirectHostFile == "" {
+		logging.Application(r.Header).Warnf("redirect attempt to '%s', but no whitelist domain file given", host)
+		return false
+	}
+
+	f, err := os.Open(h.config.RedirectHostFile)
 	if err != nil {
-		logging.Application(r.Header).Warnf("can't open redirect whitelist domains file '%s'", h.config.WhitelistDomainsFile)
+		logging.Application(r.Header).Warnf("can't open redirect whitelist domains file '%s'", h.config.RedirectHostFile)
 		return false
 	}
 	defer f.Close()
@@ -106,6 +111,6 @@ func (h *Handler) isRedirectDomainWhitelisted(r *http.Request, host string) bool
 			return true
 		}
 	}
-	logging.Application(r.Header).Warnf("domain '%s' not in redirect whitelist", host)
+	logging.Application(r.Header).Warnf("redirect attempt to '%s', but not in redirect whitelist", host)
 	return false
 }
