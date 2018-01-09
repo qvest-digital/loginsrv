@@ -15,6 +15,7 @@ http://localhost:8080 {
   login {
         success_url /private
         htpasswd file=passwords
+        redirect_host_file ../redirect_hosts.txt
   }
   
 }
