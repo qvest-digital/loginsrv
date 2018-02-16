@@ -21,7 +21,8 @@ func TestBackend_Authenticate(t *testing.T) {
 	True(t, authenticated)
 	Equal(t,
 		model.UserInfo{
-			Sub: "admin",
+			Origin: "osiam",
+			Sub:    "admin",
 		},
 		userInfo)
 
