@@ -29,6 +29,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
 				JwtExpiry:              24 * time.Hour,
 				SuccessURL:             "/",
 				Redirect:               true,
@@ -49,6 +50,7 @@ func TestSetup(t *testing.T) {
 			input: `login {
                                         success_url successurl
                                         jwt_expiry 42h
+                                        jwt_algo algo
                                         login_path /foo/bar
                                         redirect true
                                         redirect_query_parameter comingFrom
@@ -64,6 +66,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "algo",
 				JwtExpiry:              42 * time.Hour,
 				SuccessURL:             "successurl",
 				Redirect:               true,
@@ -99,6 +102,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
 				JwtExpiry:              24 * time.Hour,
 				SuccessURL:             "/",
 				Redirect:               true,
@@ -126,6 +130,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
 				JwtExpiry:              24 * time.Hour,
 				SuccessURL:             "/",
 				Redirect:               true,
@@ -151,6 +156,7 @@ func TestSetup(t *testing.T) {
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
 				JwtExpiry:              24 * time.Hour,
 				SuccessURL:             "/",
 				Redirect:               true,
