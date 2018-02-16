@@ -3,16 +3,17 @@ package login
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	. "github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/model"
-	"github.com/tarent/loginsrv/oauth2"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
+	"github.com/tarent/loginsrv/oauth2"
 )
 
 const TypeJSON = "Content-Type: application/json"

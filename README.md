@@ -43,30 +43,34 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
 
 _Note for Caddy users_: Not all parameters are available in Caddy. See the table for details. With Caddy, the parameter names can be also be used with `_` in the names, e.g. `cookie_http_only`.
 
-| Parameter         | Type        | Default      | Caddy | Description                                                                          |
-|-------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------|
-| -cookie-domain    | string      |              | X     | The optional domain parameter for the cookie                                         |
-| -cookie-expiry    | string      | session      | X     | The expiry duration for the cookie, e.g. 2h or 3h30m                                 |
-| -cookie-http-only | boolean     | true         | X     | Set the cookie with the http only flag                                               |
-| -cookie-name      | string      | "jwt_token"  | X     | The name of the jwt cookie                                                           |
-| -github           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..] |
-| -google           | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]    |
-| -bitbucket        | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,[scope=..][redirect_uri=..]  |
-| -host             | string      | "localhost"  | -     | The host to listen on                                                                |
-| -htpasswd         | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                   |
-| -jwt-expiry       | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                              |
-| -jwt-secret       | string      | "random key" | X     | The secret to sign the jwt token                                                     |
-| -log-level        | string      | "info"       | -     | The log level                                                                        |
-| -login-path       | string      | "/login"     | X     | The path of the login resource                                                       |
-| -logout-url       | string      |              | X     | The url or path to redirect after logout                                             |
-| -osiam            | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                  |
-| -port             | string      | "6789"       | -     | The port to listen on                                                                |
-| -simple           | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                          |
-| -success-url      | string      | "/"          | X     | The url to redirect after login                                                      |
-| -template         | string      |              | X     | An alternative template for the login form                                           |
-| -text-logging     | boolean     | true         | -     | Log in text format instead of json                                                   |
-| -jwt-refreshes    | int         | 0            | X     | The maximum amount of jwt refreshes.                                                 |
-| -grace-period     | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted.                                                   |
+| Parameter                   | Type        | Default      | Caddy | Description                                                                                |
+|-----------------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------------|
+| -cookie-domain              | string      |              | X     | The optional domain parameter for the cookie                                               |
+| -cookie-expiry              | string      | session      | X     | The expiry duration for the cookie, e.g. 2h or 3h30m                                       |
+| -cookie-http-only           | boolean     | true         | X     | Set the cookie with the http only flag                                                     |
+| -cookie-name                | string      | "jwt_token"  | X     | The name of the jwt cookie                                                                 |
+| -github                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
+| -google                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
+| -host                       | string      | "localhost"  | -     | The host to listen on                                                                      |
+| -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
+| -jwt-expiry                 | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                                    |
+| -jwt-secret                 | string      | "random key" | X     | The secret to sign the jwt token                                                           |
+| -log-level                  | string      | "info"       | -     | The log level                                                                              |
+| -login-path                 | string      | "/login"     | X     | The path of the login resource                                                             |
+| -logout-url                 | string      |              | X     | The url or path to redirect after logout                                                   |
+| -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                        |
+| -port                       | string      | "6789"       | -     | The port to listen on                                                                      |
+| -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter (default true)             |
+| -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target (default "backTo")                                   |
+| -redirect-check-referer     | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects         |
+| -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line     |
+| -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                |
+| -success-url                | string      | "/"          | X     | The url to redirect after login                                                            |
+| -prevent-external-redirects | boolean     | true         | X     | Prevent dynamic redirects to external domains                                              |
+| -template                   | string      |              | X     | An alternative template for the login form                                                 |
+| -text-logging               | boolean     | true         | -     | Log in text format instead of json                                                         |
+| -jwt-refreshes              | int         | 0            | X     | The maximum amount of jwt refreshes.                                                       |
+| -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted. |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
@@ -106,14 +110,15 @@ Performs the login and returns the JWT. Depending on the content-type and parame
 
 #### Runtime Parameters
 
-| Parameter-Type    | Parameter                                        | Description                                               |          | 
-| ------------------|--------------------------------------------------|-----------------------------------------------------------|----------|
-| Http-Header       | Accept: text/html                                | Set the JWT-Token as Cookie 'jwt_token'.                  | default  |
-| Http-Header       | Accept: application/jwt                          | Returns the JWT-Token within the body. No Cookie is set.  |          |
-| Http-Header       | Content-Type: application/x-www-form-urlencoded  | Expect the credentials as form encoded parameters.        | default  |
-| Http-Header       | Content-Type: application/json                   | Take the credentials from the provided json object.       |          |
-| Post-Parameter    | username                                         | The username                                              |          |
-| Post-Parameter    | password                                         | The password                                              |          |
+| Parameter-Type    | Parameter                                        | Description                                                       |              | 
+| ------------------|--------------------------------------------------|-------------------------------------------------------------------|--------------|
+| Http-Header       | Accept: text/html                                | Set the JWT-Token as Cookie 'jwt_token'.                          | default      |
+| Http-Header       | Accept: application/jwt                          | Returns the JWT-Token within the body. No Cookie is set.          |              |
+| Http-Header       | Content-Type: application/x-www-form-urlencoded  | Expect the credentials as form encoded parameters.                | default      |
+| Http-Header       | Content-Type: application/json                   | Take the credentials from the provided json object.               |              |
+| Post-Parameter    | username                                         | The username                                                      |              |
+| Post-Parameter    | password                                         | The password                                                      |              |
+| Get or Post       | backTo                                           | Dynamic redirect target after login (see (Redirects)[#redirects]) | -success-url |
 
 #### Possible Return Codes
 
@@ -172,6 +177,17 @@ HTTP/1.1 303 See Other
 Location: /
 Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU; HttpOnly
 ```
+
+### Redirects
+
+The api has support for a redirect query paramter, e.g. `?backTo=/dynamic/return/path`. For security reasons, the default behaviour is very restrictive:
+
+* Only local redirects (same host) are allowed.
+* The `Referer` header is checked in the way, that the call to the login page has to come from the same page.
+
+These restrictions are there, to prevent you from unchecked redirect attacks, e.g. using your site for fishing or doing login attacks.
+If you know, what you are doing, you can disable the referer check with `--redirect-check-referer=false` and provide a whitelist file
+for allowed external domains with `--redirect-host-file=/some/domains.txt`.
 
 ## The JWT Token
 Depending on the provider, the token may look as follows:
@@ -305,3 +321,4 @@ When you specify a custom template, only the layout of the original template is 
 </body>
 </html>
 ```
+

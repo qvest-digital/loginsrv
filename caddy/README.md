@@ -50,3 +50,25 @@ login {
     simple bob=secret,alice=secret
 }
 ```
+
+### Example caddyfile with dynamic redirects
+```
+127.0.0.1
+
+root {$PWD}
+browse
+
+jwt {
+    path /
+    except /favicon.ico
+    redirect /login?backTo={rewrite_uri}
+    allow sub bob
+    allow sub alice
+}
+
+login {
+    simple bob=secret,alice=secret
+    redirect_check_referer false
+    redirect_host_file ../redirect_hosts.txt
+}
+```

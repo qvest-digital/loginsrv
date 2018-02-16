@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/tarent/loginsrv/logging"
-	"github.com/tarent/loginsrv/model"
-	"github.com/tarent/loginsrv/oauth2"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/tarent/loginsrv/logging"
+	"github.com/tarent/loginsrv/model"
+	"github.com/tarent/loginsrv/oauth2"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -65,6 +66,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.respondNotFound(w, r)
 		return
 	}
+
+	h.setRedirectCookie(w, r)
 
 	_, err := h.oauth.GetConfigFromRequest(r)
 	if err == nil {
@@ -231,7 +234,8 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 
 		http.SetCookie(w, cookie)
 
-		w.Header().Set("Location", h.config.SuccessURL)
+		w.Header().Set("Location", h.redirectURL(r, w))
+		h.deleteRedirectCookie(w, r)
 		w.WriteHeader(303)
 		return
 	}

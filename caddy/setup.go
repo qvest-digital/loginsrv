@@ -89,11 +89,11 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 
 		f := fs.Lookup(name)
 		if f == nil {
-			return cfg, c.ArgErr()
+			return cfg, fmt.Errorf("Unknown parameter for login directive: %v (%v:%v)", name, c.File(), c.Line())
 		}
 		err := f.Value.Set(value)
 		if err != nil {
-			return cfg, c.Err(err.Error())
+			return cfg, fmt.Errorf("Invalid value for parameter %v: %v (%v:%v)", name, value, c.File(), c.Line())
 		}
 	}
 
