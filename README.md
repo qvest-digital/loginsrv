@@ -55,6 +55,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
 | -jwt-expiry                 | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                                    |
 | -jwt-secret                 | string      | "random key" | X     | The secret to sign the jwt token                                                           |
+| -jwt-algo                   | string      | "HS512"      | X     | The singing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)             |
 | -log-level                  | string      | "info"       | -     | The log level                                                                              |
 | -login-path                 | string      | "/login"     | X     | The path of the login resource                                                             |
 | -logout-url                 | string      |              | X     | The url or path to redirect after logout                                                   |

@@ -399,6 +399,21 @@ func TestHandler_getToken_Valid(t *testing.T) {
 	Equal(t, input, userInfo)
 }
 
+func TestHandler_signAndVerify_ES256(t *testing.T) {
+	h := testHandler()
+	h.config.JwtAlgo = "ES256"
+	h.config.JwtSecret = "MHcCAQEEIJKMecdA9ASkZArOu9b+cPmSiVfQaaeErHcvkqG2gVIOoAoGCCqGSM49AwEHoUQDQgAE1gae9/zJDLHeuFteUkKgVhLrwJPoA43goNacgwldOucBvVUzD0EFAcpCR+0UcOfQ99CxUyKxWtnvr9xpDIXU0w=="
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+	token, err := h.createToken(input)
+	NoError(t, err)
+	r := &http.Request{
+		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+	}
+	userInfo, valid := h.GetToken(r)
+	True(t, valid)
+	Equal(t, input, userInfo)
+}
+
 func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin"}
