@@ -42,6 +42,7 @@ func DefaultConfig() *Config {
 		Backends:               Options{},
 		Oauth:                  Options{},
 		GracePeriod:            5 * time.Second,
+		UserFile:               "",
 	}
 }
 
@@ -72,6 +73,7 @@ type Config struct {
 	Backends               Options
 	Oauth                  Options
 	GracePeriod            time.Duration
+	UserFile               string
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -124,6 +126,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")
 	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
 	f.DurationVar(&c.GracePeriod, "grace-period", c.GracePeriod, "Graceful shutdown grace period")
+	f.StringVar(&c.UserFile, "user-file", c.UserFile, "A YAML file with user specific data for the tokens")
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {

@@ -1,0 +1,10 @@
+
+- sub: demo
+  claims:
+    some: "custom claims for user demo"
+    role: admin
+    projects:
+      - example
+      - foo
+      - bar
+      

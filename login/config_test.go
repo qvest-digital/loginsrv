@@ -45,6 +45,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--backend=provider=foo",
 		"--github=client_id=foo,client_secret=bar",
 		"--grace-period=4s",
+		"--user-file=users.yml",
 	}
 
 	expected := &Config{
@@ -78,6 +79,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 			},
 		},
 		GracePeriod: 4 * time.Second,
+		UserFile:    "users.yml",
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)

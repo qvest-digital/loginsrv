@@ -26,3 +26,31 @@ func (u UserInfo) Valid() error {
 	}
 	return nil
 }
+
+func (u UserInfo) AsMap() map[string]interface{} {
+	m := map[string]interface{}{
+		"sub": u.Sub,
+	}
+	if u.Picture != "" {
+		m["picture"] = u.Picture
+	}
+	if u.Name != "" {
+		m["name"] = u.Name
+	}
+	if u.Email != "" {
+		m["email"] = u.Email
+	}
+	if u.Origin != "" {
+		m["origin"] = u.Origin
+	}
+	if u.Expiry != 0 {
+		m["exp"] = u.Expiry
+	}
+	if u.Refreshes != 0 {
+		m["refs"] = u.Refreshes
+	}
+	if u.Domain != "" {
+		m["domain"] = u.Domain
+	}
+	return m
+}
