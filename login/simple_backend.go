@@ -44,7 +44,10 @@ func NewSimpleBackend(userPassword map[string]string) *SimpleBackend {
 // Authenticate the user
 func (sb *SimpleBackend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	if p, exist := sb.userPassword[username]; exist && p == password {
-		return true, model.UserInfo{Sub: username}, nil
+		return true, model.UserInfo{
+			Origin: SimpleProviderName,
+			Sub:    username,
+		}, nil
 	}
 	return false, model.UserInfo{}, nil
 }

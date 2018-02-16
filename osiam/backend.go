@@ -37,7 +37,8 @@ func (b *Backend) Authenticate(username, password string) (bool, model.UserInfo,
 		return authenticated, model.UserInfo{}, err
 	}
 	userInfo := model.UserInfo{
-		Sub: username,
+		Origin: OsiamProviderName,
+		Sub:    username,
 	}
 	return true, userInfo, nil
 }

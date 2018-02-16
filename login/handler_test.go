@@ -95,6 +95,8 @@ func TestHandler_NewFromConfig(t *testing.T) {
 				Error(t, err)
 			} else {
 				NoError(t, err)
+			}
+			if err == nil {
 				Equal(t, test.backendCount, len(h.backends))
 				Equal(t, test.oauthCount, len(h.oauth.(*oauth2.Manager).GetConfigs()))
 			}
@@ -444,6 +446,24 @@ func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 	h := testHandler()
 	_, valid := h.GetToken(&http.Request{})
 	False(t, valid)
+}
+
+func TestHandler_getToken_WithUserClaims(t *testing.T) {
+	h := testHandler()
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+	h.userClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
+		return customClaims{"sub": "Zappod", "origin": "fake", "exp": userInfo.Expiry}, nil
+	}
+	token, err := h.createToken(input)
+
+	NoError(t, err)
+	r := &http.Request{
+		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+	}
+	userInfo, valid := h.GetToken(r)
+	True(t, valid)
+	Equal(t, "Zappod", userInfo.Sub)
+	Equal(t, "fake", userInfo.Origin)
 }
 
 func testHandler() *Handler {

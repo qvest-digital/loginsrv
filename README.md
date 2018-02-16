@@ -72,6 +72,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -text-logging               | boolean     | true         | -     | Log in text format instead of json                                                         |
 | -jwt-refreshes              | int         | 0            | X     | The maximum amount of jwt refreshes.                                                       |
 | -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted. |
+| -user-file                  | string      |              | X     | A YAML file with user specific data for the tokens. (see below for an example)             |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
@@ -323,3 +324,46 @@ When you specify a custom template, only the layout of the original template is 
 </html>
 ```
 
+## User File
+
+To customize the content of the JWT token, a YAML file with user data can be provied.
+After successful authentication against a backend system, the user is searched within the file
+and the contens of the claims parameter is used to enhance the user JWT claim parameters.
+
+To match an entry, the user file is searched in linear order and all attributes has to match
+the data comming from the authentication backend. The first matching entry will be used and all parameters
+below the claim attribute are written into the token. The following attributes can be used for matching:
+* `sub` - the username (all backends)
+* `origin` - the provider or backend name (all backends)
+* `email` - the mail address (the oauth provider)
+* `domain` - the domain (google only)
+
+Example:
+* The user bob will become the `"role": "superAdmin"`, when authenticating with htpasswd file
+* The user admin@example.org will become `"role": "admin"` and `"projects": ["example"]`, when authenticating with google oauth
+* All other google users with the domain example will become `"role": "user"` and `"projects": ["example"]`
+* All others will become `"role": "unknown"`, indenpendent of the authentication provider
+
+```
+- sub: bob
+  origin: htpasswd
+  claims:
+    role: superAdmin
+
+- email: admin@example.org
+  origin: google
+  claims:
+    role: admin
+    projects:
+      - example
+
+- domain: example.org
+  origin: google
+  claims:
+    role: user
+    projects:
+      - example
+
+- claims:
+    role: unknown
+```

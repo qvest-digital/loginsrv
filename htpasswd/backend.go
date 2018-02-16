@@ -59,7 +59,10 @@ func NewBackend(filenames []string) (*Backend, error) {
 func (sb *Backend) Authenticate(username, password string) (bool, model.UserInfo, error) {
 	authenticated, err := sb.auth.Authenticate(username, password)
 	if authenticated && err == nil {
-		return authenticated, model.UserInfo{Sub: username}, err
+		return authenticated, model.UserInfo{
+			Origin: ProviderName,
+			Sub:    username,
+		}, err
 	}
 	return false, model.UserInfo{}, err
 }
