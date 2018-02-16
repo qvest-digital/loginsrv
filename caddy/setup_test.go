@@ -216,5 +216,5 @@ func TestSetup_RelativeFiles(t *testing.T) {
 	middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 
 	Equal(t, root+"/myTemplate.tpl", middleware.config.Template)
-	Equal(t, root+"/redirectDomains.txt", middleware.config.RedirectHostFile)
+	Equal(t, "redirectDomains.txt", middleware.config.RedirectHostFile)
 }

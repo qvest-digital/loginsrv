@@ -43,10 +43,6 @@ func setup(c *caddy.Controller) error {
 			config.Template = filepath.Join(httpserver.GetConfig(c).Root, config.Template)
 		}
 
-		if config.RedirectHostFile != "" && !filepath.IsAbs(config.RedirectHostFile) {
-			config.RedirectHostFile = filepath.Join(httpserver.GetConfig(c).Root, config.RedirectHostFile)
-		}
-
 		if len(args) == 1 {
 			logging.Logger.Warnf("DEPRECATED: Please set the login path by parameter login_path and not as directive argument (%v:%v)", c.File(), c.Line())
 			config.LoginPath = path.Join(args[0], "/login")
