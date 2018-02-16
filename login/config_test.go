@@ -27,6 +27,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--log-level=loglevel",
 		"--text-logging=true",
 		"--jwt-secret=jwtsecret",
+		"--jwt-algo=algo",
 		"--jwt-expiry=42h42m",
 		"--success-url=successurl",
 		"--redirect=false",
@@ -52,6 +53,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		LogLevel:               "loglevel",
 		TextLogging:            true,
 		JwtSecret:              "jwtsecret",
+		JwtAlgo:                "algo",
 		JwtExpiry:              42*time.Hour + 42*time.Minute,
 		SuccessURL:             "successurl",
 		Redirect:               false,
@@ -89,6 +91,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_LOG_LEVEL", "loglevel"))
 	NoError(t, os.Setenv("LOGINSRV_TEXT_LOGGING", "true"))
 	NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "jwtsecret"))
+	NoError(t, os.Setenv("LOGINSRV_JWT_ALGO", "algo"))
 	NoError(t, os.Setenv("LOGINSRV_JWT_EXPIRY", "42h42m"))
 	NoError(t, os.Setenv("LOGINSRV_SUCCESS_URL", "successurl"))
 	NoError(t, os.Setenv("LOGINSRV_REDIRECT", "false"))
@@ -112,6 +115,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 		LogLevel:               "loglevel",
 		TextLogging:            true,
 		JwtSecret:              "jwtsecret",
+		JwtAlgo:                "algo",
 		JwtExpiry:              42*time.Hour + 42*time.Minute,
 		SuccessURL:             "successurl",
 		Redirect:               false,

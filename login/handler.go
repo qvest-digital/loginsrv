@@ -2,7 +2,6 @@ package login
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
@@ -22,9 +22,12 @@ const contentTypePlain = "text/plain"
 // Handler is the mail login handler.
 // It serves the login ressource and does the authentication against the backends or oauth provider.
 type Handler struct {
-	backends []Backend
-	oauth    oauthManager
-	config   *Config
+	backends         []Backend
+	oauth            oauthManager
+	config           *Config
+	signingMethod    jwt.SigningMethod
+	signingKey       interface{}
+	signingVerifyKey interface{}
 }
 
 // NewHandler creates a login handler based on the supplied configuration.
@@ -246,8 +249,12 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 }
 
 func (h *Handler) createToken(userInfo jwt.Claims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, userInfo)
-	return token.SignedString([]byte(h.config.JwtSecret))
+	signingMethod, key, _, err := h.signingInfo()
+	if err != nil {
+		return "", err
+	}
+	token := jwt.NewWithClaims(signingMethod, userInfo)
+	return token.SignedString(key)
 }
 
 func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
@@ -257,7 +264,8 @@ func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool
 	}
 
 	token, err := jwt.ParseWithClaims(c.Value, &model.UserInfo{}, func(*jwt.Token) (interface{}, error) {
-		return []byte(h.config.JwtSecret), nil
+		_, _, verifyKey, err := h.signingInfo()
+		return verifyKey, err
 	})
 	if err != nil {
 		return model.UserInfo{}, false
@@ -269,6 +277,34 @@ func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool
 	}
 
 	return *u, u.Valid() == nil
+}
+
+func (h *Handler) signingInfo() (signingMethod jwt.SigningMethod, key, verifyKey interface{}, err error) {
+	if h.signingMethod == nil || h.signingKey == nil || h.signingVerifyKey == nil {
+		h.signingMethod = jwt.GetSigningMethod(h.config.JwtAlgo)
+		if h.signingMethod == nil {
+			return nil, nil, nil, errors.New("invalid signing method: " + h.config.JwtAlgo)
+		}
+
+		keyString := h.config.JwtSecret
+		switch h.config.JwtAlgo {
+		case "ES256", "ES384", "ES512":
+			if !strings.Contains(string(keyString), "-----") {
+				keyString = "-----BEGIN EC PRIVATE KEY-----\n" + keyString + "\n-----END EC PRIVATE KEY-----"
+			}
+
+			key, err := jwt.ParseECPrivateKeyFromPEM([]byte(keyString))
+			if err != nil {
+				return nil, nil, nil, errors.Wrap(err, "can not parse PEM formated EC private key")
+			}
+			h.signingKey = key
+			h.signingVerifyKey = key.Public()
+		default:
+			h.signingKey = []byte(keyString)
+			h.signingVerifyKey = h.signingKey
+		}
+	}
+	return h.signingMethod, h.signingKey, h.signingVerifyKey, nil
 }
 
 func (h *Handler) respondError(w http.ResponseWriter, r *http.Request) {
