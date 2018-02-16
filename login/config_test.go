@@ -110,6 +110,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_SIMPLE", "foo=bar"))
 	NoError(t, os.Setenv("LOGINSRV_GITHUB", "client_id=foo,client_secret=bar"))
 	NoError(t, os.Setenv("LOGINSRV_GRACE_PERIOD", "4s"))
+	NoError(t, os.Setenv("LOGINSRV_USER_FILE", "users.yml"))
 
 	expected := &Config{
 		Host:                   "host",
@@ -143,6 +144,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 			},
 		},
 		GracePeriod: 4 * time.Second,
+		UserFile:    "users.yml",
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
