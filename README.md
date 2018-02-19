@@ -31,6 +31,7 @@ The following providers (login backends) are supported.
   * Github Login
   * Google Login
   * Bitbucket Login
+  * Facebook Login
   
 ## Questions
 
@@ -51,6 +52,8 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -cookie-name                | string      | "jwt_token"  | X     | The name of the jwt cookie                                                                 |
 | -github                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
 | -google                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
+| -bitbucket                  | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,[,scope=..][redirect_uri=..]          |
+| -facebook                   | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=email..[redirect_uri=..]          |
 | -host                       | string      | "localhost"  | -     | The host to listen on                                                                      |
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
 | -jwt-expiry                 | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                                    |
@@ -262,6 +265,7 @@ Currently the following oauth Provider is supported:
 * github
 * google (see a note below)
 * bitbucket
+* facebook (see a note below)
 
 An Oauth Provider supports the following parameters:
 
@@ -272,7 +276,7 @@ An Oauth Provider supports the following parameters:
 | scope             | Space separated scope List (optional)  |
 | redirect_uri      | Alternative Redirect URI (optional)    |
 
-When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
+*When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
 If not supplied, the oauth redirect uri is calculated out of the current url. This should work in most cases and should even work
 if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host` and `X-Forwarded-Proto` are set correctly.
 
@@ -284,6 +288,10 @@ $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ### Note for Google's OAuth 2 
 You can use `scope=https://www.googleapis.com/auth/userinfo.email`. When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
 For example, for `scope=https://www.googleapis.com/auth/userinfo.profile` [Google People API](https://console.cloud.google.com/apis/library/people.googleapis.com/) must be enabled for your project. Keep in mind that it usually takes a few minutes for this setting to take effect.
+
+## Note for Facebbok's Oauth 2
+Make sure you ask for the scope `email` when adding your facebook config option. Otherwise the provider should not be able to fetch
+the user's email.
 
 ## Templating
 
