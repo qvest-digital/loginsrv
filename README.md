@@ -276,7 +276,7 @@ An Oauth Provider supports the following parameters:
 | scope             | Space separated scope List (optional)  |
 | redirect_uri      | Alternative Redirect URI (optional)    |
 
-*When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
+When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
 If not supplied, the oauth redirect uri is calculated out of the current url. This should work in most cases and should even work
 if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host` and `X-Forwarded-Proto` are set correctly.
 
