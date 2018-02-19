@@ -289,7 +289,7 @@ $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 You can use `scope=https://www.googleapis.com/auth/userinfo.email`. When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
 For example, for `scope=https://www.googleapis.com/auth/userinfo.profile` [Google People API](https://console.cloud.google.com/apis/library/people.googleapis.com/) must be enabled for your project. Keep in mind that it usually takes a few minutes for this setting to take effect.
 
-## Note for Facebbok's Oauth 2
+### Note for Facebbok's Oauth 2
 Make sure you ask for the scope `email` when adding your facebook config option. Otherwise the provider should not be able to fetch
 the user's email.
 
