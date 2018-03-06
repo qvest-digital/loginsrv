@@ -10,13 +10,13 @@ loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt
 
 ## Abstract
 
-Loginsrv provides a minimal endpoint for authentication. The login is performed against the providers and returned as Json Web Token.
+Loginsrv provides a minimal endpoint for authentication. The login is performed against the providers and returned as a JSON Web Token (JWT).
 It can be used as:
 
-* standalone microservice
-* docker container
-* golang library
-* [caddyserver](http://caddyserver.com/) plugin
+* Standalone microservice
+* Docker container
+* Golang library
+* [Caddy](http://caddyserver.com/) plugin
 
 ![](.screenshot.png)
 
@@ -27,11 +27,11 @@ The following providers (login backends) are supported.
 * [OSIAM](#osiam)
 * [Simple](#simple) (user/password pairs by configuration)
 * [Httpupstream](#httpupstream)
-* [Oauth2](#oauth2)
-  * Github Login
-  * Google Login
-  * Bitbucket Login
-  * Facebook Login
+* [OAuth2](#OAuth2)
+  * GitHub login
+  * Google login
+  * Bitbucket login
+  * Facebook login
   
 ## Questions
 
@@ -46,42 +46,42 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 
 | Parameter                   | Type        | Default      | Caddy | Description                                                                                |
 |-----------------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------------|
-| -cookie-domain              | string      |              | X     | The optional domain parameter for the cookie                                               |
-| -cookie-expiry              | string      | session      | X     | The expiry duration for the cookie, e.g. 2h or 3h30m                                       |
-| -cookie-http-only           | boolean     | true         | X     | Set the cookie with the http only flag                                                     |
-| -cookie-name                | string      | "jwt_token"  | X     | The name of the jwt cookie                                                                 |
-| -github                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
-| -google                     | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
-| -bitbucket                  | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,[,scope=..][redirect_uri=..]          |
-| -facebook                   | value       |              | X     | Oauth config in the form: client_id=..,client_secret=..,scope=email..[redirect_uri=..]          |
-| -host                       | string      | "localhost"  | -     | The host to listen on                                                                      |
+| -cookie-domain              | string      |              | X     | Optional domain parameter for the cookie                                                   |
+| -cookie-expiry              | string      | session      | X     | Expiry duration for the cookie, e.g. 2h or 3h30m                                           |
+| -cookie-http-only           | boolean     | true         | X     | Set the cookie with the HTTP only flag                                                     |
+| -cookie-name                | string      | "jwt_token"  | X     | Name of the JWT cookie                                                                     |
+| -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
+| -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
+| -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,[,scope=..][redirect_uri=..]       |
+| -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=email..[redirect_uri=..]     |
+| -host                       | string      | "localhost"  | -     | Host to listen on                                                                          |
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
-| -jwt-expiry                 | go duration | 24h          | X     | The expiry duration for the jwt token, e.g. 2h or 3h30m                                    |
-| -jwt-secret                 | string      | "random key" | X     | The secret to sign the jwt token                                                           |
-| -jwt-algo                   | string      | "HS512"      | X     | The singing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)             |
-| -log-level                  | string      | "info"       | -     | The log level                                                                              |
-| -login-path                 | string      | "/login"     | X     | The path of the login resource                                                             |
-| -logout-url                 | string      |              | X     | The url or path to redirect after logout                                                   |
+| -jwt-expiry                 | go duration | 24h          | X     | Expiry duration for the JWT token, e.g. 2h or 3h30m                                        |
+| -jwt-secret                 | string      | "random key" | X     | Secret used to sign the JWT token                                                          |
+| -jwt-algo                   | string      | "HS512"      | X     | Signing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)                 |
+| -log-level                  | string      | "info"       | -     | Log level                                                                                  |
+| -login-path                 | string      | "/login"     | X     | Path of the login resource                                                                 |
+| -logout-url                 | string      |              | X     | URL or path to redirect to after logout                                                    |
 | -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                        |
-| -port                       | string      | "6789"       | -     | The port to listen on                                                                      |
+| -port                       | string      | "6789"       | -     | Port to listen on                                                                          |
 | -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter (default true)             |
 | -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target (default "backTo")                                   |
 | -redirect-check-referer     | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects         |
 | -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line     |
 | -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                |
-| -success-url                | string      | "/"          | X     | The url to redirect after login                                                            |
+| -success-url                | string      | "/"          | X     | URL to redirect to after login                                                             |
 | -prevent-external-redirects | boolean     | true         | X     | Prevent dynamic redirects to external domains                                              |
 | -template                   | string      |              | X     | An alternative template for the login form                                                 |
-| -text-logging               | boolean     | true         | -     | Log in text format instead of json                                                         |
-| -jwt-refreshes              | int         | 0            | X     | The maximum amount of jwt refreshes.                                                       |
+| -text-logging               | boolean     | true         | -     | Log in text format instead of JSON                                                         |
+| -jwt-refreshes              | int         | 0            | X     | The maximum number of JWT refreshes                                                        |
 | -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted. |
 | -user-file                  | string      |              | X     | A YAML file with user specific data for the tokens. (see below for an example)             |
 
 ### Environment Variables
-All of the above Config Options can also be applied as environment variable, where the name is written in the way: `LOGINSRV_OPTION_NAME`.
+All of the above Config Options can also be applied as environment variables by using variables named this way: `LOGINSRV_OPTION_NAME`.
 So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
 
-### Startup examples
+### Startup Examples
 The simplest way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
 ```
@@ -102,12 +102,12 @@ $ docker run -d -p 8080:8080 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEN
 
 Returns a simple bootstrap styled login form.
 
-The returned html follows the ui composition conventions from (lib-compose)[https://github.com/tarent/lib-compose],
+The returned HTML follows the UI composition conventions from (lib-compose)[https://github.com/tarent/lib-compose],
 so it can be embedded into an existing layout.
 
 ### GET /login/<provider>
 
-Starts the Oauth Web Flow with the configured provider. E.g. `GET /login/github` redirects to the github login form.
+Starts the OAuth Web Flow with the configured provider. E.g. `GET /login/github` redirects to the GitHub login form.
 
 ### POST /login
 
@@ -117,10 +117,10 @@ Performs the login and returns the JWT. Depending on the content-type and parame
 
 | Parameter-Type    | Parameter                                        | Description                                                       |              | 
 | ------------------|--------------------------------------------------|-------------------------------------------------------------------|--------------|
-| Http-Header       | Accept: text/html                                | Set the JWT-Token as Cookie 'jwt_token'.                          | default      |
-| Http-Header       | Accept: application/jwt                          | Returns the JWT-Token within the body. No Cookie is set.          |              |
-| Http-Header       | Content-Type: application/x-www-form-urlencoded  | Expect the credentials as form encoded parameters.                | default      |
-| Http-Header       | Content-Type: application/json                   | Take the credentials from the provided json object.               |              |
+| Http-Header       | Accept: text/html                                | Set the JWT as a cookie named 'jwt_token'                         | default      |
+| Http-Header       | Accept: application/jwt                          | Returns the JWT within the body. No cookie is set                 |              |
+| Http-Header       | Content-Type: application/x-www-form-urlencoded  | Expect the credentials as form encoded parameters                 | default      |
+| Http-Header       | Content-Type: application/json                   | Take the credentials from the provided JSON object                |              |
 | Post-Parameter    | username                                         | The username                                                      |              |
 | Post-Parameter    | password                                         | The password                                                      |              |
 | Get or Post       | backTo                                           | Dynamic redirect target after login (see (Redirects)[#redirects]) | -success-url |
@@ -133,9 +133,9 @@ Performs the login and returns the JWT. Depending on the content-type and parame
 | 403  | Forbidden             | The credentials are wrong  |
 | 400  | Bad Request           | Missing parameters         |
 | 500  | Internal Server Error | Internal error, e.g. the login provider is not available or failed    |
-| 303  | See Other             | Sets the JWT as a cookie, if the login succeeds and redirect to the urls provided in `redirectSuccess` or `redirectError` |
+| 303  | See Other             | Sets the JWT as a cookie, if the login succeeds and redirect to the URLs provided in `redirectSuccess` or `redirectError` |
 
-Hint: The status `401 Unauthorized` is not used as a return code to not conflict with an Http BasicAuth Authentication.
+Hint: The status `401 Unauthorized` is not used as a return code to not conflict with an HTTP Basic authentication.
 
 #### JWT-Refresh
 
@@ -144,7 +144,7 @@ This only happens if the jwt-refreshes config option is set to a value greater t
 
 ### DELETE /login
 
-Deletes the JWT Cookie.
+Deletes the JWT cookie.
 
 For simple usage in web applications, this can also be called by `GET|POST /login?logout=true`
 
@@ -175,7 +175,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBcz
 ```
 
 #### Example: web based flow with 'Accept: text/html'
-Sets the jwt token as cookie and redirects to a web page.
+Sets the JWT as a cookie and redirects to a web page.
 ```
 curl -i -H 'Accept: text/html' --data "username=bob&password=secret" http://127.0.0.1:6789/login
 HTTP/1.1 303 See Other
@@ -185,13 +185,13 @@ Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-5
 
 ### Redirects
 
-The api has support for a redirect query paramter, e.g. `?backTo=/dynamic/return/path`. For security reasons, the default behaviour is very restrictive:
+The API has support for a redirect query parameter, e.g. `?backTo=/dynamic/return/path`. For security reasons, the default behaviour is very restrictive:
 
 * Only local redirects (same host) are allowed.
-* The `Referer` header is checked in the way, that the call to the login page has to come from the same page.
+* The `Referer` header is checked to ensure that the call to the login page came from the same page.
 
-These restrictions are there, to prevent you from unchecked redirect attacks, e.g. using your site for fishing or doing login attacks.
-If you know, what you are doing, you can disable the referer check with `--redirect-check-referer=false` and provide a whitelist file
+These restrictions are there, to prevent you from unchecked redirect attacks, e.g. phishing or login attacks.
+If you know, what you are doing, you can disable the `Referer` check with `--redirect-check-referer=false` and provide a whitelist file
 for allowed external domains with `--redirect-host-file=/some/domains.txt`.
 
 ## The JWT Token
@@ -223,15 +223,15 @@ loginsrv -htpasswd file=users
 ```
 
 ### Httpupstream
-Authentication against an upstream http server by performing a http basic authenticated request and checking the response for a http 200 OK status code. Anything other than a 200 OK status code will result in a failure to authenticate.
+Authentication against an upstream HTTP server by performing a HTTP Basic authentication request and checking the response for a HTTP 200 OK status code. Anything other than a 200 OK status code will result in a failure to authenticate.
 
 Parameters for the provider:
 
 | Parameter-Name    | Description                                                               |
 | ------------------|---------------------------------------------------------------------------|
-| upstream          | http/https url to call                                                    |
-| skipverify        | true to ignore TLS errors (optional, false by default)                    |
-| timeout           | request timeout (optional 1m by default, go duration syntax is supported) |
+| upstream          | HTTP/HTTPS URL to call                                                    |
+| skipverify        | True to ignore TLS errors (optional, false by default)                    |
+| timeout           | Request timeout (optional 1m by default, go duration syntax is supported) |
 
 Example:
 ```
@@ -257,30 +257,30 @@ Example
 loginsrv -simple bob=secret
 ```
 
-## Oauth2
+## OAuth2
 
-The Oauth Web Flow (aka 3-leged-Oauth flow) is also supported.
-Currently the following oauth Provider is supported:
+The OAuth Web Flow (aka 3-legged-OAuth flow) is also supported.
+Currently the following OAuth provider is supported:
 
-* github
-* google (see a note below)
-* bitbucket
-* facebook (see a note below)
+* GitHub
+* Google (see note below)
+* Bitbucket
+* Facebook (see note below)
 
-An Oauth Provider supports the following parameters:
+An OAuth provider supports the following parameters:
 
 | Parameter-Name    | Description                            |
 | ------------------|----------------------------------------|
-| client_id         | Oauth Client ID                        |
-| client_secret     | Oauth Client Secret                    |
+| client_id         | OAuth Client ID                        |
+| client_secret     | OAuth Client Secret                    |
 | scope             | Space separated scope List (optional)  |
 | redirect_uri      | Alternative Redirect URI (optional)    |
 
-When configuring the oauth parameters at your external oauth provider, a redirect uri has to be supplied. This redirect uri has to point to the path `/login/<provider>`.
-If not supplied, the oauth redirect uri is calculated out of the current url. This should work in most cases and should even work
+When configuring the OAuth parameters at your external OAuth provider, a redirect URI has to be supplied. This redirect URI has to point to the path `/login/<provider>`.
+If not supplied, the OAuth redirect URI is calculated out of the current URL. This should work in most cases and should even work
 if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host` and `X-Forwarded-Proto` are set correctly.
 
-### Github Startup Example
+### GitHub Startup Example
 ```
 $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
@@ -289,16 +289,15 @@ $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 You can use `scope=https://www.googleapis.com/auth/userinfo.email`. When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
 For example, for `scope=https://www.googleapis.com/auth/userinfo.profile` [Google People API](https://console.cloud.google.com/apis/library/people.googleapis.com/) must be enabled for your project. Keep in mind that it usually takes a few minutes for this setting to take effect.
 
-### Note for Facebbok's Oauth 2
-Make sure you ask for the scope `email` when adding your facebook config option. Otherwise the provider should not be able to fetch
-the user's email.
+### Note for Facebook's OAuth 2
+Make sure you ask for the scope `email` when adding your Facebook config option. Otherwise the provider won't be able to fetch the user's email.
 
 ## Templating
 
 A custom template can be supplied by the parameter `template`. 
 You can find the original template in [login/login_form.go](https://github.com/tarent/loginsrv/blob/master/login/login_form.go).
 
-The templating uses the golang build in template language. A short intro can be found [here](https://astaxie.gitbooks.io/build-web-application-with-golang/en/07.4.html).
+The templating uses the Golang build in template language. A short intro can be found [here](https://astaxie.gitbooks.io/build-web-application-with-golang/en/07.4.html).
 
 When you specify a custom template, only the layout of the original template is replaced. The partials of the original are still loaded into the template context and can be used by your template. So a minimal unstyled login template could look like this:
 
@@ -334,22 +333,22 @@ When you specify a custom template, only the layout of the original template is 
 
 ## User File
 
-To customize the content of the JWT token, a YAML file with user data can be provied.
+To customize the content of the JWT token, a YAML file with user data can be provided.
 After successful authentication against a backend system, the user is searched within the file
-and the contens of the claims parameter is used to enhance the user JWT claim parameters.
+and the content of the claims parameter is used to enhance the user JWT claim parameters.
 
 To match an entry, the user file is searched in linear order and all attributes has to match
-the data comming from the authentication backend. The first matching entry will be used and all parameters
+the data of the authentication backend. The first matching entry will be used and all parameters
 below the claim attribute are written into the token. The following attributes can be used for matching:
 * `sub` - the username (all backends)
 * `origin` - the provider or backend name (all backends)
-* `email` - the mail address (the oauth provider)
-* `domain` - the domain (google only)
+* `email` - the mail address (the OAuth provider)
+* `domain` - the domain (Google only)
 
 Example:
 * The user bob will become the `"role": "superAdmin"`, when authenticating with htpasswd file
-* The user admin@example.org will become `"role": "admin"` and `"projects": ["example"]`, when authenticating with google oauth
-* All other google users with the domain example will become `"role": "user"` and `"projects": ["example"]`
+* The user admin@example.org will become `"role": "admin"` and `"projects": ["example"]`, when authenticating with Google OAuth
+* All other Google users with the domain example will become `"role": "user"` and `"projects": ["example"]`
 * All others will become `"role": "unknown"`, indenpendent of the authentication provider
 
 ```
@@ -359,14 +358,14 @@ Example:
     role: superAdmin
 
 - email: admin@example.org
-  origin: google
+  origin: Google
   claims:
     role: admin
     projects:
       - example
 
 - domain: example.org
-  origin: google
+  origin: Google
   claims:
     role: user
     projects:
