@@ -53,12 +53,6 @@ func (a *Auth) parse(filenames []File) error {
 			return err
 		}
 
-		fileInfo, err := os.Stat(filename.name)
-		if err != nil {
-			return err
-		}
-		filename.modTime = fileInfo.ModTime()
-
 		cr := csv.NewReader(r)
 		cr.Comma = ':'
 		cr.Comment = '#'
