@@ -172,6 +172,11 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.handleRefresh(w, r, userInfo)
 			return
 		}
+		if username == "" {
+			h.respondAuthFailure(w, r)
+			return
+		}
+		
 		h.respondBadRequest(w, r)
 		return
 	}

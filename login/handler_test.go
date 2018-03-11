@@ -281,7 +281,7 @@ func TestHandler_Refresh_Expired(t *testing.T) {
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
-	Equal(t, 400, recorder.Code)
+	Equal(t, 403, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
@@ -295,7 +295,7 @@ func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
-	Equal(t, 400, recorder.Code)
+	Equal(t, 403, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
