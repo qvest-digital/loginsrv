@@ -388,6 +388,19 @@ func TestHandler_LoginError(t *testing.T) {
 	Contains(t, recorder.Body.String(), "Internal Error")
 }
 
+func TestHandler_LoginWithEmptyUsername(t *testing.T) {
+	h := testHandler()
+
+	// backend returning an error with result type == jwt
+	request := req("POST", "/context/login", `{"username": "", "password": ""}`, TypeJSON, AcceptJwt)
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, request)
+
+	Equal(t, 403, recorder.Code)
+	Equal(t, recorder.Header().Get("Content-Type"), "text/plain")
+	Equal(t, recorder.Body.String(), "Wrong credentials")
+}
+
 func TestHandler_getToken_Valid(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
