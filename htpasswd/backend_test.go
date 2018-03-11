@@ -58,7 +58,6 @@ func TestSetupTwoConfigs(t *testing.T) {
 	}
 
 	backend, err := p(map[string]string{
-		"files": strings.Join(configFiles, ";"),
 		"file":  strings.Join(configFile, ";"),
 	})
 
