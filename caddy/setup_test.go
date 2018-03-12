@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -221,6 +222,6 @@ func TestSetup_RelativeFiles(t *testing.T) {
 	}
 	middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 
-	Equal(t, root+"/myTemplate.tpl", middleware.config.Template)
+	Equal(t, filepath.FromSlash(root + "/myTemplate.tpl"), middleware.config.Template)
 	Equal(t, "redirectDomains.txt", middleware.config.RedirectHostFile)
 }
