@@ -183,6 +183,7 @@ Location: /
 Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU; HttpOnly
 ```
 
+#### Example: AJAX call with JQuery to fetch a JWT token and create a cookie from it
 Creates a cookie from a successful API call to login.
 ```
 $.ajax({
