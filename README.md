@@ -183,6 +183,30 @@ Location: /
 Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBczPFanWT93d_N_7LQGUXU; HttpOnly
 ```
 
+#### Example: AJAX call with JQuery to fetch a JWT token and create a cookie from it
+Creates a cookie from a successful API call to login.
+```
+$.ajax({
+	url: "http://localhost:8080/login",
+	type: 'POST',
+	dataType: 'text',
+	contentType: 'application/json',
+	data: JSON.stringify( { 
+		'username': 'demo', 
+		'password': 'demo'
+	}),
+	success: function(data) {
+		document.cookie = "jwt_token=" + data + ";path=/";
+	},
+	error: function (xhr, ajaxOptions, thrownError) {
+	}
+});
+```
+Make sure your main page has JQuery:
+```
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+```
+
 ### Redirects
 
 The API has support for a redirect query parameter, e.g. `?backTo=/dynamic/return/path`. For security reasons, the default behaviour is very restrictive:
