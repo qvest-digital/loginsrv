@@ -50,6 +50,12 @@ func Test_Logger_Set(t *testing.T) {
 	a.Regexp(`^time.* level\=error msg\=oops foo\=bar.*`, b.String())
 }
 
+func Test_Logger_Set_Invalid(t *testing.T) {
+	err := Set("foo", true)
+	a := assert.New(t)
+	a.Equal(err.Error(), "not a valid logrus Level: \"foo\"")
+}
+
 func Test_Logger_Call(t *testing.T) {
 	a := assert.New(t)
 
