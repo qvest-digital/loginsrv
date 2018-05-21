@@ -310,7 +310,7 @@ $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
 
 ### Note for Google's OAuth 2 
-You can use `scope=https://www.googleapis.com/auth/userinfo.email`. When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
+You can use `scope=https://www.googleapis.com/auth/userinfo.email` [Google Plus API](https://console.cloud.google.com/apis/library/plus.googleapis.com/). When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
 For example, for `scope=https://www.googleapis.com/auth/userinfo.profile` [Google People API](https://console.cloud.google.com/apis/library/people.googleapis.com/) must be enabled for your project. Keep in mind that it usually takes a few minutes for this setting to take effect.
 
 ### Note for Facebook's OAuth 2
