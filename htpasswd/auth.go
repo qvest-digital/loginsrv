@@ -97,7 +97,7 @@ func (a *Auth) Authenticate(username, password string) (bool, error) {
 	if hash, exist := a.userHash[username]; exist {
 		h := []byte(hash)
 		p := []byte(password)
-		if strings.HasPrefix(hash, "$2y$") || strings.HasPrefix(hash, "$2b$") {
+		if strings.HasPrefix(hash, "$2y$") || strings.HasPrefix(hash, "$2b$") || strings.HasPrefix(hash, "$2a$") {
 			matchErr := bcrypt.CompareHashAndPassword(h, p)
 			return (matchErr == nil), nil
 		}
