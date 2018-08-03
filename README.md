@@ -27,7 +27,7 @@ The following providers (login backends) are supported.
 * [OSIAM](#osiam)
 * [Simple](#simple) (user/password pairs by configuration)
 * [Httpupstream](#httpupstream)
-* [OAuth2](#OAuth2)
+* [OAuth2](#oauth2)
   * GitHub login
   * Google login
   * Bitbucket login
