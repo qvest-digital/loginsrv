@@ -241,6 +241,46 @@ func TestHandler_LoginWeb(t *testing.T) {
 	Equal(t, recorder.Header().Get("Set-Cookie"), "")
 }
 
+func TestHandler_SetSecureCookie(t *testing.T) {
+	tests := []struct {
+		name   string
+		secure bool
+	}{
+		{"secure", true},
+		{"unsecure", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest("OPTION", "/foobar", nil)
+			if err != nil {
+				t.Fatalf("Unable to create request: %v", err)
+			}
+			w := httptest.NewRecorder()
+			cfg := testConfig()
+			h := testHandler()
+			cfg.CookieSecure = tt.secure
+			h.config = cfg
+
+			h.respondAuthenticatedHTML(w, r, "RANDOM_TOKEN_VALUE")
+
+			cc := w.Result().Cookies()
+			foundCookie := false
+			for _, c := range cc {
+				if c.Name != cfg.CookieName {
+					continue
+				}
+				foundCookie = true
+				if c.Secure != tt.secure {
+					t.Errorf("Found token cookie %q with secure flag %t; expected %t", cfg.CookieName, c.Secure, tt.secure)
+				}
+			}
+			if !foundCookie {
+				t.Errorf("No token cookie with the name %q (Config.CookieName) found", cfg.CookieName)
+			}
+		})
+	}
+}
+
 func TestHandler_Refresh(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix()}
@@ -437,10 +477,8 @@ func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
-
 	// modify secret
 	h.config.JwtSecret = "foobar"
-
 	_, valid := h.GetToken(r)
 	False(t, valid)
 }
