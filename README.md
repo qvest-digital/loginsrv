@@ -32,7 +32,8 @@ The following providers (login backends) are supported.
   * Google login
   * Bitbucket login
   * Facebook login
-  
+  * Gitlab login
+
 ## Questions
 
 For questions and support please use the [Gitter chat room](https://gitter.im/tarent/loginsrv).
@@ -54,6 +55,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
 | -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,[,scope=..][redirect_uri=..]       |
 | -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=email..[redirect_uri=..]     |
+| -gitlab                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]
 | -host                       | string      | "localhost"  | -     | Host to listen on                                                                          |
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
 | -jwt-expiry                 | go duration | 24h          | X     | Expiry duration for the JWT token, e.g. 2h or 3h30m                                        |
@@ -290,6 +292,7 @@ Currently the following OAuth provider is supported:
 * Google (see note below)
 * Bitbucket
 * Facebook (see note below)
+* Gitlab
 
 An OAuth provider supports the following parameters:
 
