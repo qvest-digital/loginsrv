@@ -1,11 +1,12 @@
 package login
 
 import (
-	. "github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 )
 
 var claimsExample = `
@@ -31,6 +32,13 @@ var claimsExample = `
 
 - claims:
     role: unknown
+
+- groups:
+    - example/subgroup
+    - othergroup
+  origin: gitlab
+  claims:
+    role: admin
 `
 
 func Test_UserClaims_ParseUserClaims(t *testing.T) {
@@ -41,11 +49,12 @@ func Test_UserClaims_ParseUserClaims(t *testing.T) {
 
 	c, err := NewUserClaims(&Config{UserFile: f.Name()})
 	NoError(t, err)
-	Equal(t, 4, len(c.userFileEntries))
+	Equal(t, 5, len(c.userFileEntries))
 	Equal(t, "admin@example.org", c.userFileEntries[1].Email)
 	Equal(t, "google", c.userFileEntries[1].Origin)
 	Equal(t, "admin", c.userFileEntries[1].Claims["role"])
 	Equal(t, []interface{}{"example"}, c.userFileEntries[1].Claims["projects"])
+	Equal(t, []string{"example/subgroup", "othergroup"}, c.userFileEntries[4].Groups)
 }
 
 func Test_UserClaims_Claims(t *testing.T) {

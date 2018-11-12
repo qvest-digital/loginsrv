@@ -24,6 +24,10 @@ type GitlabUser struct {
 	Email     string `json:"email,omitempty"`
 }
 
+type GitlabGroup struct {
+	FullPath string `json:"full_path,omitempty"`
+}
+
 var providerGitlab = Provider{
 	Name:     "gitlab",
 	AuthURL:  "https://gitlab.com/oauth/authorize",
@@ -54,12 +58,43 @@ var providerGitlab = Provider{
 			return model.UserInfo{}, "", fmt.Errorf("error parsing gitlab get user info: %v", err)
 		}
 
+		gg := []*GitlabGroup{}
+		url = fmt.Sprintf("%v/groups?access_token=%v", gitlabAPI, token.AccessToken)
+		resp, err = http.Get(url)
+		if err != nil {
+			return model.UserInfo{}, "", err
+		}
+
+		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
+			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on gitlab get groups info: %v", resp.Header.Get("Content-Type"))
+		}
+
+		if resp.StatusCode != 200 {
+			return model.UserInfo{}, "", fmt.Errorf("got http status %v on gitlab get groups info", resp.StatusCode)
+		}
+
+		g, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return model.UserInfo{}, "", fmt.Errorf("error reading gitlab get groups info: %v", err)
+		}
+
+		err = json.Unmarshal(g, &gg)
+		if err != nil {
+			return model.UserInfo{}, "", fmt.Errorf("error parsing gitlab get groups info: %v", err)
+		}
+
+		groups := make([]string, len(gg))
+		for i := 0; i < len(gg); i++ {
+			groups[i] = gg[i].FullPath
+		}
+
 		return model.UserInfo{
 			Sub:     gu.Username,
 			Picture: gu.AvatarURL,
 			Name:    gu.Name,
 			Email:   gu.Email,
+			Groups:  groups,
 			Origin:  "gitlab",
-		}, string(b), nil
+		}, `{"user":` + string(b) + `,"groups":` + string(g) + `}`, nil
 	},
 }

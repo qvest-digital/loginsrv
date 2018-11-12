@@ -44,12 +44,52 @@ var gitlabTestUserResponse = `{
 	"private_profile": false
   }`
 
+var gitlabTestGroupsResponse = `[
+	{
+	  "id": 1,
+	  "web_url": "https://gitlab.com/groups/example",
+	  "name": "example",
+	  "path": "example",
+	  "description": "",
+	  "visibility": "private",
+	  "lfs_enabled": true,
+	  "avatar_url": null,
+	  "request_access_enabled": true,
+	  "full_name": "example",
+	  "full_path": "example",
+	  "parent_id": null,
+	  "ldap_cn": null,
+	  "ldap_access": null
+	},
+	{
+		"id": 2,
+		"web_url": "https://gitlab.com/groups/example/subgroup",
+		"name": "subgroup",
+		"path": "subgroup",
+		"description": "",
+		"visibility": "private",
+		"lfs_enabled": true,
+		"avatar_url": null,
+		"request_access_enabled": true,
+		"full_name": "example / subgroup",
+		"full_path": "example/subgroup",
+		"parent_id": null,
+		"ldap_cn": null,
+		"ldap_access": null
+	}
+]`
+
 func Test_Gitlab_getUserInfo(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Equal(t, "/user", r.URL.Path)
-		Equal(t, "secret", r.FormValue("access_token"))
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write([]byte(gitlabTestUserResponse))
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestUserResponse))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestGroupsResponse))
+		}
 	}))
 	defer server.Close()
 
@@ -60,5 +100,6 @@ func Test_Gitlab_getUserInfo(t *testing.T) {
 	Equal(t, "john_smith", u.Sub)
 	Equal(t, "john@example.com", u.Email)
 	Equal(t, "John Smith", u.Name)
-	Equal(t, gitlabTestUserResponse, rawJSON)
+	Equal(t, []string{"example", "example/subgroup"}, u.Groups)
+	Equal(t, `{"user":`+gitlabTestUserResponse+`,"groups":`+gitlabTestGroupsResponse+`}`, rawJSON)
 }

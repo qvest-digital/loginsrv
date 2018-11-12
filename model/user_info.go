@@ -8,14 +8,15 @@ import (
 // UserInfo holds the parameters returned by the backends.
 // This information will be serialized to build the JWT token contents.
 type UserInfo struct {
-	Sub       string `json:"sub"`
-	Picture   string `json:"picture,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Email     string `json:"email,omitempty"`
-	Origin    string `json:"origin,omitempty"`
-	Expiry    int64  `json:"exp,omitempty"`
-	Refreshes int    `json:"refs,omitempty"`
-	Domain    string `json:"domain,omitempty"`
+	Sub       string   `json:"sub"`
+	Picture   string   `json:"picture,omitempty"`
+	Name      string   `json:"name,omitempty"`
+	Email     string   `json:"email,omitempty"`
+	Origin    string   `json:"origin,omitempty"`
+	Expiry    int64    `json:"exp,omitempty"`
+	Refreshes int      `json:"refs,omitempty"`
+	Domain    string   `json:"domain,omitempty"`
+	Groups    []string `json:"groups,omitempty"`
 }
 
 // Valid lets us use the user info as Claim for jwt-go.
@@ -51,6 +52,9 @@ func (u UserInfo) AsMap() map[string]interface{} {
 	}
 	if u.Domain != "" {
 		m["domain"] = u.Domain
+	}
+	if len(u.Groups) > 0 {
+		m["groups"] = u.Groups
 	}
 	return m
 }

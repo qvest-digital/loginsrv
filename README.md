@@ -371,11 +371,13 @@ below the claim attribute are written into the token. The following attributes c
 * `origin` - the provider or backend name (all backends)
 * `email` - the mail address (the OAuth provider)
 * `domain` - the domain (Google only)
+* `groups` - the full path string of user groups enclosed in an array (Gitlab only)
 
 Example:
 * The user bob will become the `"role": "superAdmin"`, when authenticating with htpasswd file
 * The user admin@example.org will become `"role": "admin"` and `"projects": ["example"]`, when authenticating with Google OAuth
 * All other Google users with the domain example will become `"role": "user"` and `"projects": ["example"]`
+* All other Gitlab users with group `example/subgroup` and `othergroup` will become `"role": "admin"`.
 * All others will become `"role": "unknown"`, indenpendent of the authentication provider
 
 ```
@@ -397,6 +399,13 @@ Example:
     role: user
     projects:
       - example
+
+- groups:
+    - example/subgroup
+    - othergroup
+  origin: gitlab
+  claims:
+    role: admin
 
 - claims:
     role: unknown
