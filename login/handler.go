@@ -17,6 +17,7 @@ import (
 
 const contentTypeHTML = "text/html; charset=utf-8"
 const contentTypeJWT = "application/jwt"
+const contentTypeJSON = "application/json"
 const contentTypePlain = "text/plain"
 
 type userClaimsFunc func(userInfo model.UserInfo) (jwt.Claims, error)
@@ -147,6 +148,16 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		userInfo, valid := h.GetToken(r)
+		if strings.HasPrefix(contentType, contentTypeJSON) {
+			if valid {
+				data, _ := json.Marshal(userInfo)
+				w.Header().Set("Content-Type", contentTypeJSON)
+				fmt.Fprintf(w, "%s", data)
+			} else {
+				h.respondAuthFailure(w, r)
+			}
+			return
+		}
 		writeLoginForm(w,
 			loginFormData{
 				Config:        h.config,
@@ -176,7 +187,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.respondAuthFailure(w, r)
 			return
 		}
-		
+
 		h.respondBadRequest(w, r)
 		return
 	}
