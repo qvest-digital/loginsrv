@@ -3,9 +3,11 @@ package oauth2
 import (
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 
 	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 )
 
 var gitlabTestUserResponse = `{
@@ -102,4 +104,154 @@ func Test_Gitlab_getUserInfo(t *testing.T) {
 	Equal(t, "John Smith", u.Name)
 	Equal(t, []string{"example", "example/subgroup"}, u.Groups)
 	Equal(t, `{"user":`+gitlabTestUserResponse+`,"groups":`+gitlabTestGroupsResponse+`}`, rawJSON)
+}
+
+func Test_Gitlab_getUserInfo_NoServer(t *testing.T) {
+	gitlabAPI = "http://localhost"
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`connection refused$`), err.Error())
+}
+
+func Test_Gitlab_getUserInfo_UserContentTypeNegative(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Write([]byte(gitlabTestUserResponse))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestGroupsResponse))
+		}
+	}))
+	defer server.Close()
+
+	gitlabAPI = server.URL
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`^wrong content-type on gitlab get user info`), err.Error())
+}
+
+func Test_Gitlab_getUserInfo_GroupsContentTypeNegative(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestUserResponse))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Write([]byte(gitlabTestGroupsResponse))
+		}
+	}))
+	defer server.Close()
+
+	gitlabAPI = server.URL
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`^wrong content-type on gitlab get groups info`), err.Error())
+}
+
+func Test_Gitlab_getUserInfo_UserStatusCodeNegative(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(gitlabTestUserResponse))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestGroupsResponse))
+		}
+	}))
+	defer server.Close()
+
+	gitlabAPI = server.URL
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`^got http status [0-9]{3} on gitlab get user info`), err.Error())
+}
+
+func Test_Gitlab_getUserInfo_GroupsStatusCodeNegative(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestUserResponse))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(gitlabTestGroupsResponse))
+		}
+	}))
+	defer server.Close()
+
+	gitlabAPI = server.URL
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`^got http status [0-9]{3} on gitlab get groups info`), err.Error())
+}
+
+func Test_Gitlab_getUserInfo_UserJSONNegative(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte("[]"))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestGroupsResponse))
+		}
+	}))
+	defer server.Close()
+
+	gitlabAPI = server.URL
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`^error parsing gitlab get user info`), err.Error())
+}
+
+func Test_Gitlab_getUserInfo_GroupsJSONNegative(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/user" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte(gitlabTestUserResponse))
+		} else if r.URL.Path == "/groups" {
+			Equal(t, "secret", r.FormValue("access_token"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Write([]byte("{}"))
+		}
+	}))
+	defer server.Close()
+
+	gitlabAPI = server.URL
+
+	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
+	Equal(t, model.UserInfo{}, u)
+	Empty(t, rawJSON)
+	Error(t, err)
+	Regexp(t, regexp.MustCompile(`^error parsing gitlab get groups info`), err.Error())
 }
