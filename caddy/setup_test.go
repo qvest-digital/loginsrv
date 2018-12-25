@@ -15,18 +15,16 @@ import (
 )
 
 func TestSetup(t *testing.T) {
-
-	os.Setenv("JWT_SECRET", "jwtsecret")
-
 	for j, test := range []struct {
 		input     string
 		shouldErr bool
 		config    login.Config
 	}{
 		{ //defaults
-			input: `login {
-                                        simple bob=secret
-                                }`,
+			input: `login {	
+							simple bob=secret
+							jwt-secret jwtsecret
+							}`,
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
@@ -49,21 +47,22 @@ func TestSetup(t *testing.T) {
 			}},
 		{
 			input: `login {
-                                        success_url successurl
-                                        jwt_expiry 42h
-                                        jwt_algo algo
-                                        login_path /foo/bar
-                                        redirect true
-                                        redirect_query_parameter comingFrom
-                                        redirect_check_referer true
-                                        redirect_host_file domainWhitelist.txt
-                                        cookie_name cookiename
-                                        cookie_http_only false
-                                        cookie_domain example.com
-                                        cookie_expiry 23h23m
-                                        simple bob=secret
-                                        osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
-                                }`,
+							jwt-secret jwtsecret
+							success_url successurl
+							jwt_expiry 42h
+							jwt_algo algo
+							login_path /foo/bar
+							redirect true
+							redirect_query_parameter comingFrom
+							redirect_check_referer true
+							redirect_host_file domainWhitelist.txt
+							cookie_name cookiename
+							cookie_http_only false
+							cookie_domain example.com
+							cookie_expiry 23h23m
+							simple bob=secret
+							osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
+							}`,
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
@@ -99,6 +98,7 @@ func TestSetup(t *testing.T) {
 			input: `loginsrv /context {
                                         backend provider=simple,bob=secret
                                         cookie-name cookiename
+										jwt-secret jwtsecret
                                 }`,
 			shouldErr: false,
 			config: login.Config{
@@ -127,6 +127,7 @@ func TestSetup(t *testing.T) {
 			input: `loginsrv / {
                                         backend provider=simple,bob=secret
                                         cookie-name cookiename
+										jwt-secret jwtsecret
                                 }`,
 			shouldErr: false,
 			config: login.Config{
@@ -152,8 +153,9 @@ func TestSetup(t *testing.T) {
 		// error cases
 		{ // duration parse error
 			input: `login {
-                                        simple bob=secret
-                                }`,
+							simple bob=secret
+							jwt-secret jwtsecret
+							}`,
 			shouldErr: false,
 			config: login.Config{
 				JwtSecret:              "jwtsecret",
