@@ -48,9 +48,8 @@ func setup(c *caddy.Controller) error {
 			config.LoginPath = path.Join(args[0], "/login")
 		}
 
-		if e, isset := os.LookupEnv("JWT_SECRET"); isset {
-			config.JwtSecret = e
-		} else {
+		envJwtSecret := os.Getenv("JWT_SECRET")
+		if len(envJwtSecret) == 0 {
 			os.Setenv("JWT_SECRET", config.JwtSecret)
 		}
 
