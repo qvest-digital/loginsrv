@@ -3,10 +3,11 @@ package oauth2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 var githubAPI = "https://api.github.com"
@@ -34,6 +35,7 @@ var providerGithub = Provider{
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
+		defer resp.Body.Close()
 
 		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on github get user info: %v", resp.Header.Get("Content-Type"))
