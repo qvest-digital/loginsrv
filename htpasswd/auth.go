@@ -52,6 +52,7 @@ func (a *Auth) parse(filenames []File) error {
 		if err != nil {
 			return err
 		}
+		defer r.Close()
 
 		cr := csv.NewReader(r)
 		cr.Comma = ':'
