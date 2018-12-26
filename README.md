@@ -403,18 +403,19 @@ Example:
 
 ### Caddy usage
 
-1) If you use `redirect` in http.jwt and you:
-1.1) Are redirected to http.jwt's `redirect` page that is in your caddyfile
-1.2) Are unable to navigate to any page that is protected by http.login
-1.3) Appear to be authenticated when you visit the `redirect` page or `/login`
+1. If you use `redirect` in http.jwt and you:
+1.1. Are redirected to http.jwt's `redirect` page that is in your caddyfile
+1.2. Are unable to navigate to any page that is protected by http.login
+1.3. Appear to be authenticated when you visit the `redirect` page or `/login`
 
-2) If you don't use `redirect` in http.jwt and you:
-2.1) Are displayed a 401 error for the page you navigate to
-2.2) Appear to be authenticated if you navigate to `/login`
+2. If you don't use `redirect` in http.jwt and you:
+2.1. Are displayed a 401 error for the page you navigate to
+2.2. Appear to be authenticated if you navigate to `/login`
 
 Possible solutions:
-1) Confirm that `jwt-secret` in http.login and `secret` in http.jwt are identical
-2) Confirm that `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt are identical
+1. Confirm that `jwt-secret` in http.login and `secret` in http.jwt are identical
+2. Confirm that `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt are identical
+
 If you change `secret` in http.jwt this value will be loaded and you don't need to do anything else. If you do any other change reload your caddyfile or restart caddy.
 
 These issues are discussed here: https://github.com/tarent/loginsrv/issues/103.
