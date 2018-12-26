@@ -41,23 +41,25 @@ func NewAuth(filenames []string) (*Auth, error) {
 	a := &Auth{
 		filenames: htpasswdFiles,
 	}
-	return a, a.parse(htpasswdFiles)
+	return a, a.parse()
 }
 
-func (a *Auth) parse(filenames []File) error {
+func (a *Auth) parse() error {
 	tmpUserHash := map[string]string{}
+	tmpFilenames := a.filenames
 
-	for _, filename := range a.filenames {
+	for i, filename := range a.filenames {
 		r, err := os.Open(filename.name)
 		if err != nil {
 			return err
 		}
+		defer r.Close()
 
 		fileInfo, err := os.Stat(filename.name)
 		if err != nil {
 			return err
 		}
-		filename.modTime = fileInfo.ModTime()
+		tmpFilenames[i].modTime = fileInfo.ModTime()
 
 		cr := csv.NewReader(r)
 		cr.Comma = ':'
@@ -84,6 +86,7 @@ func (a *Auth) parse(filenames []File) error {
 	}
 	a.muUserHash.Lock()
 	a.userHash = tmpUserHash
+	a.filenames = tmpFilenames
 	a.muUserHash.Unlock()
 
 	return nil
@@ -122,7 +125,7 @@ func reloadIfChanged(a *Auth) {
 		}
 		currentmodTime := fileInfo.ModTime()
 		if currentmodTime != file.modTime {
-			a.parse(a.filenames)
+			a.parse()
 			return
 		}
 	}
