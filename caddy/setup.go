@@ -48,11 +48,6 @@ func setup(c *caddy.Controller) error {
 			config.LoginPath = path.Join(args[0], "/login")
 		}
 
-		envJwtSecret := os.Getenv("JWT_SECRET")
-		if len(envJwtSecret) == 0 {
-			os.Setenv("JWT_SECRET", config.JwtSecret)
-		}
-
 		loginHandler, err := login.NewHandler(config)
 		if err != nil {
 			return err
@@ -94,6 +89,10 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 		if err != nil {
 			return cfg, fmt.Errorf("Invalid value for parameter %v: %v (%v:%v)", name, value, c.File(), c.Line())
 		}
+	}
+	
+	if login.DefaultConfig().JwtSecret == cfg.JwtSecret {
+		os.Setenv("JWT_SECRET", cfg.JwtSecret)
 	}
 
 	return cfg, nil
