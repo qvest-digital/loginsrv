@@ -40,6 +40,7 @@ var providerGoogle = Provider{
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
+		defer resp.Body.Close()
 
 		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on google get user info: %v", resp.Header.Get("Content-Type"))
