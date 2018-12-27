@@ -90,10 +90,22 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 			return cfg, fmt.Errorf("Invalid value for parameter %v: %v (%v:%v)", name, value, c.File(), c.Line())
 		}
 	}
-	
-	if login.DefaultConfig().JwtSecret == cfg.JwtSecret {
-		os.Setenv("JWT_SECRET", cfg.JwtSecret)
+
+	if e, isset := os.LookupEnv("JWT_SECRET"); isset {
+		cfg.JwtSecret = e
+	} else {
+		c.OncePerServerBlock(func() error {
+			setJwtSecretOncePerServerBlock(cfg.JwtSecret)
+
+			return nil
+		})
 	}
 
 	return cfg, nil
+}
+
+func setJwtSecretOncePerServerBlock(firstServerJwtSecret string) {
+	if login.DefaultConfig().JwtSecret == firstServerJwtSecret {
+		os.Setenv("JWT_SECRET", firstServerJwtSecret)
+	}
 }
