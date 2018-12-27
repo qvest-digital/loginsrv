@@ -19,21 +19,34 @@ func TestSetup(t *testing.T) {
 	os.Setenv("JWT_SECRET", "jwtsecret")
 
 	for j, test := range []struct {
-		input       string
-		shouldErr   bool
-		config      login.Config
-		configCheck func(*testing.T, *login.Config)
+		input     string
+		shouldErr bool
+		config    login.Config
 	}{
-		{
+		{ //defaults
 			input: `login {
                                         simple bob=secret
                                 }`,
 			shouldErr: false,
-			configCheck: func(t *testing.T, cfg *login.Config) {
-				expectedBackendCfg := login.Options{"simple": map[string]string{"bob": "secret"}}
-				Equal(t, expectedBackendCfg, cfg.Backends, "config simple auth backend")
-			},
-		},
+			config: login.Config{
+				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/login",
+				CookieName:             "jwt_token",
+				CookieHTTPOnly:         true,
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
+					},
+				},
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
+			}},
 		{
 			input: `login {
                                         success_url successurl
@@ -52,20 +65,21 @@ func TestSetup(t *testing.T) {
                                         osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
                                 }`,
 			shouldErr: false,
-			configCheck: func(t *testing.T, cfg *login.Config) {
-				Equal(t, cfg.SuccessURL, "successurl")
-				Equal(t, cfg.JwtExpiry, 42*time.Hour)
-				Equal(t, cfg.JwtAlgo, "algo")
-				Equal(t, cfg.LoginPath, "/foo/bar")
-				Equal(t, cfg.Redirect, true)
-				Equal(t, cfg.RedirectQueryParameter, "comingFrom")
-				Equal(t, cfg.RedirectCheckReferer, true)
-				Equal(t, cfg.RedirectHostFile, "domainWhitelist.txt")
-				Equal(t, cfg.CookieName, "cookiename")
-				Equal(t, cfg.CookieHTTPOnly, false)
-				Equal(t, cfg.CookieDomain, "example.com")
-				Equal(t, cfg.CookieExpiry, 23*time.Hour+23*time.Minute)
-				expectedBackendCfg := login.Options{
+			config: login.Config{
+				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "algo",
+				JwtExpiry:              42 * time.Hour,
+				SuccessURL:             "successurl",
+				Redirect:               true,
+				RedirectQueryParameter: "comingFrom",
+				RedirectCheckReferer:   true,
+				RedirectHostFile:       "domainWhitelist.txt",
+				LoginPath:              "/foo/bar",
+				CookieName:             "cookiename",
+				CookieDomain:           "example.com",
+				CookieExpiry:           23*time.Hour + 23*time.Minute,
+				CookieHTTPOnly:         false,
+				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
 					},
@@ -74,28 +88,92 @@ func TestSetup(t *testing.T) {
 						"client_id":     "example-client",
 						"client_secret": "secret",
 					},
-				}
-				Equal(t, expectedBackendCfg, cfg.Backends, "config simple auth backend")
-			},
-		},
-		{
+				},
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
+			}},
+		{ // backwards compatibility
+			// * login path as argument
+			// * '-' in parameter names
+			// * backend config by 'backend provider='
 			input: `loginsrv /context {
                                         backend provider=simple,bob=secret
                                         cookie-name cookiename
                                 }`,
 			shouldErr: false,
-			configCheck: func(t *testing.T, cfg *login.Config) {
-				Equal(t, "/context/login", cfg.LoginPath, "Login path should be set by argument for backwards compatibility")
-				Equal(t, "cookiename", cfg.CookieName, "The cookie name should be set by a config name with - instead of _ for backwards compatibility")
-				expectedBackendCfg := login.Options{
+			config: login.Config{
+				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/context/login",
+				CookieName:             "cookiename",
+				CookieHTTPOnly:         true,
+				Backends: login.Options{
 					"simple": map[string]string{
 						"bob": "secret",
 					},
-				}
-				Equal(t, expectedBackendCfg, cfg.Backends, "The backend config should be set by \"backend provider=\" for backwards compatibility")
-			},
-		},
+				},
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
+			}},
+		{ // backwards compatibility
+			// * login path as argument
+			// * '-' in parameter names
+			// * backend config by 'backend provider='
+			input: `loginsrv / {
+                                        backend provider=simple,bob=secret
+                                        cookie-name cookiename
+                                }`,
+			shouldErr: false,
+			config: login.Config{
+				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/login",
+				CookieName:             "cookiename",
+				CookieHTTPOnly:         true,
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
+					},
+				},
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
+			}},
+
 		// error cases
+		{ // duration parse error
+			input: `login {
+                                        simple bob=secret
+                                }`,
+			shouldErr: false,
+			config: login.Config{
+				JwtSecret:              "jwtsecret",
+				JwtAlgo:                "HS512",
+				JwtExpiry:              24 * time.Hour,
+				SuccessURL:             "/",
+				Redirect:               true,
+				RedirectQueryParameter: "backTo",
+				RedirectCheckReferer:   true,
+				LoginPath:              "/login",
+				CookieName:             "jwt_token",
+				CookieHTTPOnly:         true,
+				Backends: login.Options{
+					"simple": map[string]string{
+						"bob": "secret",
+					},
+				},
+				Oauth:       login.Options{},
+				GracePeriod: 5 * time.Second,
+			}},
 		{input: "login {\n}", shouldErr: true},
 		{input: "login xx yy {\n}", shouldErr: true},
 		{input: "login {\n cookie_http_only 42d \n simple bob=secret \n}", shouldErr: true},
@@ -118,7 +196,7 @@ func TestSetup(t *testing.T) {
 				return
 			}
 			middleware := mids[len(mids)-1](nil).(*CaddyHandler)
-			test.configCheck(t, middleware.config)
+			Equal(t, &test.config, middleware.config)
 		})
 	}
 }
@@ -144,6 +222,6 @@ func TestSetup_RelativeFiles(t *testing.T) {
 	}
 	middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 
-	Equal(t, filepath.FromSlash(root+"/myTemplate.tpl"), middleware.config.Template)
+	Equal(t, filepath.FromSlash(root + "/myTemplate.tpl"), middleware.config.Template)
 	Equal(t, "redirectDomains.txt", middleware.config.RedirectHostFile)
 }
