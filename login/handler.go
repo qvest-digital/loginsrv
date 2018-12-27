@@ -247,30 +247,33 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 	}
 
 	if wantHTML(r) {
-		cookie := &http.Cookie{
-			Name:     h.config.CookieName,
-			Value:    token,
-			HttpOnly: h.config.CookieHTTPOnly,
-			Path:     "/",
-		}
-		if h.config.CookieExpiry != 0 {
-			cookie.Expires = time.Now().Add(h.config.CookieExpiry)
-		}
-		if h.config.CookieDomain != "" {
-			cookie.Domain = h.config.CookieDomain
-		}
-
-		http.SetCookie(w, cookie)
-
-		w.Header().Set("Location", h.redirectURL(r, w))
-		h.deleteRedirectCookie(w, r)
-		w.WriteHeader(303)
+		h.respondAuthenticatedHTML(w, r, token)
 		return
 	}
 
 	w.Header().Set("Content-Type", contentTypeJWT)
 	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s", token)
+	fmt.Fprint(w, token)
+}
+
+func (h *Handler) respondAuthenticatedHTML(w http.ResponseWriter, r *http.Request, token string) {
+	cookie := &http.Cookie{
+		Name:     h.config.CookieName,
+		Value:    token,
+		HttpOnly: h.config.CookieHTTPOnly,
+		Path:     "/",
+	}
+	if h.config.CookieExpiry != 0 {
+		cookie.Expires = time.Now().Add(h.config.CookieExpiry)
+	}
+	if h.config.CookieDomain != "" {
+		cookie.Domain = h.config.CookieDomain
+	}
+	cookie.Secure = h.config.CookieSecure
+	http.SetCookie(w, cookie)
+	w.Header().Set("Location", h.redirectURL(r, w))
+	h.deleteRedirectCookie(w, r)
+	w.WriteHeader(303)
 }
 
 func (h *Handler) createToken(userInfo model.UserInfo) (string, error) {
