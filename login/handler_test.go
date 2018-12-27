@@ -416,18 +416,18 @@ func TestHandler_getToken_Valid(t *testing.T) {
 	Equal(t, input, userInfo)
 }
 
-func TestHandler_LoggedUser_JSON(t *testing.T) {
+func TestHandler_ReturnUserInfoJSON(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
 	token, err := h.createToken(input)
 	NoError(t, err)
-	url_, _ := url.Parse("/context/login")
+	url, _ := url.Parse("/context/login")
 	r := &http.Request{
 		Method: "GET",
-		URL:    url_,
+		URL:    url,
 		Header: http.Header{
-			"Cookie":       {h.config.CookieName + "=" + token + ";"},
-			"Content-Type": {"application/json"},
+			"Cookie": {h.config.CookieName + "=" + token + ";"},
+			"Accept": {"application/json"},
 		},
 	}
 
@@ -441,20 +441,24 @@ func TestHandler_LoggedUser_JSON(t *testing.T) {
 	Equal(t, input, output)
 }
 
-func TestHandler_InvalidUser_JSON(t *testing.T) {
+func TestHandler_ReturnUserInfoJSON_InvalidToken(t *testing.T) {
 	h := testHandler()
-	url_, _ := url.Parse("/context/login")
+	url, _ := url.Parse("/context/login")
 	r := &http.Request{
 		Method: "GET",
-		URL:    url_,
+		URL:    url,
 		Header: http.Header{
-			"Cookie":       {h.config.CookieName + "= 123;"},
-			"Content-Type": {"application/json"},
+			"Cookie": {h.config.CookieName + "= 123;"},
+			"Accept": {"application/json"},
 		},
 	}
 
 	recorder := call(r)
 	Equal(t, 403, recorder.Code)
+	Equal(t, "application/json", recorder.Header().Get("Content-Type"))
+	output := map[string]interface{}{}
+	json.Unmarshal(recorder.Body.Bytes(), &output)
+	Equal(t, map[string]interface{}{"error": "Wrong credentials"}, output)
 }
 
 func TestHandler_signAndVerify_ES256(t *testing.T) {

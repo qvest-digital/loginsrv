@@ -123,7 +123,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	contentType := r.Header.Get("Content-Type")
 	if !(r.Method == "GET" || r.Method == "DELETE" ||
 		(r.Method == "POST" &&
-			(strings.HasPrefix(contentType, "application/json") ||
+			(strings.HasPrefix(contentType, contentTypeJSON) ||
 				strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
 				strings.HasPrefix(contentType, "multipart/form-data") ||
 				contentType == ""))) {
@@ -148,11 +148,11 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		userInfo, valid := h.GetToken(r)
-		if strings.HasPrefix(contentType, contentTypeJSON) {
+		if wantJSON(r) {
 			if valid {
-				data, _ := json.Marshal(userInfo)
 				w.Header().Set("Content-Type", contentTypeJSON)
-				fmt.Fprintf(w, "%s", data)
+				enc := json.NewEncoder(w)
+				enc.Encode(userInfo) // ignore error of encoding
 			} else {
 				h.respondAuthFailure(w, r)
 			}
@@ -386,17 +386,28 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", contentTypePlain)
-	w.WriteHeader(403)
-	fmt.Fprintf(w, "Wrong credentials")
+	if wantJSON(r) {
+		w.Header().Set("Content-Type", contentTypeJSON)
+		w.WriteHeader(403)
+		fmt.Fprintf(w, `{"error": "Wrong credentials"}`)
+	} else {
+		w.Header().Set("Content-Type", contentTypePlain)
+		w.WriteHeader(403)
+		fmt.Fprintf(w, "Wrong credentials")
+	}
+
 }
 
 func wantHTML(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept"), "text/html")
 }
 
+func wantJSON(r *http.Request) bool {
+	return strings.Contains(r.Header.Get("Accept"), contentTypeJSON)
+}
+
 func getCredentials(r *http.Request) (string, string, error) {
-	if r.Header.Get("Content-Type") == "application/json" {
+	if r.Header.Get("Content-Type") == contentTypeJSON {
 		m := map[string]string{}
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {

@@ -100,10 +100,16 @@ $ docker run -d -p 8080:8080 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEN
 
 ### GET /login
 
-Returns a simple bootstrap styled login form.
+Per default, it returns a simple bootstrap styled login form for unauthenticated requests an a small page with user info authenticated requests.
+When the call accepts a JSON output, the json content of the token is returned authenticated requests.
 
 The returned HTML follows the UI composition conventions from (lib-compose)[https://github.com/tarent/lib-compose],
 so it can be embedded into an existing layout.
+
+| Parameter-Type    | Parameter                                        | Description                                                       |              | 
+| ------------------|--------------------------------------------------|-------------------------------------------------------------------|--------------|
+| Http-Header       | Accept: text/html                                | Return the login form or user html.                                | default      |
+| Http-Header       | Accept: application/json                         | Return the user Object as json, or 403 if not authenticated.      |              |
 
 ### GET /login/<provider>
 
