@@ -39,7 +39,7 @@ func (h *CaddyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, e
 		repl.Set("user", userInfo.Sub)
 	}
 
-	if strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
+	if strings.EqualFold(r.URL.Path, h.config.LoginPath) {
 		h.loginHandler.ServeHTTP(w, r)
 		return 0, nil
 	}
