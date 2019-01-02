@@ -29,9 +29,10 @@ type facebookUser struct {
 }
 
 var providerfacebook = Provider{
-	Name:     "facebook",
-	AuthURL:  "https://www.facebook.com/v2.12/dialog/oauth",
-	TokenURL: "https://graph.facebook.com/v2.12/oauth/access_token",
+	Name:          "facebook",
+	AuthURL:       "https://www.facebook.com/v2.12/dialog/oauth",
+	TokenURL:      "https://graph.facebook.com/v2.12/oauth/access_token",
+	DefaultScopes: "email",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 		fu := facebookUser{}
 
