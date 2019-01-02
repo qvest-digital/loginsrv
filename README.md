@@ -8,6 +8,12 @@ loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt
 [![Coverage Status](https://coveralls.io/repos/github/tarent/loginsrv/badge.svg?branch=master)](https://coveralls.io/github/tarent/loginsrv?branch=master)
 [![Join the chat at https://gitter.im/tarent/loginsrv](https://badges.gitter.im/tarent/loginsrv.svg)](https://gitter.im/tarent/loginsrv?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+
+__** Attention: Update to v1.2.5 for Google Login Update !!!! **__
+
+Google will stop support for the Google+ APIs. So we changed loginsrv to use the standard oauth endpoints for Google login.
+Please update loginsrv to the master version or wait for release v1.2.5 if you are using google.
+
 ## Abstract
 
 Loginsrv provides a minimal endpoint for authentication. The login is performed against the providers and returned as a JSON Web Token (JWT).
@@ -50,9 +56,9 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -cookie-expiry              | string      | session      | X     | Expiry duration for the cookie, e.g. 2h or 3h30m                                           |
 | -cookie-http-only           | boolean     | true         | X     | Set the cookie with the HTTP only flag                                                     |
 | -cookie-name                | string      | "jwt_token"  | X     | Name of the JWT cookie                                                                     |
-| -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
-| -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=..[redirect_uri=..]          |
-| -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,[,scope=..][redirect_uri=..]       |
+| -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
+| -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
+| -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=email..[redirect_uri=..]     |
 | -host                       | string      | "localhost"  | -     | Host to listen on                                                                          |
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
@@ -314,10 +320,6 @@ if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host`
 ```
 $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
-
-### Note for Google's OAuth 2 
-You can use `scope=https://www.googleapis.com/auth/userinfo.email` [Google Plus API](https://console.cloud.google.com/apis/library/plus.googleapis.com/). When configuring OAuth 2 credentials in Google Cloud Console, don't forget to enable corresponding API's.
-For example, for `scope=https://www.googleapis.com/auth/userinfo.profile` [Google People API](https://console.cloud.google.com/apis/library/people.googleapis.com/) must be enabled for your project. Keep in mind that it usually takes a few minutes for this setting to take effect.
 
 ### Note for Facebook's OAuth 2
 Make sure you ask for the scope `email` when adding your Facebook config option. Otherwise the provider won't be able to fetch the user's email.

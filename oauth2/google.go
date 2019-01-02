@@ -5,36 +5,35 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/tarent/loginsrv/model"
 )
 
-var googleAPI = "https://www.googleapis.com/plus/v1"
+//var googleAPI = "https://www.googleapis.com/plus/v1"
+
+var googleUserinfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 func init() {
 	RegisterProvider(providerGoogle)
 }
 
 type GoogleUser struct {
-	DisplayName string
-	Emails      []struct {
-		Value string
-	}
-	Image struct {
-		Url string
-	}
-	Domain string
+	Name               string `json:"name"`
+	Email              string `json:"email"`
+	EmailVerified      bool   `json:"email_verified"`
+	Picture            string `json:"picture"`
+	HostedGsuiteDomain string `json:"hd"`
 }
 
 var providerGoogle = Provider{
-	Name:     "google",
-	AuthURL:  "https://accounts.google.com/o/oauth2/v2/auth",
-	TokenURL: "https://www.googleapis.com/oauth2/v4/token",
+	Name:          "google",
+	AuthURL:       "https://accounts.google.com/o/oauth2/v2/auth",
+	TokenURL:      "https://www.googleapis.com/oauth2/v4/token",
+	DefaultScopes: "email profile",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 		gu := GoogleUser{}
-		url := fmt.Sprintf("%v/people/me?alt=json&access_token=%v", googleAPI, token.AccessToken)
+		url := fmt.Sprintf("%v?access_token=%v", googleUserinfoEndpoint, token.AccessToken)
 		resp, err := http.Get(url)
 
 		if err != nil {
@@ -60,19 +59,21 @@ var providerGoogle = Provider{
 			return model.UserInfo{}, "", fmt.Errorf("error parsing google get user info: %v", err)
 		}
 
-		if len(gu.Emails) == 0 {
+		if len(gu.Email) == 0 {
 			return model.UserInfo{}, "", fmt.Errorf("invalid google response: no email address returned.")
 		}
 
-		reg := regexp.MustCompile(`\?.*$`)
+		if !gu.EmailVerified {
+			return model.UserInfo{}, "", fmt.Errorf("invalid google response: users email address not verified by google.")
+		}
 
 		return model.UserInfo{
-			Sub:     gu.Emails[0].Value,
-			Picture: reg.ReplaceAllString(gu.Image.Url, "${1}"),
-			Name:    gu.DisplayName,
-			Email:   gu.Emails[0].Value,
+			Sub:     gu.Email,
+			Picture: gu.Picture,
+			Name:    gu.Name,
+			Email:   gu.Email,
 			Origin:  "google",
-			Domain:  gu.Domain,
+			Domain:  gu.HostedGsuiteDomain,
 		}, string(b), nil
 	},
 }
