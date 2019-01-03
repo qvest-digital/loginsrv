@@ -1,12 +1,13 @@
 package login
 
 import (
+	"io/ioutil"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	"github.com/tarent/loginsrv/model"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"time"
 )
 
 type customClaims map[string]interface{}
@@ -27,6 +28,7 @@ type userFileEntry struct {
 	Origin string                 `yaml:"origin"`
 	Email  string                 `yaml:"email"`
 	Domain string                 `yaml:"domain"`
+	Groups []string               `yaml:"groups"`
 	Claims map[string]interface{} `yaml:"claims"`
 }
 
@@ -86,6 +88,20 @@ func match(userInfo model.UserInfo, entry userFileEntry) bool {
 	}
 	if entry.Origin != "" && entry.Origin != userInfo.Origin {
 		return false
+	}
+	if len(entry.Groups) > 0 {
+		eligible := false
+		for _, entryGroup := range entry.Groups {
+			for _, userGroup := range userInfo.Groups {
+				if entryGroup == userGroup {
+					eligible = true
+					break
+				}
+			}
+		}
+		if !eligible {
+			return false
+		}
 	}
 	return true
 }
