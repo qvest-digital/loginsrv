@@ -301,9 +301,9 @@ The OAuth Web Flow (aka 3-legged-OAuth flow) is also supported.
 Currently the following OAuth provider is supported:
 
 * GitHub
-* Google (see note below)
+* Google
 * Bitbucket
-* Facebook (see note below)
+* Facebook
 * Gitlab
 
 An OAuth provider supports the following parameters:
@@ -323,9 +323,6 @@ if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host`
 ```
 $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
-
-### Note for Facebook's OAuth 2
-Make sure you ask for the scope `email` when adding your Facebook config option. Otherwise the provider won't be able to fetch the user's email.
 
 ## Templating
 
