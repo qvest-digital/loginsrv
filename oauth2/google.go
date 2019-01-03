@@ -10,7 +10,6 @@ import (
 	"github.com/tarent/loginsrv/model"
 )
 
-//var googleAPI = "https://www.googleapis.com/plus/v1"
 
 var googleUserinfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
 
