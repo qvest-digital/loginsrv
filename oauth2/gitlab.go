@@ -35,21 +35,23 @@ var providerGitlab = Provider{
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 		gu := GitlabUser{}
 		url := fmt.Sprintf("%v/user?access_token=%v", gitlabAPI, token.AccessToken)
-		resp, err := http.Get(url)
+
+		var respUser *http.Response
+		respUser, err := http.Get(url)
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
-		defer resp.Body.Close()
+		defer respUser.Body.Close()
 
-		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
-			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on gitlab get user info: %v", resp.Header.Get("Content-Type"))
+		if !strings.Contains(respUser.Header.Get("Content-Type"), "application/json") {
+			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on gitlab get user info: %v", respUser.Header.Get("Content-Type"))
 		}
 
-		if resp.StatusCode != 200 {
-			return model.UserInfo{}, "", fmt.Errorf("got http status %v on gitlab get user info", resp.StatusCode)
+		if respUser.StatusCode != 200 {
+			return model.UserInfo{}, "", fmt.Errorf("got http status %v on gitlab get user info", respUser.StatusCode)
 		}
 
-		b, err := ioutil.ReadAll(resp.Body)
+		b, err := ioutil.ReadAll(respUser.Body)
 		if err != nil {
 			return model.UserInfo{}, "", fmt.Errorf("error reading gitlab get user info: %v", err)
 		}
@@ -61,21 +63,23 @@ var providerGitlab = Provider{
 
 		gg := []*GitlabGroup{}
 		url = fmt.Sprintf("%v/groups?access_token=%v", gitlabAPI, token.AccessToken)
-		resp, err = http.Get(url)
+
+		var respGroup *http.Response
+		respGroup, err = http.Get(url)
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
-		defer resp.Body.Close()
+		defer respGroup.Body.Close()
 
-		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
-			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on gitlab get groups info: %v", resp.Header.Get("Content-Type"))
+		if !strings.Contains(respGroup.Header.Get("Content-Type"), "application/json") {
+			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on gitlab get groups info: %v", respGroup.Header.Get("Content-Type"))
 		}
 
-		if resp.StatusCode != 200 {
-			return model.UserInfo{}, "", fmt.Errorf("got http status %v on gitlab get groups info", resp.StatusCode)
+		if respGroup.StatusCode != 200 {
+			return model.UserInfo{}, "", fmt.Errorf("got http status %v on gitlab get groups info", respGroup.StatusCode)
 		}
 
-		g, err := ioutil.ReadAll(resp.Body)
+		g, err := ioutil.ReadAll(respGroup.Body)
 		if err != nil {
 			return model.UserInfo{}, "", fmt.Errorf("error reading gitlab get groups info: %v", err)
 		}
