@@ -9,7 +9,7 @@ loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt
 [![Join the chat at https://gitter.im/tarent/loginsrv](https://badges.gitter.im/tarent/loginsrv.svg)](https://gitter.im/tarent/loginsrv?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-__** Attention: Update to v1.2.5 for Google Login Update !!!! **__
+__** Attention: Update to v1.3.0 for Google Login Update !!!! **__
 
 Google will stop support for the Google+ APIs. So we changed loginsrv to use the standard oauth endpoints for Google login.
 Please update loginsrv to the master version or wait for release v1.2.5 if you are using google.
