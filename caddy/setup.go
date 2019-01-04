@@ -48,12 +48,6 @@ func setup(c *caddy.Controller) error {
 			config.LoginPath = path.Join(args[0], "/login")
 		}
 
-		if e, isset := os.LookupEnv("JWT_SECRET"); isset {
-			config.JwtSecret = e
-		} else {
-			os.Setenv("JWT_SECRET", config.JwtSecret)
-		}
-
 		loginHandler, err := login.NewHandler(config)
 		if err != nil {
 			return err
@@ -76,6 +70,7 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 	fs := flag.NewFlagSet("loginsrv-config", flag.ContinueOnError)
 	cfg.ConfigureFlagSet(fs)
 
+	secretProvidedByConfig := false
 	for c.NextBlock() {
 		// caddy prefers '_' in parameter names,
 		// so we map them to the '-' from the command line flags
@@ -95,7 +90,20 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 		if err != nil {
 			return cfg, fmt.Errorf("Invalid value for parameter %v: %v (%v:%v)", name, value, c.File(), c.Line())
 		}
+
+		if name == "jwt-secret" {
+			secretProvidedByConfig = true
+		}
 	}
 
+	secretFromEnv, secretFromEnvWasSetBefore := os.LookupEnv("JWT_SECRET")
+	if !secretProvidedByConfig && secretFromEnvWasSetBefore {
+		cfg.JwtSecret = secretFromEnv
+	}
+	if !secretFromEnvWasSetBefore {
+		// populate the secret to caddy.jwt,
+		// but do not change a environment variable, which somebody has set it.
+		os.Setenv("JWT_SECRET", cfg.JwtSecret)
+	}
 	return cfg, nil
 }

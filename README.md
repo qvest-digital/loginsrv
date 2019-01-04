@@ -22,7 +22,7 @@ It can be used as:
 * Standalone microservice
 * Docker container
 * Golang library
-* [Caddy](http://caddyserver.com/) plugin
+* [Caddy](http://caddyserver.com/) plugin.  (See [caddy/README.md](./caddy/README.md) for details)
 
 ![](.screenshot.png)
 
@@ -60,12 +60,12 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
-| -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..,scope=email..[redirect_uri=..]     |
-| -gitlab                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]
+| -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
+| -gitlab                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
 | -host                       | string      | "localhost"  | -     | Host to listen on                                                                          |
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
 | -jwt-expiry                 | go duration | 24h          | X     | Expiry duration for the JWT token, e.g. 2h or 3h30m                                        |
-| -jwt-secret                 | string      | "random key" | X     | Secret used to sign the JWT token                                                          |
+| -jwt-secret                 | string      | "random key" | X     | Secret used to sign the JWT token. (See [caddy/README.md](./caddy/README.md) for details.) |
 | -jwt-algo                   | string      | "HS512"      | X     | Signing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)                 |
 | -log-level                  | string      | "info"       | -     | Log level                                                                                  |
 | -login-path                 | string      | "/login"     | X     | Path of the login resource                                                                 |
