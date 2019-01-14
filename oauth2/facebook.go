@@ -1,12 +1,13 @@
 package oauth2
 
 import (
-	"github.com/tarent/loginsrv/model"
-	"fmt"
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 var facebookAPI = "https://graph.facebook.com/v2.12"
@@ -18,19 +19,20 @@ func init() {
 // facebookUser is used for parsing the facebook response
 type facebookUser struct {
 	UserID  string `json:"id,omitempty"`
-	Picture struct{
-		Data struct{
+	Picture struct {
+		Data struct {
 			URL string `json:"url,omitempty"`
 		} `json:"data,omitempty"`
 	} `json:"picture,omitempty"`
-	Name    string `json:"name,omitempty"`
-	Email   string `json:"email,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Email string `json:"email,omitempty"`
 }
 
 var providerfacebook = Provider{
-	Name:     "facebook",
-	AuthURL:  "https://www.facebook.com/v2.12/dialog/oauth",
-	TokenURL: "https://graph.facebook.com/v2.12/oauth/access_token",
+	Name:          "facebook",
+	AuthURL:       "https://www.facebook.com/v2.12/dialog/oauth",
+	TokenURL:      "https://graph.facebook.com/v2.12/oauth/access_token",
+	DefaultScopes: "email",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 		fu := facebookUser{}
 
@@ -46,6 +48,7 @@ var providerfacebook = Provider{
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
+		defer resp.Body.Close()
 
 		if !strings.Contains(resp.Header.Get("Content-Type"), contentType) {
 			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on facebook get user info: %v", resp.Header.Get("Content-Type"))

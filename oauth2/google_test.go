@@ -9,31 +9,17 @@ import (
 )
 
 var googleTestUserResponse = `{
-  "kind": "plus#person",
-  "etag": "\"XX\"",
+  "sub": "10467329456789",
+  "name": "Testy Test",
+  "given_name": "Testy",
+  "family_name": "Test",
+  "profile": "https://plus.google.com/10467329456789",
+  "picture": "https://lh6.googleusercontent.com/-alknmlknzT_YQ/AAAAAAAAAAI/AAAAAAAAABU/4gNvDUeED14/photo.jpg",
+  "email": "test@example.com",
+  "email_verified": true,
   "gender": "male",
-  "emails": [
-    {
-      "value": "test@gmail.com",
-      "type": "account"
-    }
-  ],
-  "objectType": "person",
-  "id": "1",
-  "displayName": "Testy Test",
-  "name": {
-    "familyName": "Test",
-    "givenName": "Testy"
-  },
-  "url": "https://plus.google.com/X",
-  "image": {
-    "url": "https://lh3.googleusercontent.com/X/X/X/X/photo.jpg?sz=50",
-    "isDefault": true
-  },
-  "isPlusUser": true,
-  "circledByCount": 0,
-  "verified": false,
-  "domain": "gmail.com"
+  "locale": "de",
+  "hd": "example.com"
 }`
 
 func Test_Google_getUserInfo(t *testing.T) {
@@ -44,14 +30,14 @@ func Test_Google_getUserInfo(t *testing.T) {
 	}))
 	defer server.Close()
 
-	googleAPI = server.URL
+	googleUserinfoEndpoint = server.URL
 
 	u, rawJSON, err := providerGoogle.GetUserInfo(TokenInfo{AccessToken: "secret"})
 	NoError(t, err)
-	Equal(t, "test@gmail.com", u.Sub)
-	Equal(t, "test@gmail.com", u.Email)
-	Equal(t, "https://lh3.googleusercontent.com/X/X/X/X/photo.jpg", u.Picture)
+	Equal(t, "test@example.com", u.Sub)
+	Equal(t, "test@example.com", u.Email)
+	Equal(t, "https://lh6.googleusercontent.com/-alknmlknzT_YQ/AAAAAAAAAAI/AAAAAAAAABU/4gNvDUeED14/photo.jpg", u.Picture)
 	Equal(t, "Testy Test", u.Name)
-	Equal(t, "gmail.com", u.Domain)
+	Equal(t, "example.com", u.Domain)
 	Equal(t, googleTestUserResponse, rawJSON)
 }

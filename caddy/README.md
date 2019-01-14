@@ -31,6 +31,7 @@ login {
     osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret
     htpasswd file=users
     github client_id=xxx,client_secret=yyy
+    google client_id=xxx,client_secret=yyy,scope=email
 }
 ```
 
@@ -72,6 +73,25 @@ login {
     redirect_host_file ../redirect_hosts.txt
 }
 ```
+
+### Example caddyfile with Google login
+
+```
+127.0.0.1
+
+root {$PWD}
+browse
+
+jwt {
+    path /
+    allow domain example.com
+}
+
+login {
+    google client_id=xxx,client_secret=yyy,scope=email
+}
+```
+Note: You must enable Google Plus API in Google API Console
 
 ### Potential issue with a different `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt
 

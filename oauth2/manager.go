@@ -114,6 +114,8 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 
 	if scope, exist := opts["scope"]; exist {
 		cfg.Scope = scope
+	} else {
+		cfg.Scope = p.DefaultScopes
 	}
 
 	if redirectURI, exist := opts["redirect_uri"]; exist {

@@ -3,8 +3,10 @@ package htpasswd
 import (
 	. "github.com/stretchr/testify/assert"
 	"github.com/tarent/loginsrv/login"
+	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSetupOneFile(t *testing.T) {
@@ -19,7 +21,7 @@ func TestSetupOneFile(t *testing.T) {
 
 	NoError(t, err)
 	Equal(t,
-		[]File{File{name: files[0]}},
+		[]File{File{files[0], modTime(files[0])}},
 		backend.(*Backend).auth.filenames)
 }
 
@@ -32,7 +34,7 @@ func TestSetupTwoFiles(t *testing.T) {
 
 	var morphed []File
 	for _, curFile := range filenames {
-		morphed = append(morphed, File{name: curFile})
+		morphed = append(morphed, File{curFile, modTime(curFile)})
 	}
 	backend, err := p(map[string]string{
 		"file": strings.Join(filenames, ";"),
@@ -54,7 +56,7 @@ func TestSetupTwoConfigs(t *testing.T) {
 
 	var morphed []File
 	for _, curFile := range append(configFiles, configFile...) {
-		morphed = append(morphed, File{name: curFile})
+		morphed = append(morphed, File{curFile, modTime(curFile)})
 	}
 
 	backend, err := p(map[string]string{
@@ -95,4 +97,12 @@ func TestSimpleBackend_Authenticate(t *testing.T) {
 	False(t, authenticated)
 	Equal(t, "", userInfo.Sub)
 	NoError(t, err)
+}
+
+func modTime(f string) time.Time {
+	fileInfo, err := os.Stat(f)
+	if err != nil {
+		panic(err)
+	}
+	return fileInfo.ModTime()
 }
