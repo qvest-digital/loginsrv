@@ -3,6 +3,7 @@ package caddy
 import (
 	"github.com/mholt/caddy/caddyhttp/httpserver"
 	"github.com/tarent/loginsrv/login"
+	"context"
 	"net/http"
 	"strings"
 )
@@ -28,6 +29,12 @@ func (h *CaddyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, e
 	//Fetch jwt token. If valid set a Caddy replacer for {user}
 	userInfo, valid := h.loginHandler.GetToken(r)
 	if valid {
+		// let upstream middleware (e.g. fastcgi and cgi) know about authenticated
+		// user; this replaces the request with a wrapped instance
+		r = r.WithContext(context.WithValue(r.Context(),
+		httpserver.RemoteUserCtxKey, userInfo.Sub))
+	
+		// Provide username to be used in log by replacer
 		repl := httpserver.NewReplacer(r, nil, "-")
 		repl.Set("user", userInfo.Sub)
 	}

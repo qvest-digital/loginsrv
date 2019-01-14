@@ -41,6 +41,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--cookie-expiry=23m",
 		"--cookie-domain=*.example.com",
 		"--cookie-http-only=false",
+		"--cookie-secure=false",
 		"--backend=provider=simple",
 		"--backend=provider=foo",
 		"--github=client_id=foo,client_secret=bar",
@@ -68,6 +69,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		CookieExpiry:           23 * time.Minute,
 		CookieDomain:           "*.example.com",
 		CookieHTTPOnly:         false,
+		CookieSecure:           false,
 		Backends: Options{
 			"simple": map[string]string{},
 			"foo":    map[string]string{},
@@ -107,6 +109,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_COOKIE_EXPIRY", "23m"))
 	NoError(t, os.Setenv("LOGINSRV_COOKIE_DOMAIN", "*.example.com"))
 	NoError(t, os.Setenv("LOGINSRV_COOKIE_HTTP_ONLY", "false"))
+	NoError(t, os.Setenv("LOGINSRV_COOKIE_SECURE", "false"))
 	NoError(t, os.Setenv("LOGINSRV_SIMPLE", "foo=bar"))
 	NoError(t, os.Setenv("LOGINSRV_GITHUB", "client_id=foo,client_secret=bar"))
 	NoError(t, os.Setenv("LOGINSRV_GRACE_PERIOD", "4s"))
@@ -132,6 +135,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 		CookieExpiry:           23 * time.Minute,
 		CookieDomain:           "*.example.com",
 		CookieHTTPOnly:         false,
+		CookieSecure:           false,
 		Backends: Options{
 			"simple": map[string]string{
 				"foo": "bar",

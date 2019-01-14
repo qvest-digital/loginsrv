@@ -17,6 +17,7 @@ import (
 
 const contentTypeHTML = "text/html; charset=utf-8"
 const contentTypeJWT = "application/jwt"
+const contentTypeJSON = "application/json"
 const contentTypePlain = "text/plain"
 
 type userClaimsFunc func(userInfo model.UserInfo) (jwt.Claims, error)
@@ -122,7 +123,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	contentType := r.Header.Get("Content-Type")
 	if !(r.Method == "GET" || r.Method == "DELETE" ||
 		(r.Method == "POST" &&
-			(strings.HasPrefix(contentType, "application/json") ||
+			(strings.HasPrefix(contentType, contentTypeJSON) ||
 				strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
 				strings.HasPrefix(contentType, "multipart/form-data") ||
 				contentType == ""))) {
@@ -147,6 +148,16 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		userInfo, valid := h.GetToken(r)
+		if wantJSON(r) {
+			if valid {
+				w.Header().Set("Content-Type", contentTypeJSON)
+				enc := json.NewEncoder(w)
+				enc.Encode(userInfo) // ignore error of encoding
+			} else {
+				h.respondAuthFailure(w, r)
+			}
+			return
+		}
 		writeLoginForm(w,
 			loginFormData{
 				Config:        h.config,
@@ -176,7 +187,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.respondAuthFailure(w, r)
 			return
 		}
-		
+
 		h.respondBadRequest(w, r)
 		return
 	}
@@ -236,30 +247,33 @@ func (h *Handler) respondAuthenticated(w http.ResponseWriter, r *http.Request, u
 	}
 
 	if wantHTML(r) {
-		cookie := &http.Cookie{
-			Name:     h.config.CookieName,
-			Value:    token,
-			HttpOnly: h.config.CookieHTTPOnly,
-			Path:     "/",
-		}
-		if h.config.CookieExpiry != 0 {
-			cookie.Expires = time.Now().Add(h.config.CookieExpiry)
-		}
-		if h.config.CookieDomain != "" {
-			cookie.Domain = h.config.CookieDomain
-		}
-
-		http.SetCookie(w, cookie)
-
-		w.Header().Set("Location", h.redirectURL(r, w))
-		h.deleteRedirectCookie(w, r)
-		w.WriteHeader(303)
+		h.respondAuthenticatedHTML(w, r, token)
 		return
 	}
 
 	w.Header().Set("Content-Type", contentTypeJWT)
 	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s", token)
+	fmt.Fprint(w, token)
+}
+
+func (h *Handler) respondAuthenticatedHTML(w http.ResponseWriter, r *http.Request, token string) {
+	cookie := &http.Cookie{
+		Name:     h.config.CookieName,
+		Value:    token,
+		HttpOnly: h.config.CookieHTTPOnly,
+		Path:     "/",
+	}
+	if h.config.CookieExpiry != 0 {
+		cookie.Expires = time.Now().Add(h.config.CookieExpiry)
+	}
+	if h.config.CookieDomain != "" {
+		cookie.Domain = h.config.CookieDomain
+	}
+	cookie.Secure = h.config.CookieSecure
+	http.SetCookie(w, cookie)
+	w.Header().Set("Location", h.redirectURL(r, w))
+	h.deleteRedirectCookie(w, r)
+	w.WriteHeader(303)
 }
 
 func (h *Handler) createToken(userInfo model.UserInfo) (string, error) {
@@ -375,17 +389,28 @@ func (h *Handler) respondAuthFailure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", contentTypePlain)
-	w.WriteHeader(403)
-	fmt.Fprintf(w, "Wrong credentials")
+	if wantJSON(r) {
+		w.Header().Set("Content-Type", contentTypeJSON)
+		w.WriteHeader(403)
+		fmt.Fprintf(w, `{"error": "Wrong credentials"}`)
+	} else {
+		w.Header().Set("Content-Type", contentTypePlain)
+		w.WriteHeader(403)
+		fmt.Fprintf(w, "Wrong credentials")
+	}
+
 }
 
 func wantHTML(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept"), "text/html")
 }
 
+func wantJSON(r *http.Request) bool {
+	return strings.Contains(r.Header.Get("Accept"), contentTypeJSON)
+}
+
 func getCredentials(r *http.Request) (string, string, error) {
-	if r.Header.Get("Content-Type") == "application/json" {
+	if r.Header.Get("Content-Type") == contentTypeJSON {
 		m := map[string]string{}
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
