@@ -1,10 +1,12 @@
 package login
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -241,6 +243,46 @@ func TestHandler_LoginWeb(t *testing.T) {
 	Equal(t, recorder.Header().Get("Set-Cookie"), "")
 }
 
+func TestHandler_SetSecureCookie(t *testing.T) {
+	tests := []struct {
+		name   string
+		secure bool
+	}{
+		{"secure", true},
+		{"unsecure", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := http.NewRequest("OPTION", "/foobar", nil)
+			if err != nil {
+				t.Fatalf("Unable to create request: %v", err)
+			}
+			w := httptest.NewRecorder()
+			cfg := testConfig()
+			h := testHandler()
+			cfg.CookieSecure = tt.secure
+			h.config = cfg
+
+			h.respondAuthenticatedHTML(w, r, "RANDOM_TOKEN_VALUE")
+
+			cc := w.Result().Cookies()
+			foundCookie := false
+			for _, c := range cc {
+				if c.Name != cfg.CookieName {
+					continue
+				}
+				foundCookie = true
+				if c.Secure != tt.secure {
+					t.Errorf("Found token cookie %q with secure flag %t; expected %t", cfg.CookieName, c.Secure, tt.secure)
+				}
+			}
+			if !foundCookie {
+				t.Errorf("No token cookie with the name %q (Config.CookieName) found", cfg.CookieName)
+			}
+		})
+	}
+}
+
 func TestHandler_Refresh(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "bob", Expiry: time.Now().Add(time.Second).Unix()}
@@ -281,7 +323,7 @@ func TestHandler_Refresh_Expired(t *testing.T) {
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
-	Equal(t, 400, recorder.Code)
+	Equal(t, 403, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
@@ -295,7 +337,7 @@ func TestHandler_Refresh_Invalid_Token(t *testing.T) {
 
 	// refreshSuccess
 	recorder := call(req("POST", "/context/login", "", AcceptHTML, cookieStr))
-	Equal(t, 400, recorder.Code)
+	Equal(t, 403, recorder.Code)
 
 	// verify the token from the cookie
 	setCookieList := readSetCookies(recorder.Header())
@@ -388,6 +430,19 @@ func TestHandler_LoginError(t *testing.T) {
 	Contains(t, recorder.Body.String(), "Internal Error")
 }
 
+func TestHandler_LoginWithEmptyUsername(t *testing.T) {
+	h := testHandler()
+
+	// backend returning an error with result type == jwt
+	request := req("POST", "/context/login", `{"username": "", "password": ""}`, TypeJSON, AcceptJwt)
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, request)
+
+	Equal(t, 403, recorder.Code)
+	Equal(t, recorder.Header().Get("Content-Type"), "text/plain")
+	Equal(t, recorder.Body.String(), "Wrong credentials")
+}
+
 func TestHandler_getToken_Valid(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
@@ -399,6 +454,51 @@ func TestHandler_getToken_Valid(t *testing.T) {
 	userInfo, valid := h.GetToken(r)
 	True(t, valid)
 	Equal(t, input, userInfo)
+}
+
+func TestHandler_ReturnUserInfoJSON(t *testing.T) {
+	h := testHandler()
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+	token, err := h.createToken(input)
+	NoError(t, err)
+	url, _ := url.Parse("/context/login")
+	r := &http.Request{
+		Method: "GET",
+		URL:    url,
+		Header: http.Header{
+			"Cookie": {h.config.CookieName + "=" + token + ";"},
+			"Accept": {"application/json"},
+		},
+	}
+
+	recorder := call(r)
+	Equal(t, 200, recorder.Code)
+	Equal(t, "application/json", recorder.Header().Get("Content-Type"))
+
+	output := model.UserInfo{}
+	json.Unmarshal(recorder.Body.Bytes(), &output)
+
+	Equal(t, input, output)
+}
+
+func TestHandler_ReturnUserInfoJSON_InvalidToken(t *testing.T) {
+	h := testHandler()
+	url, _ := url.Parse("/context/login")
+	r := &http.Request{
+		Method: "GET",
+		URL:    url,
+		Header: http.Header{
+			"Cookie": {h.config.CookieName + "= 123;"},
+			"Accept": {"application/json"},
+		},
+	}
+
+	recorder := call(r)
+	Equal(t, 403, recorder.Code)
+	Equal(t, "application/json", recorder.Header().Get("Content-Type"))
+	output := map[string]interface{}{}
+	json.Unmarshal(recorder.Body.Bytes(), &output)
+	Equal(t, map[string]interface{}{"error": "Wrong credentials"}, output)
 }
 
 func TestHandler_signAndVerify_ES256(t *testing.T) {
@@ -424,10 +524,8 @@ func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
-
 	// modify secret
 	h.config.JwtSecret = "foobar"
-
 	_, valid := h.GetToken(r)
 	False(t, valid)
 }

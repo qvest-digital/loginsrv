@@ -2,9 +2,10 @@ package model
 
 import (
 	"encoding/json"
-	. "github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 func Test_UserInfo_Valid(t *testing.T) {
@@ -23,6 +24,7 @@ func Test_UserInfo_AsMap(t *testing.T) {
 		Expiry:    23,
 		Refreshes: 42,
 		Domain:    `json:"domain,omitempty"`,
+		Groups:    []string{`json:"groups,omitempty"`},
 	}
 
 	givenJson, _ := json.Marshal(u.AsMap())

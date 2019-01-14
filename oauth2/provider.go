@@ -15,6 +15,10 @@ type Provider struct {
 	// The url for token exchange
 	TokenURL string
 
+	// Default Scopes is a space separated list of oauth scopes to use for this provider.
+	// This list can be overwritten by configuration.
+	DefaultScopes string
+
 	// GetUserInfo is a provider specific Implementation
 	// for fetching the user information.
 	// Possible keys in the returned map are:

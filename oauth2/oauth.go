@@ -126,6 +126,7 @@ func getAccessToken(cfg Config, state, code string) (TokenInfo, error) {
 	if err != nil {
 		return TokenInfo{}, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		return TokenInfo{}, fmt.Errorf("error: expected http status 200 on token exchange, but got %v", resp.StatusCode)

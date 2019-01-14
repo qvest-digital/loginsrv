@@ -3,10 +3,11 @@ package oauth2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 var bitbucketAPI = "https://api.bitbucket.org/2.0"
@@ -38,7 +39,7 @@ type email struct {
 	Email       string `json:"email,omitempty"`
 	IsConfirmed bool   `json:"is_confirmed,omitempty"`
 	IsPrimary   bool   `json:"is_primary,omitempty"`
-	Links struct {
+	Links       struct {
 		Self struct {
 			Href string
 		}
@@ -65,6 +66,7 @@ func getBitbucketEmails(token TokenInfo) (emails, error) {
 	if err != nil {
 		return emails{}, err
 	}
+	defer resp.Body.Close()
 
 	if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 		return emails{}, fmt.Errorf("wrong content-type on bitbucket get user emails: %v", resp.Header.Get("Content-Type"))
@@ -99,6 +101,7 @@ var providerBitbucket = Provider{
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
+		defer resp.Body.Close()
 
 		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 			return model.UserInfo{}, "", fmt.Errorf("wrong content-type on bitbucket get user info: %v", resp.Header.Get("Content-Type"))
