@@ -16,7 +16,9 @@ a random token is generated and used.
 
 To be compatible with caddy-jwt the secred is also written to the environment variable JWT_SECRET, if this variable was not set before.
 This enables caddy-jwt to look up the same shared secret, even in the case of a random token. If the configuration uses differnt tokens
-for different server blocks, only the first one will be stored in ent environment variable.
+for different server blocks, only the first one will be stored in enviroment environment variable. You can't use a random key as the jwt-secret
+and a custom one in the same caddyfile. If you want to have better control, of the integration with caddy-jwt, e.g. for multiple server blocks,
+you should configure the jwt behaviour in caddy-jwt with the `secret` or `publickey` directives.
 
 ### Basic configuration
 Provide a login resource under /login, for user bob with password secret:
