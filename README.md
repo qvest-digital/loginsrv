@@ -16,7 +16,8 @@ Please update loginsrv to v1.3.0 if you are using google login.
 
 __** Attention: Since v1.3.0, pure HTTP is not supported by default **__
 
-See [CHANGELOG](CHANGELOG.md#v130) for details.
+Since v1.3.0, loginsrv sets the secure flag for the login cookie. So, if you use HTTP fo connect with the browser, e.g. for testing, you browser will ignore the cookie.
+Use the flag `-cookie-secure=false` when testing without HTTPS.
 
 ## Abstract
 

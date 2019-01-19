@@ -3,7 +3,7 @@
 
 ## v1.3.0
 
-* __*ATTENTION:*__ Added a config option to set the secure flag for cookies (default: -secure-secure=true). If you run unsecure HTTP you have to set this option ot false!!!
+* __*ATTENTION:*__ Added a config option to set the secure flag for cookies (default: -cookie-secure=true). If you run unsecure HTTP you have to set this option ot false!!!
 * __Google OAuth provider now uses the google userinfo endpoint. No need to activate the google+ APIs anymore.__
 * __Added Gitlab OAuth Provider__
 * The GET endpoint now returns the user info if the call accepts JSON
