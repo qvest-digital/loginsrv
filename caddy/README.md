@@ -20,6 +20,10 @@ for different server blocks, only the first one will be stored in enviroment env
 and a custom one in the same caddyfile. If you want to have better control, of the integration with caddy-jwt, e.g. for multiple server blocks,
 you should configure the jwt behaviour in caddy-jwt with the `secret` or `publickey` directives.
 
+## Cookie Name
+You can configure the cookie name by `cookie_name`. By default loginsrv and http.jwt use the same cookie name for the JWT token. 
+If you don't use the default, set related param `token_source cookie my_cookie_name` in http.jwt.
+
 ### Basic configuration
 Provide a login resource under /login, for user bob with password secret:
 ```
