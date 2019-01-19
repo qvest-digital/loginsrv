@@ -72,8 +72,8 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -logout-url                 | string      |              | X     | URL or path to redirect to after logout                                                    |
 | -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                        |
 | -port                       | string      | "6789"       | -     | Port to listen on                                                                          |
-| -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter (default true)             |
-| -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target (default "backTo")                                   |
+| -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter                            |
+| -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target                                                      |
 | -redirect-check-referer     | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects         |
 | -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line     |
 | -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                |
@@ -141,12 +141,12 @@ Performs the login and returns the JWT. Depending on the content-type and parame
 
 #### Possible Return Codes
 
-| Code | Meaning               | Description                |
-|------| ----------------------|----------------------------|
-| 200  | OK                    | Successfully authenticated |
-| 403  | Forbidden             | The credentials are wrong  |
-| 400  | Bad Request           | Missing parameters         |
-| 500  | Internal Server Error | Internal error, e.g. the login provider is not available or failed    |
+| Code | Meaning               | Description                                                                                                               |
+|------| ----------------------|---------------------------------------------------------------------------------------------------------------------------|
+| 200  | OK                    | Successfully authenticated                                                                                                |
+| 403  | Forbidden             | The credentials are wrong                                                                                                 |
+| 400  | Bad Request           | Missing parameters                                                                                                        |
+| 500  | Internal Server Error | Internal error, e.g. the login provider is not available or failed                                                        |
 | 303  | See Other             | Sets the JWT as a cookie, if the login succeeds and redirect to the URLs provided in `redirectSuccess` or `redirectError` |
 
 Hint: The status `401 Unauthorized` is not used as a return code to not conflict with an HTTP Basic authentication.
