@@ -95,7 +95,20 @@ jwt {
 }
 
 login {
-    google client_id=xxx,client_secret=yyy,scope=email
+    google client_id=xxx,client_secret=yyy
 }
 ```
-Note: You must enable Google Plus API in Google API Console
+
+### Potential issue with a different `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt
+
+1. If you use `redirect` in http.jwt and you:
+1.1. Are redirected to http.jwt's `redirect` page that is in your caddyfile
+1.2. Are unable to navigate to any page that is protected by http.login
+1.3. Appear to be authenticated when you visit the `redirect` page or `/login`
+
+2. If you don't use `redirect` in http.jwt and you:
+2.1. Are displayed a 401 error for the page you navigate to
+2.2. Appear to be authenticated if you navigate to `/login`
+
+Possible solution:
+Confirm that `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt are identical
