@@ -21,7 +21,6 @@ func TestSetup(t *testing.T) {
 	for j, test := range []struct {
 		input       string
 		shouldErr   bool
-		config      login.Config
 		configCheck func(*testing.T, *login.Config)
 	}{
 		{
@@ -119,6 +118,108 @@ func TestSetup(t *testing.T) {
 			}
 			middleware := mids[len(mids)-1](nil).(*CaddyHandler)
 			test.configCheck(t, middleware.config)
+		})
+	}
+}
+
+func TestSetup_CornerCasesJWTSecret(t *testing.T) {
+
+	os.Setenv("JWT_SECRET", "jwtsecret")
+
+	for j, test := range []struct {
+		description           string
+		envInput              string
+		config1               string
+		config2               string
+		expectedEnv           string
+		expectedSecretConfig1 string
+		expectedSecretConfig2 string
+	}{
+		{
+			description: "just use the environment",
+			envInput:    "foo",
+			config1: `login {
+                                        simple bob=secret
+                                }`,
+			config2: `login {
+                                        simple bob=secret
+                                }`,
+			expectedEnv:           "foo",
+			expectedSecretConfig1: "foo",
+			expectedSecretConfig2: "foo",
+		},
+		{
+			description: "set variable using configs",
+			envInput:    "",
+			config1: `login {
+                                        simple bob=secret
+                                        jwt_secret xxx
+                                }`,
+			config2: `login {
+                                        simple bob=secret
+                                        jwt_secret yyy
+                                }`,
+			expectedEnv:           "xxx",
+			expectedSecretConfig1: "xxx",
+			expectedSecretConfig2: "yyy",
+		},
+		{
+			description: "secret in env and configs was set",
+			envInput:    "bli",
+			config1: `login {
+                                        simple bob=secret
+                                        jwt_secret bla
+                                }`,
+			config2: `login {
+                                        simple bob=secret
+                                        jwt_secret blub
+                                }`,
+			expectedEnv:           "bli", // should not be touched
+			expectedSecretConfig1: "bla",
+			expectedSecretConfig2: "blub",
+		},
+		{
+			description: "random default value",
+			envInput:    "",
+			config1: `login {
+                                        simple bob=secret
+                                }`,
+			config2: `login {
+                                        simple bob=secret
+                                }`,
+			expectedEnv:           login.DefaultConfig().JwtSecret,
+			expectedSecretConfig1: login.DefaultConfig().JwtSecret,
+			expectedSecretConfig2: login.DefaultConfig().JwtSecret,
+		},
+	} {
+		t.Run(fmt.Sprintf("test %v %v", j, test.description), func(t *testing.T) {
+			if test.envInput == "" {
+				os.Unsetenv("JWT_SECRET")
+			} else {
+				os.Setenv("JWT_SECRET", test.envInput)
+			}
+			c1 := caddy.NewTestController("http", test.config1)
+			NoError(t, setup(c1))
+			c2 := caddy.NewTestController("http", test.config2)
+			NoError(t, setup(c2))
+
+			mids1 := httpserver.GetConfig(c1).Middleware()
+			if len(mids1) == 0 {
+				t.Errorf("no middlewares created in test #%v", j)
+				return
+			}
+			middleware1 := mids1[len(mids1)-1](nil).(*CaddyHandler)
+
+			mids2 := httpserver.GetConfig(c2).Middleware()
+			if len(mids2) == 0 {
+				t.Errorf("no middlewares created in test #%v", j)
+				return
+			}
+			middleware2 := mids2[len(mids2)-1](nil).(*CaddyHandler)
+
+			Equal(t, test.expectedSecretConfig1, middleware1.config.JwtSecret)
+			Equal(t, test.expectedSecretConfig2, middleware2.config.JwtSecret)
+			Equal(t, test.expectedEnv, os.Getenv("JWT_SECRET"))
 		})
 	}
 }

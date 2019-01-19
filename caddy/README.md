@@ -8,10 +8,17 @@ For a full documentation of loginsrv configuration and usage, visit the [loginsr
 
 A small demo can also be found in the [./demo](https://github.com/tarent/loginsrv/tree/master/caddy/demo) directory.
 
-## Configuration
-To be compatible with caddy-jwt, the jwt secret is taken from the environment variable `JWT_SECRET`
-if such a variable is set. Otherwise, a random token is generated and set as environment variable JWT_SECRET,
-so that caddy-jwt looks up the same shared secret.
+## Configuration of `JWT_SECRET`
+The jwt secret is taken from the environment variable `JWT_SECRET` if such a variable is set.
+If a secret was configured in the directive config, this has higher priority and will be used over the environment variable in the case,
+that both are set. This way, it is also possible to configure different secrets for multiple hosts. If no secret was set at all,
+a random token is generated and used.
+
+To be compatible with caddy-jwt the secred is also written to the environment variable JWT_SECRET, if this variable was not set before.
+This enables caddy-jwt to look up the same shared secret, even in the case of a random token. If the configuration uses differnt tokens
+for different server blocks, only the first one will be stored in enviroment environment variable. You can't use a random key as the jwt-secret
+and a custom one in the same caddyfile. If you want to have better control, of the integration with caddy-jwt, e.g. for multiple server blocks,
+you should configure the jwt behaviour in caddy-jwt with the `secret` or `publickey` directives.
 
 ### Basic configuration
 Provide a login resource under /login, for user bob with password secret:
