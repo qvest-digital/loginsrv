@@ -95,10 +95,9 @@ jwt {
 }
 
 login {
-    google client_id=xxx,client_secret=yyy,scope=email
+    google client_id=xxx,client_secret=yyy
 }
 ```
-Note: You must enable Google Plus API in Google API Console
 
 ### Potential issue with a different `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt
 
@@ -112,6 +111,4 @@ Note: You must enable Google Plus API in Google API Console
 2.2. Appear to be authenticated if you navigate to `/login`
 
 Possible solution:
-1. Confirm that `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt are identical
-
-This issue is discussed here: https://github.com/tarent/loginsrv/issues/103.
+Confirm that `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt are identical
