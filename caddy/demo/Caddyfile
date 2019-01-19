@@ -17,6 +17,8 @@ http://localhost:8080 {
         htpasswd file=passwords
         redirect_host_file redirect_hosts.txt
         user_file userfile.yml
+        # for testing, where no https is available, don't set the secure flag for the.
+        cookie_secure false
   }
   
 }
