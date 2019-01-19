@@ -12,7 +12,11 @@ loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt
 __** Attention: Update to v1.3.0 for Google Login Update !!!! **__
 
 Google will stop support for the Google+ APIs. So we changed loginsrv to use the standard oauth endpoints for Google login.
-Please update loginsrv to the master version or wait for release v1.2.5 if you are using google.
+Please update loginsrv to v1.3.0 if you are using google login.
+
+__** Attention: Since v1.3.0, pure HTTP is not supported by default **__
+
+See [CHANGELOG](CHANGELOG.md#v130) for details.
 
 ## Abstract
 
@@ -57,6 +61,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -cookie-expiry              | string      | session      | X     | Expiry duration for the cookie, e.g. 2h or 3h30m                                           |
 | -cookie-http-only           | boolean     | true         | X     | Set the cookie with the HTTP only flag                                                     |
 | -cookie-name                | string      | "jwt_token"  | X     | Name of the JWT cookie                                                                     |
+| -cookie-secure              | boolean     | true         | X     | Set the secure flag on the JWT cookie. (Set this to false for plain HTTP support)          |
 | -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
@@ -93,7 +98,7 @@ So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
 The simplest way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
 ```
-$ docker run -d -p 8080:8080 tarent/loginsrv -jwt-secret my_secret -simple bob=secret
+$ docker run -d -p 8080:8080 tarent/loginsrv -secure-cookie=false -jwt-secret my_secret -simple bob=secret
 
 $ curl --data "username=bob&password=secret" 127.0.0.1:8080/login
 eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4CyxQNxe5_Ovw-N5wfQwkzXz2enbhA9JZf8MmTp9n-TTDcWdY3Fd1SA72_M20G9lQ
@@ -101,7 +106,7 @@ eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4Cy
 
 The same configuration could be written with environment variables this way:
 ```
-$ docker run -d -p 8080:8080 -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
+$ docker run -d -p 8080:8080 -E SECURE_COOKIE=false -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
 ```
 
 ## API

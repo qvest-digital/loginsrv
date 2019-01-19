@@ -1,14 +1,13 @@
 
 # loginsrv changelog
 
-## v1.3.0 (planned)
+## v1.3.0
 
+* __*ATTENTION:*__ Added a config option to set the secure flag for cookies (default: -secure-secure=true). If you run unsecure HTTP you have to set this option ot false!!!
 * __Google OAuth provider now uses the google userinfo endpoint. No need to activate the google+ APIs anymore.__
 * __Added Gitlab OAuth Provider__
-* __Added gitlab provider__
-* The GET endpoint nor returns the user info if the call accepts JSON
-* Default OAuth scopes for google and facebook provider.
-* Add config option to set the secure flag for cookies (default: secure=true). If you run unsecure HTTP this you have to set this option ot false!!!
+* The GET endpoint now returns the user info if the call accepts JSON
+* Default OAuth scopes for google and facebook provider. No need to configure them anymore.
 * Caddy-plugin: let upstream middleware (e.g. fastcgi and cgi) know about authenticated user
 * Caddy-plugin: fixed corner cases in handling of JWT_SECRET paramter for caddy
 * Add viewport meta tag to get proper scaling on mobile
