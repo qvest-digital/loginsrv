@@ -1,24 +1,24 @@
 # loginsrv Caddy middleware
 
 Login plugin for Caddy, based on [tarent/loginsrv](https://github.com/tarent/loginsrv).
-The login is checked against a backend and then returned as JWT token.
+The login is checked against a backend and then returned as a JWT token.
 This middleware is designed to play together with the [caddy-jwt](https://github.com/BTBurke/caddy-jwt) plugin.
 
 For a full documentation of loginsrv configuration and usage, visit the [loginsrv README.md](https://github.com/tarent/loginsrv).
 
-A small demo can also be found in the [./demo](https://github.com/tarent/loginsrv/tree/master/caddy/demo) directory.
+A small demo can be found in the [./demo](https://github.com/tarent/loginsrv/tree/master/caddy/demo) directory.
 
 ## Configuration of `JWT_SECRET`
-The jwt secret is taken from the environment variable `JWT_SECRET` if such a variable is set.
+The jwt secret is taken from the environment variable `JWT_SECRET` if this variable is set.
 If a secret was configured in the directive config, this has higher priority and will be used over the environment variable in the case,
 that both are set. This way, it is also possible to configure different secrets for multiple hosts. If no secret was set at all,
 a random token is generated and used.
 
-To be compatible with caddy-jwt the secred is also written to the environment variable JWT_SECRET, if this variable was not set before.
-This enables caddy-jwt to look up the same shared secret, even in the case of a random token. If the configuration uses differnt tokens
-for different server blocks, only the first one will be stored in enviroment environment variable. You can't use a random key as the jwt-secret
+To be compatible with caddy-jwt the secret is also written to the environment variable JWT_SECRET, if this variable was not set before.
+This enables caddy-jwt to look up the same shared secret, even in the case of a random token. If the configuration uses different tokens
+for different server blocks, only the first one will be stored in environment variable. You can't use a random key as the jwt-secret
 and a custom one in the same caddyfile. If you want to have better control, of the integration with caddy-jwt, e.g. for multiple server blocks,
-you should configure the jwt behaviour in caddy-jwt with the `secret` or `publickey` directives.
+you should configure the jwt behaviour in caddy-jwt with the `secret` or `publickey` directive.
 
 ## Cookie Name
 You can configure the cookie name by `cookie_name`. By default loginsrv and http.jwt use the same cookie name for the JWT token. 
@@ -106,13 +106,13 @@ login {
 ### Potential issue with a different `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt
 
 1. If you use `redirect` in http.jwt and you:
-1.1. Are redirected to http.jwt's `redirect` page that is in your caddyfile
-1.2. Are unable to navigate to any page that is protected by http.login
-1.3. Appear to be authenticated when you visit the `redirect` page or `/login`
+   * Are redirected to http.jwt's `redirect` page that is in your caddyfile
+   * Are unable to navigate to any page that is protected by http.login
+   * Appear to be authenticated when you visit the `redirect` page or `/login`
 
 2. If you don't use `redirect` in http.jwt and you:
-2.1. Are displayed a 401 error for the page you navigate to
-2.2. Appear to be authenticated if you navigate to `/login`
+   * Are displayed a 401 error for the page you navigate to
+   * Appear to be authenticated if you navigate to `/login`
 
 Possible solution:
 Confirm that `cookie-name` in http.login and `token_source cookie cookie_name` in http.jwt are identical

@@ -54,7 +54,7 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
 ## Configuration and Startup
 ### Config Options
 
-_Note for Caddy users_: Not all parameters are available in Caddy. See the table for details. With Caddy, the parameter names can be also be used with `_` in the names, e.g. `cookie_http_only`.
+_Note for Caddy users_: Not all parameters are available in Caddy. See the table for details. With Caddy, the parameter names can also be used with `_` in the names, e.g. `cookie_http_only`.
 
 | Parameter                   | Type        | Default      | Caddy | Description                                                                                |
 |-----------------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------------|
@@ -99,7 +99,7 @@ So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
 The simplest way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
 ```
-$ docker run -d -p 8080:8080 tarent/loginsrv -secure-cookie=false -jwt-secret my_secret -simple bob=secret
+$ docker run -d -p 8080:8080 tarent/loginsrv -cookie-secure=false -jwt-secret my_secret -simple bob=secret
 
 $ curl --data "username=bob&password=secret" 127.0.0.1:8080/login
 eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4CyxQNxe5_Ovw-N5wfQwkzXz2enbhA9JZf8MmTp9n-TTDcWdY3Fd1SA72_M20G9lQ
@@ -107,15 +107,15 @@ eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4Cy
 
 The same configuration could be written with environment variables this way:
 ```
-$ docker run -d -p 8080:8080 -E SECURE_COOKIE=false -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
+$ docker run -d -p 8080:8080 -E COOKIE_SECURE=false -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
 ```
 
 ## API
 
 ### GET /login
 
-Per default, it returns a simple bootstrap styled login form for unauthenticated requests an a small page with user info authenticated requests.
-When the call accepts a JSON output, the json content of the token is returned authenticated requests.
+Per default, it returns a simple bootstrap styled login form for unauthenticated requests and a page with user info for authenticated requests.
+When the call accepts a JSON output, the json content of the token is returned to authenticated requests.
 
 The returned HTML follows the UI composition conventions from (lib-compose)[https://github.com/tarent/lib-compose],
 so it can be embedded into an existing layout.
@@ -253,7 +253,7 @@ Depending on the provider, the token may look as follows:
 ## Provider Backends
 
 ### Htpasswd
-Authentication against htpasswd file. MD5, SHA1 and Bcrypt are supported. But we recommend to only use bcrypt for security reasons (e.g. `htpasswd -B -C 15`).
+Authentication against htpasswd file. MD5, SHA1 and Bcrypt are supported. But we recommend to only use Bcrypt for security reasons (e.g. `htpasswd -B -C 15`).
 
 Parameters for the provider:
 
@@ -335,7 +335,7 @@ $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 A custom template can be supplied by the parameter `template`. 
 You can find the original template in [login/login_form.go](https://github.com/tarent/loginsrv/blob/master/login/login_form.go).
 
-The templating uses the Golang build in template language. A short intro can be found [here](https://astaxie.gitbooks.io/build-web-application-with-golang/en/07.4.html).
+The templating uses the Golang template package. A short intro can be found [here](https://astaxie.gitbooks.io/build-web-application-with-golang/en/07.4.html).
 
 When you specify a custom template, only the layout of the original template is replaced. The partials of the original are still loaded into the template context and can be used by your template. So a minimal unstyled login template could look like this:
 
@@ -389,7 +389,7 @@ Example:
 * The user admin@example.org will become `"role": "admin"` and `"projects": ["example"]`, when authenticating with Google OAuth
 * All other Google users with the domain example will become `"role": "user"` and `"projects": ["example"]`
 * All other Gitlab users with group `example/subgroup` and `othergroup` will become `"role": "admin"`.
-* All others will become `"role": "unknown"`, indenpendent of the authentication provider
+* All others will become `"role": "unknown"`, independent of the authentication provider
 
 ```
 - sub: bob
