@@ -24,6 +24,7 @@ func main() {
 	if err := logging.Set(config.LogLevel, config.TextLogging); err != nil {
 		exit(nil, err)
 	}
+	logging.AccessLogCookiesBlacklist = append(logging.AccessLogCookiesBlacklist, config.CookieName)
 
 	configToLog := *config
 	configToLog.JwtSecret = "..."
