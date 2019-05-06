@@ -3,6 +3,9 @@ language: go
 go:
   - tip
 
+env:
+  - GO111MODULE=on
+
 services:
   - docker
 
@@ -25,4 +28,3 @@ deploy:
 after_success:
   - ./.generate_coverage.sh
   - goveralls -coverprofile=full_cov.out -service=travis-ci
-
