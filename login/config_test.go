@@ -47,6 +47,9 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--github=client_id=foo,client_secret=bar",
 		"--grace-period=4s",
 		"--user-file=users.yml",
+		"--user-endpoint=http://test.io/claims",
+		"--user-endpoint-token=token",
+		"--user-endpoint-timeout=1s",
 	}
 
 	expected := &Config{
@@ -80,8 +83,11 @@ func TestConfig_ReadConfig(t *testing.T) {
 				"client_secret": "bar",
 			},
 		},
-		GracePeriod: 4 * time.Second,
-		UserFile:    "users.yml",
+		GracePeriod:         4 * time.Second,
+		UserFile:            "users.yml",
+		UserEndpoint:        "http://test.io/claims",
+		UserEndpointToken:   "token",
+		UserEndpointTimeout: time.Second,
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
@@ -114,6 +120,9 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_GITHUB", "client_id=foo,client_secret=bar"))
 	NoError(t, os.Setenv("LOGINSRV_GRACE_PERIOD", "4s"))
 	NoError(t, os.Setenv("LOGINSRV_USER_FILE", "users.yml"))
+	NoError(t, os.Setenv("LOGINSRV_USER_ENDPOINT", "http://test.io/claims"))
+	NoError(t, os.Setenv("LOGINSRV_USER_ENDPOINT_TOKEN", "token"))
+	NoError(t, os.Setenv("LOGINSRV_USER_ENDPOINT_TIMEOUT", "1s"))
 
 	expected := &Config{
 		Host:                   "host",
@@ -147,8 +156,11 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 				"client_secret": "bar",
 			},
 		},
-		GracePeriod: 4 * time.Second,
-		UserFile:    "users.yml",
+		GracePeriod:         4 * time.Second,
+		UserFile:            "users.yml",
+		UserEndpoint:        "http://test.io/claims",
+		UserEndpointToken:   "token",
+		UserEndpointTimeout: time.Second,
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})

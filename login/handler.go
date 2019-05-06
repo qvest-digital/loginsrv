@@ -89,7 +89,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.handleLogin(w, r)
-	return
 }
 
 func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +115,6 @@ func (h *Handler) handleOauth(w http.ResponseWriter, r *http.Request) {
 		WithField("username", userInfo.Sub).Info("failed authentication")
 
 	h.respondAuthFailure(w, r)
-	return
 }
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {

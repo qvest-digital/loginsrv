@@ -90,6 +90,9 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -jwt-refreshes              | int         | 0            | X     | The maximum number of JWT refreshes                                                        |
 | -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted. |
 | -user-file                  | string      |              | X     | A YAML file with user specific data for the tokens. (see below for an example)             |
+| -user-endpoint              | string      |              | X     | URL of an endpoint providing user specific data for the tokens. (see below for an example) |
+| -user-endpoint-token        | string      |              | X     | Authentication token used when communicating with the user endpoint                        |
+| -user-endpoint-timeout      | go duration | 5s           | X     | Timeout used when communicating with the user endpoint                                     |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variables by using variables named this way: `LOGINSRV_OPTION_NAME`.
@@ -369,11 +372,18 @@ When you specify a custom template, only the layout of the original template is 
 </html>
 ```
 
-## User File
+## Custom claims
 
-To customize the content of the JWT token, a YAML file with user data can be provided.
-After successful authentication against a backend system, the user is searched within the file
-and the content of the claims parameter is used to enhance the user JWT claim parameters.
+To customize the content of the JWT token either a file wich contains
+user data or an endpoint providing claims can be provided.
+
+### User file
+
+A user file is a YAML file which contains additional information which
+is encoded in the token. After successful authentication against a
+backend system, the user is searched within the file and the content
+of the claims parameter is used to enhance the user JWT claim
+parameters.
 
 To match an entry, the user file is searched in linear order and all attributes has to match
 the data of the authentication backend. The first matching entry will be used and all parameters
@@ -421,3 +431,17 @@ Example:
 - claims:
     role: unknown
 ```
+
+### User endpoint
+
+A user endpoint is a http endpoint which provides addition information
+on a authenticated user. After successful authentication against a
+backend system, the endpoint gets called and the provided information
+is used to enhance the user JWT claim parameters.
+
+loginsrv passes these paramters to the endpoint:
+* `sub` - the username (all backends)
+* `origin` - the provider or backend name (all backends)
+* `email` - the mail address (the OAuth provider)
+* `domain` - the domain (Google only)
+* `groups` - the full path string of user groups enclosed in an array (Gitlab only)

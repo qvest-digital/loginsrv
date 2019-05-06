@@ -44,6 +44,9 @@ func DefaultConfig() *Config {
 		Oauth:                  Options{},
 		GracePeriod:            5 * time.Second,
 		UserFile:               "",
+		UserEndpoint:           "",
+		UserEndpointToken:      "",
+		UserEndpointTimeout:    5 * time.Second,
 	}
 }
 
@@ -76,6 +79,9 @@ type Config struct {
 	Oauth                  Options
 	GracePeriod            time.Duration
 	UserFile               string
+	UserEndpoint           string
+	UserEndpointToken      string
+	UserEndpointTimeout    time.Duration
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -130,6 +136,9 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.LoginPath, "login-path", c.LoginPath, "The path of the login resource")
 	f.DurationVar(&c.GracePeriod, "grace-period", c.GracePeriod, "Graceful shutdown grace period")
 	f.StringVar(&c.UserFile, "user-file", c.UserFile, "A YAML file with user specific data for the tokens")
+	f.StringVar(&c.UserEndpoint, "user-endpoint", c.UserEndpoint, "URL of an endpoint providing user specific data for the tokens")
+	f.StringVar(&c.UserEndpointToken, "user-endpoint-token", c.UserEndpointToken, "Authentication token used when communicating with the user endpoint")
+	f.DurationVar(&c.UserEndpointTimeout, "user-endpoint-timeout", c.UserEndpointTimeout, "Timeout used when communicating with the user endpoint")
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {
