@@ -19,9 +19,9 @@ const (
 )
 
 var aUserInfo = model.UserInfo{
-	Sub:    "test@snabble.io",
+	Sub:    "test@example.com",
 	Origin: "origin",
-	Domain: "snabble.io",
+	Domain: "example.com",
 }
 
 func Test_newUserClaimsProvider_ValidatesURL(t *testing.T) {
@@ -47,9 +47,9 @@ func Test_userClaimsProvider_Claims(t *testing.T) {
 	require.NoError(t, err)
 
 	claims, err := provider.Claims(model.UserInfo{
-		Sub:    "test@snabble.io",
+		Sub:    "test@example.com",
 		Origin: "origin",
-		Domain: "snabble.io",
+		Domain: "example.com",
 	})
 
 	require.NoError(t, err)
@@ -57,9 +57,9 @@ func Test_userClaimsProvider_Claims(t *testing.T) {
 	assert.Equal(t, 1, len(mock.requests))
 
 	request := mock.requests[0]
-	assertQueryValue(t, "sub", "test@snabble.io", request.URL)
+	assertQueryValue(t, "sub", "test@example.com", request.URL)
 	assertQueryValue(t, "origin", "origin", request.URL)
-	assertQueryValue(t, "domain", "snabble.io", request.URL)
+	assertQueryValue(t, "domain", "example.com", request.URL)
 
 	assert.Equal(t, "Bearer "+token, request.Header.Get("Authorization"))
 
@@ -70,13 +70,16 @@ func Test_userClaimsProvider_Claims(t *testing.T) {
 					"role": "admin",
 				},
 			},
+			"domain": "example.com",
+			"origin": "origin",
+			"sub":    "test@example.com",
 		},
 		claims,
 	)
 }
 
 func Test_userClaimsProvider_Claims_EndpointNotReachable(t *testing.T) {
-	provider, err := newUserClaimsProvider("http://not-exists.snabble.io", token, time.Millisecond)
+	provider, err := newUserClaimsProvider("http://not-exists.example.com", token, time.Millisecond)
 	require.NoError(t, err)
 
 	_, err = provider.Claims(aUserInfo)

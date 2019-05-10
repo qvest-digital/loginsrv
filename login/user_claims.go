@@ -21,6 +21,12 @@ func (custom customClaims) Valid() error {
 	return nil
 }
 
+func (custom customClaims) merge(values map[string]interface{}) {
+	for k, v := range values {
+		custom[k] = v
+	}
+}
+
 type UserClaims interface {
 	Claims(userInfo model.UserInfo) (jwt.Claims, error)
 }

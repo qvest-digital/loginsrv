@@ -52,13 +52,16 @@ func (provider *userClaimsProvider) Claims(userInfo model.UserInfo) (jwt.Claims,
 
 	decoder := json.NewDecoder(resp.Body)
 
-	remoteClaims := customClaims{}
+	remoteClaims := map[string]interface{}{}
 	err = decoder.Decode(&remoteClaims)
 	if err != nil {
 		return nil, err
 	}
 
-	return remoteClaims, nil
+	claims := customClaims(userInfo.AsMap())
+	claims.merge(remoteClaims)
+
+	return claims, nil
 }
 
 func (provider *userClaimsProvider) buildURL(userInfo model.UserInfo) string {

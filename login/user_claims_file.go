@@ -53,9 +53,7 @@ func (c *userClaimsFile) Claims(userInfo model.UserInfo) (jwt.Claims, error) {
 	for _, entry := range c.userFileEntries {
 		if match(userInfo, entry) {
 			claims := customClaims(userInfo.AsMap())
-			for k, v := range entry.Claims {
-				claims[k] = v
-			}
+			claims.merge(entry.Claims)
 			return claims, nil
 		}
 	}

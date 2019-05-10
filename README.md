@@ -434,10 +434,10 @@ Example:
 
 ### User endpoint
 
-A user endpoint is a http endpoint which provides addition information
-on a authenticated user. After successful authentication against a
-backend system, the endpoint gets called and the provided information
-is used to enhance the user JWT claim parameters.
+A user endpoint is a http endpoint which provides additional
+information on an authenticated user. After successful authentication
+against a backend system, the endpoint gets called and the provided
+information is used to enhance the user JWT claim parameters.
 
 loginsrv passes these paramters to the endpoint:
 * `sub` - the username (all backends)
@@ -445,3 +445,22 @@ loginsrv passes these paramters to the endpoint:
 * `email` - the mail address (the OAuth provider)
 * `domain` - the domain (Google only)
 * `groups` - the full path string of user groups enclosed in an array (Gitlab only)
+
+An interaction looks like this
+
+```
+GET /claims?origin=google&sub=test@example.com&email=test@example.com HTTP/1.1
+Host: localhost:8080
+Accept: */*
+Authorization: Bearer token
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "sub":"test@example.com",
+  "uid":"113",
+  "origin":"google",
+  "permissions": ["read", "write"]
+}
+```
