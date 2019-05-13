@@ -6,9 +6,10 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/tarent/loginsrv/logging"
 	"strings"
 	"time"
+
+	"github.com/tarent/loginsrv/logging"
 )
 
 func (h *Handler) setRedirectCookie(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +39,7 @@ func (h *Handler) allowRedirect(r *http.Request) bool {
 	if !h.config.Redirect {
 		return false
 	}
+
 	if !h.config.RedirectCheckReferer {
 		return true
 	}
