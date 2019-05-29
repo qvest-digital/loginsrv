@@ -78,6 +78,36 @@ func Test_userClaimsProvider_Claims(t *testing.T) {
 	)
 }
 
+func Test_userClaimsProvider_Claims_NotFound(t *testing.T) {
+	mock := createMockServer(
+		mockResponse{
+			url:    endpointPath,
+			status: http.StatusNotFound,
+			body:   ``,
+		},
+	)
+	defer mock.Close()
+	provider, err := newUserClaimsProvider(mock.URL+endpointPath, token, time.Minute)
+	require.NoError(t, err)
+
+	claims, err := provider.Claims(model.UserInfo{
+		Sub:    "test@example.com",
+		Origin: "origin",
+		Domain: "example.com",
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t,
+		customClaims{
+			"domain": "example.com",
+			"origin": "origin",
+			"sub":    "test@example.com",
+		},
+		claims,
+	)
+}
+
 func Test_userClaimsProvider_Claims_EndpointNotReachable(t *testing.T) {
 	provider, err := newUserClaimsProvider("http://not-exists.example.com", token, time.Millisecond)
 	require.NoError(t, err)
