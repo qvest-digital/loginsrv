@@ -408,7 +408,7 @@ func wantJSON(r *http.Request) bool {
 }
 
 func getCredentials(r *http.Request) (string, string, error) {
-	if r.Header.Get("Content-Type") == contentTypeJSON {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), contentTypeJSON) {
 		m := map[string]string{}
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
