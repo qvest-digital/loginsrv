@@ -46,6 +46,9 @@ func (provider *userClaimsProvider) Claims(userInfo model.UserInfo) (jwt.Claims,
 		resp.Body.Close()
 	}()
 
+	if resp.StatusCode == http.StatusNotFound {
+		return customClaims(userInfo.AsMap()), nil
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.Errorf("bad http response code %d", resp.StatusCode)
 	}
@@ -58,10 +61,7 @@ func (provider *userClaimsProvider) Claims(userInfo model.UserInfo) (jwt.Claims,
 		return nil, err
 	}
 
-	claims := customClaims(userInfo.AsMap())
-	claims.merge(remoteClaims)
-
-	return claims, nil
+	return mergeClaims(userInfo, remoteClaims), nil
 }
 
 func (provider *userClaimsProvider) buildURL(userInfo model.UserInfo) string {
@@ -89,6 +89,12 @@ func (provider *userClaimsProvider) buildURL(userInfo model.UserInfo) string {
 	u.RawQuery = query.Encode()
 
 	return u.String()
+}
+
+func mergeClaims(userInfo model.UserInfo, remoteClaims map[string]interface{}) customClaims {
+	claims := customClaims(userInfo.AsMap())
+	claims.merge(remoteClaims)
+	return claims
 }
 
 func validateURL(s string) error {
