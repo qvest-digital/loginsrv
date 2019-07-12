@@ -1,11 +1,12 @@
 package osiam
 
 import (
-	. "github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 )
 
 func TestBackend_Authenticate(t *testing.T) {

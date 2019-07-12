@@ -2,12 +2,13 @@ package osiam
 
 import (
 	"fmt"
-	. "github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 func TestClient_GetTokenByPassword(t *testing.T) {

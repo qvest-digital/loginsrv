@@ -1,12 +1,13 @@
 package login
 
 import (
-	. "github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/model"
 	"io/ioutil"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 )
 
 func Test_form(t *testing.T) {

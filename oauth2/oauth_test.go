@@ -2,13 +2,14 @@ package oauth2
 
 import (
 	"fmt"
-	. "github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 var testConfig = Config{

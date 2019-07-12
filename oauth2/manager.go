@@ -2,10 +2,11 @@ package oauth2
 
 import (
 	"fmt"
-	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 // Manager has the responsibility to handle the user user requests in an oauth flow.

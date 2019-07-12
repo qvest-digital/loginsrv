@@ -1,12 +1,13 @@
 package htpasswd
 
 import (
-	. "github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/login"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/login"
 )
 
 func TestSetupOneFile(t *testing.T) {

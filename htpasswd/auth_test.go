@@ -1,11 +1,12 @@
 package htpasswd
 
 import (
-	. "github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 // password for all of them is 'secret'

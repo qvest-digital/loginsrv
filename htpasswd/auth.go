@@ -7,14 +7,15 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"fmt"
-	"github.com/abbot/go-http-auth"
-	"github.com/tarent/loginsrv/logging"
-	"golang.org/x/crypto/bcrypt"
 	"io"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	auth "github.com/abbot/go-http-auth"
+	"github.com/tarent/loginsrv/logging"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // File is a struct to serve an individual modTime
