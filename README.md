@@ -44,6 +44,7 @@ The following providers (login backends) are supported.
   * Bitbucket login
   * Facebook login
   * Gitlab login
+  * Discord login
 
 ## Questions
 
@@ -68,6 +69,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
 | -gitlab                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
+| -discord                    | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
 | -host                       | string      | "localhost"  | -     | Host to listen on                                                                          |
 | -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
 | -jwt-expiry                 | go duration | 24h          | X     | Expiry duration for the JWT token, e.g. 2h or 3h30m                                        |
@@ -314,6 +316,7 @@ Currently the following OAuth provider is supported:
 * Bitbucket
 * Facebook
 * Gitlab
+* Discord
 
 An OAuth provider supports the following parameters:
 
@@ -392,7 +395,7 @@ below the claim attribute are written into the token. The following attributes c
 * `origin` - the provider or backend name (all backends)
 * `email` - the mail address (the OAuth provider)
 * `domain` - the domain (Google only)
-* `groups` - the full path string of user groups enclosed in an array (Gitlab only)
+* `groups` - the full path string of user groups enclosed in an array (Gitlab/Discord only)
 
 Example:
 * The user bob will become the `"role": "superAdmin"`, when authenticating with htpasswd file
