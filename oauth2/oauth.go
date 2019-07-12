@@ -26,10 +26,10 @@ type Config struct {
 	ClientSecret string
 
 	// The oauth authentication url to redirect to
-	AuthURL string
+	AuthURL *url.URL
 
 	// The url for token exchange
-	TokenURL string
+	TokenURL *url.URL
 
 	// RedirectURL is the URL to redirect users going through
 	// the OAuth flow, after the resource owner's URLs.
@@ -68,23 +68,25 @@ const defaultTimeout = 5 * time.Second
 // StartFlow by redirecting the user to the login provider.
 // A state parameter to protect against cross-site request forgery attacks is randomly generated and stored in a cookie
 func StartFlow(cfg Config, w http.ResponseWriter) {
-	values := make(url.Values)
-	values.Set("client_id", cfg.ClientID)
-	values.Set("scope", cfg.Scope)
-	values.Set("redirect_uri", cfg.RedirectURI)
-	values.Set("response_type", "code")
+	// Add auth parameters to the URL, preserving any existing parameters
+	query := cfg.AuthURL.Query()
+	query.Set("client_id", cfg.ClientID)
+	query.Set("scope", cfg.Scope)
+	query.Set("redirect_uri", cfg.RedirectURI)
+	query.Set("response_type", "code")
 
 	// set and store the state param
-	values.Set("state", randStringBytes(15))
+	query.Set("state", randStringBytes(15))
 	http.SetCookie(w, &http.Cookie{
 		Name:     stateCookieName,
 		MaxAge:   60 * 10, // 10 minutes
-		Value:    values.Get("state"),
+		Value:    query.Get("state"),
 		HttpOnly: true,
 	})
 
-	targetURL := cfg.AuthURL + "?" + values.Encode()
-	w.Header().Set("Location", targetURL)
+	redirectURL := *cfg.AuthURL
+	redirectURL.RawQuery = query.Encode()
+	w.Header().Set("Location", redirectURL.String())
 	w.WriteHeader(http.StatusFound)
 }
 
@@ -116,7 +118,7 @@ func getAccessToken(cfg Config, state, code string) (TokenInfo, error) {
 	values.Set("redirect_uri", cfg.RedirectURI)
 	values.Set("grant_type", "authorization_code")
 
-	r, _ := http.NewRequest("POST", cfg.TokenURL, strings.NewReader(values.Encode()))
+	r, _ := http.NewRequest("POST", cfg.TokenURL.String(), strings.NewReader(values.Encode()))
 	cntx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 	r.WithContext(cntx)
@@ -162,4 +164,12 @@ func randStringBytes(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func mustParseURL(rawurl string) (theURL *url.URL) {
+	theURL, err := url.Parse(rawurl)
+	if err != nil {
+		panic(err)
+	}
+	return
 }

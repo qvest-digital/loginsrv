@@ -34,8 +34,8 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 	expectedConfig := Config{
 		ClientID:     "client42",
 		ClientSecret: "secret",
-		AuthURL:      exampleProvider.AuthURL,
-		TokenURL:     exampleProvider.TokenURL,
+		AuthURL:      mustParseURL(exampleProvider.AuthURL),
+		TokenURL:     mustParseURL(exampleProvider.TokenURL),
 		RedirectURI:  "http://localhost",
 		Scope:        "email other",
 		Provider:     exampleProvider,

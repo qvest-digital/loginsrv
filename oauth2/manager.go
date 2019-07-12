@@ -95,10 +95,20 @@ func (manager *Manager) AddConfig(providerName string, opts map[string]string) e
 		return fmt.Errorf("no provider for name %v", providerName)
 	}
 
+	authURL, err := url.Parse(p.AuthURL)
+	if err != nil {
+		return fmt.Errorf("parse auth URL: %s", err)
+	}
+
+	tokenURL, err := url.Parse(p.TokenURL)
+	if err != nil {
+		return fmt.Errorf("parse token URL: %s", err)
+	}
+
 	cfg := Config{
 		Provider: p,
-		AuthURL:  p.AuthURL,
-		TokenURL: p.TokenURL,
+		AuthURL:  authURL,
+		TokenURL: tokenURL,
 	}
 
 	clientID, exist := opts["client_id"]

@@ -15,8 +15,8 @@ import (
 var testConfig = Config{
 	ClientID:     "client42",
 	ClientSecret: "secret",
-	AuthURL:      "http://auth-provider/auth",
-	TokenURL:     "http://auth-provider/token",
+	AuthURL:      mustParseURL("http://auth-provider/auth?extraparam=foo"),
+	TokenURL:     mustParseURL("http://auth-provider/token"),
 	RedirectURI:  "http://localhost/callback",
 	Scope:        "email other",
 }
@@ -32,8 +32,8 @@ func Test_StartFlow(t *testing.T) {
 	Equal(t, stateCookieName, strings.Split(cHeader, "=")[0])
 	state := strings.Split(cHeader, "=")[1]
 
-	expectedLocation := fmt.Sprintf("%v?client_id=%v&redirect_uri=%v&response_type=code&scope=%v&state=%v",
-		testConfig.AuthURL,
+	expectedLocation := fmt.Sprintf("%v?client_id=%v&extraparam=foo&redirect_uri=%v&response_type=code&scope=%v&state=%v",
+		strings.Split(testConfig.AuthURL.String(), "?")[0], // Everything preceeding the querystring
 		testConfig.ClientID,
 		url.QueryEscape(testConfig.RedirectURI),
 		"email+other",
@@ -59,7 +59,7 @@ func Test_Authenticate(t *testing.T) {
 	defer server.Close()
 
 	testConfigCopy := testConfig
-	testConfigCopy.TokenURL = server.URL
+	testConfigCopy.TokenURL = mustParseURL(server.URL)
 
 	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
@@ -85,7 +85,7 @@ func Test_Authenticate_CodeExchangeError(t *testing.T) {
 	defer server.Close()
 
 	testConfigCopy := testConfig
-	testConfigCopy.TokenURL = server.URL
+	testConfigCopy.TokenURL = mustParseURL(server.URL)
 
 	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
@@ -152,7 +152,7 @@ func Test_Authentication_Provider500(t *testing.T) {
 	defer server.Close()
 
 	testConfigCopy := testConfig
-	testConfigCopy.TokenURL = server.URL
+	testConfigCopy.TokenURL = mustParseURL(server.URL)
 
 	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
@@ -167,7 +167,7 @@ func Test_Authentication_Provider500(t *testing.T) {
 func Test_Authentication_ProviderNetworkError(t *testing.T) {
 
 	testConfigCopy := testConfig
-	testConfigCopy.TokenURL = "http://localhost:12345678"
+	testConfigCopy.TokenURL = mustParseURL("http://localhost:12345678")
 
 	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
@@ -190,7 +190,7 @@ func Test_Authentication_TokenParseError(t *testing.T) {
 	defer server.Close()
 
 	testConfigCopy := testConfig
-	testConfigCopy.TokenURL = server.URL
+	testConfigCopy.TokenURL = mustParseURL(server.URL)
 
 	request, _ := http.NewRequest("GET", testConfig.RedirectURI, nil)
 	request.Header.Set("Cookie", "oauthState=theState")
