@@ -7,7 +7,7 @@ require (
 	github.com/abbot/go-http-auth v0.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/mux v1.7.1
-	github.com/mholt/caddy v1.0.0
+	github.com/caddyserver/caddy v1.0.1
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
 	github.com/tarent/lib-compose v0.0.0-20170829113806-69430f91d1d6
