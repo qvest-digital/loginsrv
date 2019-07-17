@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/mholt/caddy/caddyhttp/httpserver"
+	"github.com/caddyserver/caddy/caddyhttp/httpserver"
 	"github.com/tarent/loginsrv/login"
 	"github.com/tarent/loginsrv/model"
 )
