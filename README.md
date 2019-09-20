@@ -286,7 +286,7 @@ loginsrv -httpupstream upstream=https://google.com,timeout=1s
 ```
 
 ### OSIAM
-[OSIAM](http://osiam.org/) is a secure identity management solution providing REST based services for authentication and authorization.
+[OSIAM](https://github.com/osiam/osiam) is a secure identity management solution providing REST based services for authentication and authorization.
 It implements the multiple OAuth2 flows, as well as SCIM for managing the user data.
 
 To start loginsrv against the default OSIAM configuration on the same machine, use the following example.
