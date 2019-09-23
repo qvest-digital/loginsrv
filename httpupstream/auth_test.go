@@ -47,10 +47,10 @@ func TestAuth_ValidCredentials(t *testing.T) {
 	True(t, authenticated)
 }
 
-func TestAuth_InvalidUrl(t *testing.T) {
-	invalidUrl := &url.URL{Scheme: "\\\\"}
+func TestAuth_InvalidURL(t *testing.T) {
+	invalidURL := &url.URL{Scheme: "\\\\"}
 
-	auth, err := NewAuth(invalidUrl, time.Second, false)
+	auth, err := NewAuth(invalidURL, time.Second, false)
 	NoError(t, err)
 
 	_, err = auth.Authenticate("foo", "bar")

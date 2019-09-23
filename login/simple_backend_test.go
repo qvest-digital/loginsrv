@@ -1,8 +1,9 @@
 package login
 
 import (
-	. "github.com/stretchr/testify/assert"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 func TestSetup(t *testing.T) {

@@ -59,9 +59,9 @@ func (e *emails) getPrimaryEmailAddress() string {
 
 // getBitbucketEmails Retrieves bitbucket user emails from the Bitbucket API emails service
 func getBitbucketEmails(token TokenInfo) (emails, error) {
-	emailUrl := fmt.Sprintf("%v/user/emails?access_token=%v", bitbucketAPI, token.AccessToken)
+	emailURL := fmt.Sprintf("%v/user/emails?access_token=%v", bitbucketAPI, token.AccessToken)
 	userEmails := emails{}
-	resp, err := http.Get(emailUrl)
+	resp, err := http.Get(emailURL)
 
 	if err != nil {
 		return emails{}, err

@@ -10,7 +10,6 @@ import (
 	"github.com/tarent/loginsrv/model"
 )
 
-
 var googleUserinfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 func init() {

@@ -2,9 +2,10 @@ package htpasswd
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/tarent/loginsrv/login"
 	"github.com/tarent/loginsrv/model"
-	"strings"
 )
 
 // ProviderName const

@@ -2,6 +2,7 @@ package login
 
 import (
 	"errors"
+
 	"github.com/tarent/loginsrv/model"
 )
 

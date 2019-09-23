@@ -21,8 +21,6 @@ type Provider struct {
 
 	// GetUserInfo is a provider specific Implementation
 	// for fetching the user information.
-	// Possible keys in the returned map are:
-	// username, email, name
 	GetUserInfo func(token TokenInfo) (u model.UserInfo, rawUserJson string, err error)
 }
 
