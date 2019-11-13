@@ -1,7 +1,14 @@
 language: go
 
 go:
+  - "1.12"
+  - "1.13"
   - tip
+
+# Allow builds from tip to fail - they might be in an unstable state
+jobs:
+  allow_failures:
+    - go: tip
 
 env:
   - GO111MODULE=on
