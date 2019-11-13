@@ -117,7 +117,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.LogLevel, "log-level", c.LogLevel, "The log level")
 	f.BoolVar(&c.TextLogging, "text-logging", c.TextLogging, "Log in text format instead of json")
 	f.StringVar(&c.JwtSecret, "jwt-secret", c.JwtSecret, "The secret to sign the jwt token")
-	f.StringVar(&c.JwtAlgo, "jwt-algo", c.JwtAlgo, "The singing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)")
+	f.StringVar(&c.JwtAlgo, "jwt-algo", c.JwtAlgo, "The singing algorithm to use (ES256, ES384, ES512, RS256, RS384, RS512, HS256, HS384, HS512")
 	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
 	f.IntVar(&c.JwtRefreshes, "jwt-refreshes", c.JwtRefreshes, "The maximum amount of jwt refreshes. 0 by Default")
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
