@@ -10,9 +10,9 @@ require (
 	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/pkg/errors v0.8.1
+	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.3.0
 	github.com/tarent/lib-compose v0.0.0-20170829113806-69430f91d1d6
-	github.com/tarent/logrus v0.11.5
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	gopkg.in/yaml.v2 v2.2.2
 )

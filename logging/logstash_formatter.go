@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/tarent/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // Taken from github.com/bshuster-repo/logrus-logstash-hook
@@ -48,7 +49,7 @@ func (f *LogstashFormatter) FormatWithPrefix(entry *logrus.Entry, prefix string)
 	timeStampFormat := f.TimestampFormat
 
 	if timeStampFormat == "" {
-		timeStampFormat = logrus.DefaultTimestampFormat
+		timeStampFormat = time.RFC3339
 	}
 
 	fields["@timestamp"] = entry.Time.Format(timeStampFormat)
