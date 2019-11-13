@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"strings"
@@ -59,6 +60,7 @@ type Config struct {
 	LogLevel               string
 	TextLogging            bool
 	JwtSecret              string
+	JwtSecretFile          string
 	JwtAlgo                string
 	JwtExpiry              time.Duration
 	JwtRefreshes           int
@@ -110,6 +112,21 @@ func (c *Config) addBackendOpts(providerName, optsKvList string) error {
 	return nil
 }
 
+// ResolveFileReferences resolves configuration values, which are dynamically referenced via files
+func (c *Config) ResolveFileReferences() error {
+	// Try to load the secret from a file, if set
+	if c.JwtSecretFile != "" {
+		secretBytes, err := ioutil.ReadFile(c.JwtSecretFile)
+		if err != nil {
+			return err
+		}
+
+		c.JwtSecret = string(secretBytes)
+	}
+
+	return nil
+}
+
 // ConfigureFlagSet adds all flags to the supplied flag set
 func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.Host, "host", c.Host, "The host to listen on")
@@ -117,6 +134,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.LogLevel, "log-level", c.LogLevel, "The log level")
 	f.BoolVar(&c.TextLogging, "text-logging", c.TextLogging, "Log in text format instead of json")
 	f.StringVar(&c.JwtSecret, "jwt-secret", c.JwtSecret, "The secret to sign the jwt token")
+	f.StringVar(&c.JwtSecretFile, "jwt-secret-file", c.JwtSecretFile, "Path to a file containing the secret to sign the jwt token (overrides jwt-secret)")
 	f.StringVar(&c.JwtAlgo, "jwt-algo", c.JwtAlgo, "The singing algorithm to use (ES256, ES384, ES512, RS256, RS384, RS512, HS256, HS384, HS512")
 	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
 	f.IntVar(&c.JwtRefreshes, "jwt-refreshes", c.JwtRefreshes, "The maximum amount of jwt refreshes. 0 by Default")
@@ -203,6 +221,10 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 	// prefer flags over environment settings
 	err := f.Parse(args)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := config.ResolveFileReferences(); err != nil {
 		return nil, err
 	}
 

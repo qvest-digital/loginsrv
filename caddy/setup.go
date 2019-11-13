@@ -96,6 +96,10 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 		}
 	}
 
+	if err := cfg.ResolveFileReferences(); err != nil {
+		return nil, err
+	}
+
 	secretFromEnv, secretFromEnvWasSetBefore := os.LookupEnv("JWT_SECRET")
 	if !secretProvidedByConfig && secretFromEnvWasSetBefore {
 		cfg.JwtSecret = secretFromEnv
@@ -105,5 +109,6 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 		// but do not change a environment variable, which somebody has set it.
 		os.Setenv("JWT_SECRET", cfg.JwtSecret)
 	}
+
 	return cfg, nil
 }
