@@ -14,6 +14,8 @@ If a secret was configured in the directive config, this has higher priority and
 that both are set. This way, it is also possible to configure different secrets for multiple hosts. If no secret was set at all,
 a random token is generated and used.
 
+**Note:** If using `JWT_SECRET_FILE` (see root README), `JWT_SECRET` is filled with the secret, to maintain compatibility.
+
 To be compatible with caddy-jwt the secret is also written to the environment variable JWT_SECRET, if this variable was not set before.
 This enables caddy-jwt to look up the same shared secret, even in the case of a random token. If the configuration uses different tokens
 for different server blocks, only the first one will be stored in environment variable. You can't use a random key as the jwt-secret

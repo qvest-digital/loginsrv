@@ -56,43 +56,44 @@ For questions and support please use the [Gitter chat room](https://gitter.im/ta
 
 _Note for Caddy users_: Not all parameters are available in Caddy. See the table for details. With Caddy, the parameter names can also be used with `_` in the names, e.g. `cookie_http_only`.
 
-| Parameter                   | Type        | Default      | Caddy | Description                                                                                |
-|-----------------------------|-------------|--------------|-------|--------------------------------------------------------------------------------------------|
-| -cookie-domain              | string      |              | X     | Optional domain parameter for the cookie                                                   |
-| -cookie-expiry              | string      | session      | X     | Expiry duration for the cookie, e.g. 2h or 3h30m                                           |
-| -cookie-http-only           | boolean     | true         | X     | Set the cookie with the HTTP only flag                                                     |
-| -cookie-name                | string      | "jwt_token"  | X     | Name of the JWT cookie                                                                     |
-| -cookie-secure              | boolean     | true         | X     | Set the secure flag on the JWT cookie. (Set this to false for plain HTTP support)          |
-| -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
-| -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
-| -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
-| -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]       |
-| -gitlab                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]       |
-| -host                       | string      | "localhost"  | -     | Host to listen on                                                                          |
-| -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                         |
-| -jwt-expiry                 | go duration | 24h          | X     | Expiry duration for the JWT token, e.g. 2h or 3h30m                                        |
-| -jwt-secret                 | string      | "random key" | X     | Secret used to sign the JWT token. (See [caddy/README.md](./caddy/README.md) for details.) |
-| -jwt-algo                   | string      | "HS512"      | X     | Signing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)                 |
-| -log-level                  | string      | "info"       | -     | Log level                                                                                  |
-| -login-path                 | string      | "/login"     | X     | Path of the login resource                                                                 |
-| -logout-url                 | string      |              | X     | URL or path to redirect to after logout                                                    |
-| -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                        |
-| -port                       | string      | "6789"       | -     | Port to listen on                                                                          |
-| -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter                            |
-| -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target                                                      |
-| -redirect-check-referer     | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects         |
-| -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line     |
-| -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                |
-| -success-url                | string      | "/"          | X     | URL to redirect to after login                                                             |
-| -prevent-external-redirects | boolean     | true         | X     | Prevent dynamic redirects to external domains                                              |
-| -template                   | string      |              | X     | An alternative template for the login form                                                 |
-| -text-logging               | boolean     | true         | -     | Log in text format instead of JSON                                                         |
-| -jwt-refreshes              | int         | 0            | X     | The maximum number of JWT refreshes                                                        |
-| -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted. |
-| -user-file                  | string      |              | X     | A YAML file with user specific data for the tokens. (see below for an example)             |
-| -user-endpoint              | string      |              | X     | URL of an endpoint providing user specific data for the tokens. (see below for an example) |
-| -user-endpoint-token        | string      |              | X     | Authentication token used when communicating with the user endpoint                        |
-| -user-endpoint-timeout      | go duration | 5s           | X     | Timeout used when communicating with the user endpoint                                     |
+| Parameter                   | Type        | Default      | Caddy | Description                                                                                           |
+|-----------------------------|-------------|--------------|-------|-------------------------------------------------------------------------------------------------------|
+| -cookie-domain              | string      |              | X     | Optional domain parameter for the cookie                                                              |
+| -cookie-expiry              | string      | session      | X     | Expiry duration for the cookie, e.g. 2h or 3h30m                                                      |
+| -cookie-http-only           | boolean     | true         | X     | Set the cookie with the HTTP only flag                                                                |
+| -cookie-name                | string      | "jwt_token"  | X     | Name of the JWT cookie                                                                                |
+| -cookie-secure              | boolean     | true         | X     | Set the secure flag on the JWT cookie. (Set this to false for plain HTTP support)                     |
+| -github                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]                  |
+| -google                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]                  |
+| -bitbucket                  | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]                  |
+| -facebook                   | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..][,redirect_uri=..]                  |
+| -gitlab                     | value       |              | X     | OAuth config in the form: client_id=..,client_secret=..[,scope=..,][redirect_uri=..]                  |
+| -host                       | string      | "localhost"  | -     | Host to listen on                                                                                     |
+| -htpasswd                   | value       |              | X     | Htpasswd login backend opts: file=/path/to/pwdfile                                                    |
+| -jwt-expiry                 | go duration | 24h          | X     | Expiry duration for the JWT token, e.g. 2h or 3h30m                                                   |
+| -jwt-secret                 | string      | "random key" | X     | Secret used to sign the JWT token. (See [caddy/README.md](./caddy/README.md) for details.)            |
+| -jwt-secret-file            | string      |              | X     | File to load the jwt-secret from, e.g. `/run/secrets/some.key`. **Takes precedence over jwt-secret!** |
+| -jwt-algo                   | string      | "HS512"      | X     | Signing algorithm to use (ES256, ES384, ES512, HS512, HS256, HS384, HS512)                            |
+| -log-level                  | string      | "info"       | -     | Log level                                                                                             |
+| -login-path                 | string      | "/login"     | X     | Path of the login resource                                                                            |
+| -logout-url                 | string      |              | X     | URL or path to redirect to after logout                                                               |
+| -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                                   |
+| -port                       | string      | "6789"       | -     | Port to listen on                                                                                     |
+| -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter                                       |
+| -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target                                                                 |
+| -redirect-check-referer     | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects                    |
+| -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line                |
+| -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                           |
+| -success-url                | string      | "/"          | X     | URL to redirect to after login                                                                        |
+| -prevent-external-redirects | boolean     | true         | X     | Prevent dynamic redirects to external domains                                                         |
+| -template                   | string      |              | X     | An alternative template for the login form                                                            |
+| -text-logging               | boolean     | true         | -     | Log in text format instead of JSON                                                                    |
+| -jwt-refreshes              | int         | 0            | X     | The maximum number of JWT refreshes                                                                   |
+| -grace-period               | go duration | 5s           | -     | Duration to wait after SIGINT/SIGTERM for existing requests. No new requests are accepted.            |
+| -user-file                  | string      |              | X     | A YAML file with user specific data for the tokens. (see below for an example)                        |
+| -user-endpoint              | string      |              | X     | URL of an endpoint providing user specific data for the tokens. (see below for an example)            |
+| -user-endpoint-token        | string      |              | X     | Authentication token used when communicating with the user endpoint                                   |
+| -user-endpoint-timeout      | go duration | 5s           | X     | Timeout used when communicating with the user endpoint                                                |
 
 ### Environment Variables
 All of the above Config Options can also be applied as environment variables by using variables named this way: `LOGINSRV_OPTION_NAME`.
