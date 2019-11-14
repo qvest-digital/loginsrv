@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/tarent/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // Taken from github.com/bshuster-repo/logrus-logstash-hook
