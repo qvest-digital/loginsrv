@@ -1,7 +1,11 @@
 package login
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/http"
@@ -514,6 +518,81 @@ func TestHandler_signAndVerify_ES256(t *testing.T) {
 	userInfo, valid := h.GetToken(r)
 	True(t, valid)
 	Equal(t, input, userInfo)
+}
+
+func TestHandler_signAndVerify_RSA(t *testing.T) {
+	tt := []int{
+		256,
+		384,
+		512,
+	}
+	for _, bits := range tt {
+		jwtAlgo := fmt.Sprintf("RS%d", bits)
+		t.Run(jwtAlgo, func(t *testing.T) {
+			t.Parallel()
+
+			key, err := rsa.GenerateKey(rand.Reader, bits*2)
+			NoError(t, err)
+
+			privateKey := &pem.Block{
+				Type:  "PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(key),
+			}
+
+			h := testHandler()
+			h.config.JwtAlgo = jwtAlgo
+			h.config.JwtSecret = string(pem.EncodeToMemory(privateKey))
+
+			input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+			token, err := h.createToken(input)
+			NoError(t, err)
+			r := &http.Request{
+				Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+			}
+			userInfo, valid := h.GetToken(r)
+			True(t, valid)
+			Equal(t, input, userInfo)
+		})
+	}
+
+	t.Run("headerless", func(t *testing.T) {
+		h := testHandler()
+		h.config.JwtAlgo = "RS256"
+		h.config.JwtSecret = "" +
+			"MIICXAIBAAKBgQDSu7M1jiH06fGywhSw5jdjUdfX6b1yw8j2coVjAgT1oB44vU+S" +
+			"dgvak/tWoBkqG+Gdrn0m+3H/mRtGXWZDmh6VjQ5mnw91OGVJccL2UGdEbb4ub/9g" +
+			"4Bobn1ANUcbZvXWpmNP0kqyBwsXiaq6iL4TNW5iKdvnat7SwzLyIkGwPkQIDAQAB" +
+			"AoGAXpshs1Nh7z/v4F69R0WzbAVcL3SiNpmq6Ok09OP9MgB2UOa8iHYykCiLV7J8" +
+			"Wak2usGRMiUEYslrs0VPGd5hB9X94fDAh0SYC2wmBOJRBY2tU82pSkN5RjE8A3+f" +
+			"G6uwlZB2UtpYa/sihf7NkJCQh2ibT3YeelDUvEnfwALB6iECQQDck14kDckwi4mt" +
+			"LwWPqXTWAdKdTN1i6KGXDBt7Bi5lbVk3XFgQy/Z+GzRiBtjcWmcMw2VOUeFC9d/J" +
+			"WnRv8NklAkEA9JOsxEgzr7utqw3Zd1dDK5weDhAwXuaHiCIS+bDAsGor7pSgWOtU" +
+			"k+kpDdPe/TmtxJFhorJOsl+49VtYVoy+/QJAWJnlhcv31cUnL2ak8DkcUl53EHJw" +
+			"tytExVy6qScpedp7rM4uHckgITWiTAH+GD1ECY9vYQ9o0bHcC5CHFvQC9QJBAOwI" +
+			"2ONVCwy+A4zhgM472QdtU1QfK49qy8IFoGp4un2G+X720Qj/lFBq5MQDhWC9GYZr" +
+			"B98MVgavesDPtyFQE8ECQCRZaTDF4d5KBAvu5ogoqEATD5r21V4Zj5uZ/QSeI7+v" +
+			"UVncBYg6g4CIrczoqYpJ3aBF5MVJ0FEU9XCDO/iDvCU="
+
+		input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+		token, err := h.createToken(input)
+		NoError(t, err)
+		r := &http.Request{
+			Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+		}
+		userInfo, valid := h.GetToken(r)
+		True(t, valid)
+		Equal(t, input, userInfo)
+	})
+
+	t.Run("garbage key", func(t *testing.T) {
+		h := testHandler()
+		h.config.JwtAlgo = "RS256"
+		h.config.JwtSecret = "-garbage-"
+
+		input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+		_, err := h.createToken(input)
+		Error(t, err)
+	})
 }
 
 func TestHandler_getToken_InvalidSecret(t *testing.T) {

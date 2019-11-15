@@ -324,13 +324,24 @@ func (h *Handler) signingInfo() (signingMethod jwt.SigningMethod, key, verifyKey
 		keyString := h.config.JwtSecret
 		switch h.config.JwtAlgo {
 		case "ES256", "ES384", "ES512":
-			if !strings.Contains(string(keyString), "-----") {
+			if !strings.Contains(keyString, "-----") {
 				keyString = "-----BEGIN EC PRIVATE KEY-----\n" + keyString + "\n-----END EC PRIVATE KEY-----"
 			}
 
 			key, err := jwt.ParseECPrivateKeyFromPEM([]byte(keyString))
 			if err != nil {
 				return nil, nil, nil, errors.Wrap(err, "can not parse PEM formated EC private key")
+			}
+			h.signingKey = key
+			h.signingVerifyKey = key.Public()
+		case "RS256", "RS384", "RS512":
+			if !strings.Contains(keyString, "-----") {
+				keyString = "-----BEGIN RSA PRIVATE KEY-----\n" + keyString + "\n-----END RSA PRIVATE KEY-----"
+			}
+
+			key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(keyString))
+			if err != nil {
+				return nil, nil, nil, errors.Wrap(err, "can not parse PEM formated RSA private key")
 			}
 			h.signingKey = key
 			h.signingVerifyKey = key.Public()
