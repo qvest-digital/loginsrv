@@ -102,6 +102,7 @@ func TestSetup(t *testing.T) {
 		{input: "login {\n backend \n}", shouldErr: true},
 		{input: "login {\n backend provider=foo\n}", shouldErr: true},
 		{input: "login {\n backend kk\n}", shouldErr: true},
+		{input: "login {\n jwt_secret_file does-not-exist\n}", shouldErr: true},
 	} {
 		t.Run(fmt.Sprintf("test %v", j), func(t *testing.T) {
 			c := caddy.NewTestController("http", test.input)

@@ -2,6 +2,8 @@ package login
 
 import (
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -95,6 +97,58 @@ func TestConfig_ReadConfig(t *testing.T) {
 	Equal(t, expected, cfg)
 }
 
+func TestConfig_ReadConfig_SecretFile(t *testing.T) {
+	// create a temporary file, containing the desired secret
+	testSecret := "superSecret"
+
+	file, err := ioutil.TempFile("", "")
+	NoError(t, err)
+	defer func() {
+		// cleanup after test
+		NoError(t, os.Remove(file.Name()))
+	}()
+
+	_, err = file.WriteString(testSecret)
+	NoError(t, err)
+
+	// -----------
+
+	input := []string{
+		"--jwt-secret=discardedSecret",
+		fmt.Sprintf("--jwt-secret-file=%s", file.Name()),
+	}
+
+	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
+	NoError(t, err)
+
+	Equal(t, testSecret, cfg.JwtSecret)
+}
+
+func TestConfig_ReadConfig_SecretFile_Error(t *testing.T) {
+	input := []string{
+		"--jwt-secret=someSecret",
+		"--jwt-secret-file=does-not-exist",
+	}
+
+	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
+	Nil(t, cfg)
+	Error(t, err)
+	IsType(t, err, &os.PathError{})
+}
+
+func TestConfig_ResolveFileReferences_Error(t *testing.T) {
+	defaultConfig := DefaultConfig()
+	defaultConfig.JwtSecretFile = "does-not-exist"
+
+	generatedKey := defaultConfig.JwtSecret
+
+	err := defaultConfig.ResolveFileReferences()
+	Error(t, err)
+
+	// existing key is not touched on file error
+	Equal(t, generatedKey, defaultConfig.JwtSecret)
+}
+
 func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_HOST", "host"))
 	NoError(t, os.Setenv("LOGINSRV_PORT", "port"))
@@ -166,4 +220,29 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
 	NoError(t, err)
 	Equal(t, expected, cfg)
+}
+
+func TestConfig_ReadConfigFromEnv_SecretFile(t *testing.T) {
+	// create a temporary file, containing the desired secret
+	testSecret := "superSecret"
+
+	file, err := ioutil.TempFile("", "")
+	NoError(t, err)
+	defer func() {
+		// cleanup after test
+		NoError(t, os.Remove(file.Name()))
+	}()
+
+	_, err = file.WriteString(testSecret)
+	NoError(t, err)
+
+	// -----------
+
+	NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "discardedSecret"))
+	NoError(t, os.Setenv("LOGINSRV_JWT_SECRET_FILE", file.Name()))
+
+	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})
+	NoError(t, err)
+
+	Equal(t, testSecret, cfg.JwtSecret)
 }
