@@ -495,7 +495,7 @@ func TestHandler_ReturnUserInfoJSON_CustomClaims(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
 	claims := customClaims{"sub": "marvin", "exp": json.Number(strconv.FormatInt(input.Expiry, 10)), "foo": "bar"}
-	h.userClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
+	h.UserClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
 		return claims, nil
 	}
 	token, err := h.createToken(input)
@@ -667,7 +667,7 @@ func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 func TestHandler_getToken_WithUserClaims(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
-	h.userClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
+	h.UserClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
 		return customClaims{"sub": "Zappod", "origin": "fake", "exp": userInfo.Expiry}, nil
 	}
 	token, err := h.createToken(input)

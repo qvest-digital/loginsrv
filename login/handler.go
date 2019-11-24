@@ -20,7 +20,8 @@ const contentTypeJWT = "application/jwt"
 const contentTypeJSON = "application/json"
 const contentTypePlain = "text/plain"
 
-type userClaimsFunc func(userInfo model.UserInfo) (jwt.Claims, error)
+// UserClaimsFunc returns jwt.Claims
+type UserClaimsFunc func(userInfo model.UserInfo) (jwt.Claims, error)
 
 // Handler is the mail login handler.
 // It serves the login ressource and does the authentication against the backends or oauth provider.
@@ -31,7 +32,7 @@ type Handler struct {
 	signingMethod    jwt.SigningMethod
 	signingKey       interface{}
 	signingVerifyKey interface{}
-	userClaims       userClaimsFunc
+	UserClaims       UserClaimsFunc
 }
 
 // NewHandler creates a login handler based on the supplied configuration.
@@ -70,7 +71,7 @@ func NewHandler(config *Config) (*Handler, error) {
 		backends:   backends,
 		config:     config,
 		oauth:      oauth,
-		userClaims: userClaims.Claims,
+		UserClaims: userClaims.Claims,
 	}, nil
 }
 
@@ -277,9 +278,9 @@ func (h *Handler) respondAuthenticatedHTML(w http.ResponseWriter, r *http.Reques
 
 func (h *Handler) createToken(userInfo model.UserInfo) (string, error) {
 	var claims jwt.Claims = userInfo
-	if h.userClaims != nil {
+	if h.UserClaims != nil {
 		var err error
-		claims, err = h.userClaims(userInfo)
+		claims, err = h.UserClaims(userInfo)
 		if err != nil {
 			return "", err
 		}
