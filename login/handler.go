@@ -146,11 +146,12 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		userInfo, valid := h.GetToken(r)
+		claims := h.getUserClaims(userInfo)
 		if wantJSON(r) {
 			if valid {
 				w.Header().Set("Content-Type", contentTypeJSON)
 				enc := json.NewEncoder(w)
-				enc.Encode(userInfo) // ignore error of encoding
+				enc.Encode(claims) // ignore error of encoding
 			} else {
 				h.respondAuthFailure(w, r)
 			}
@@ -290,6 +291,17 @@ func (h *Handler) createToken(userInfo model.UserInfo) (string, error) {
 	}
 	token := jwt.NewWithClaims(signingMethod, claims)
 	return token.SignedString(key)
+}
+
+func (h *Handler) getUserClaims(userInfo model.UserInfo) jwt.Claims {
+	var claims jwt.Claims = userInfo
+	if h.UserClaims != nil {
+		uc, err := h.UserClaims(userInfo)
+		if err == nil {
+			claims = uc
+		}
+	}
+	return claims
 }
 
 func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
