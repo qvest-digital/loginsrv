@@ -197,14 +197,21 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	}
 }
 
+var config *Config
+
 // ReadConfig from the commandline args
 func ReadConfig() *Config {
-	c, err := readConfig(flag.CommandLine, os.Args[1:])
+	if config != nil {
+		return config
+	}
+
+	var err error
+	config, err = readConfig(flag.CommandLine, os.Args[1:])
 	if err != nil {
 		// should never happen, because of flag default policy ExitOnError
 		panic(err)
 	}
-	return c
+	return config
 }
 
 func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
