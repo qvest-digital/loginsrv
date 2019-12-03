@@ -10,6 +10,10 @@ jobs:
   allow_failures:
     - go: tip
 
+arch:
+  - amd64
+  - arm64
+
 env:
   - GO111MODULE=on
 
@@ -31,6 +35,7 @@ deploy:
   skip_cleanup: true
   on:
     branch: master
+    condition: $ARCH = amd64
 
 after_success:
   - ./.generate_coverage.sh
