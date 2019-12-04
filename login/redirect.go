@@ -112,6 +112,10 @@ func (h *Handler) isRedirectDomainWhitelisted(r *http.Request, host string) bool
 		if host == strings.TrimSpace(scanner.Text()) {
 			return true
 		}
+		matched, err := regexp.MatchString(strings.TrimSpace(scanner.Text()), host)
+		if err != nil && matched {
+			return true
+		}
 	}
 	logging.Application(r.Header).Warnf("redirect attempt to '%s', but not in redirect whitelist", host)
 	return false

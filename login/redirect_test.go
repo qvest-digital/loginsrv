@@ -117,6 +117,12 @@ func TestRedirect_Whitelisting(t *testing.T) {
 	Equal(t, 303, recorder.Code)
 	Equal(t, "https://gooddomain.com/website", recorder.Header().Get("Location"))
 
+	// allow wildcart matched redirect to domains on whitelist
+	recorder = httptest.NewRecorder()
+	h.ServeHTTP(recorder, req("POST", "/login?backTo=https://something.gooddomain.com/website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "https://something.gooddomain.com/website", recorder.Header().Get("Location"))
+
 	// still permit access to domains which are not in the whitelist
 	recorder = httptest.NewRecorder()
 	h.ServeHTTP(recorder, req("POST", "/login?backTo=https://evildomain.com/website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
