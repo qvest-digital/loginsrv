@@ -117,6 +117,6 @@ func (h *Handler) isRedirectDomainWhitelisted(r *http.Request, host string) bool
 			return true
 		}
 	}
-	logging.Application(r.Header).Warnf("redirect attempt to '%s', but not in redirect whitelist", host)
+	logging.Application(r.Header).Warnf("redirect attempt to '%s', but not in redirect whitelist or regex match", host)
 	return false
 }
