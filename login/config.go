@@ -19,7 +19,7 @@ var jwtDefaultSecret string
 
 func init() {
 	var err error
-	jwtDefaultSecret, err = randStringBytes(32)
+	jwtDefaultSecret, err = randStringBytes(64)
 	if err != nil {
 		panic(err)
 	}
