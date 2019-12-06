@@ -72,7 +72,7 @@ func StartFlow(cfg Config, w http.ResponseWriter) error {
 	values.Set("response_type", "code")
 
 	// set and store the state param
-	state, err := randStringBytes(15)
+	state, err := randStringBytes(32)
 	if err != nil {
 		return err
 	}
