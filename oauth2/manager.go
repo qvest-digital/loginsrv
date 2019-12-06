@@ -2,17 +2,18 @@ package oauth2
 
 import (
 	"fmt"
-	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/tarent/loginsrv/model"
 )
 
 // Manager has the responsibility to handle the user user requests in an oauth flow.
 // It has to pick the right configuration and start the oauth redirecting.
 type Manager struct {
 	configs      map[string]Config
-	startFlow    func(cfg Config, w http.ResponseWriter)
+	startFlow    func(cfg Config, w http.ResponseWriter) error
 	authenticate func(cfg Config, r *http.Request) (TokenInfo, error)
 }
 

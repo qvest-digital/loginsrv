@@ -2,19 +2,16 @@ package oauth2
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
-
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
-}
 
 // Config describes a typical 3-legged OAuth2 flow, with both the
 // client application information and the server's endpoint URLs.
@@ -67,7 +64,7 @@ const defaultTimeout = 5 * time.Second
 
 // StartFlow by redirecting the user to the login provider.
 // A state parameter to protect against cross-site request forgery attacks is randomly generated and stored in a cookie
-func StartFlow(cfg Config, w http.ResponseWriter) {
+func StartFlow(cfg Config, w http.ResponseWriter) error {
 	values := make(url.Values)
 	values.Set("client_id", cfg.ClientID)
 	values.Set("scope", cfg.Scope)
@@ -75,7 +72,11 @@ func StartFlow(cfg Config, w http.ResponseWriter) {
 	values.Set("response_type", "code")
 
 	// set and store the state param
-	values.Set("state", randStringBytes(15))
+	state, err := randStringBytes(15)
+	if err != nil {
+		return err
+	}
+	values.Set("state", state)
 	http.SetCookie(w, &http.Cookie{
 		Name:     stateCookieName,
 		MaxAge:   60 * 10, // 10 minutes
@@ -86,6 +87,8 @@ func StartFlow(cfg Config, w http.ResponseWriter) {
 	targetURL := cfg.AuthURL + "?" + values.Encode()
 	w.Header().Set("Location", targetURL)
 	w.WriteHeader(http.StatusFound)
+
+	return nil
 }
 
 // Authenticate after coming back from the oauth flow.
@@ -154,12 +157,11 @@ func getAccessToken(cfg Config, state, code string) (TokenInfo, error) {
 	return tokenInfo, nil
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func randStringBytes(n int) string {
+func randStringBytes(n int) (string, error) {
 	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
 	}
-	return string(b)
+	return hex.EncodeToString(b), nil
 }
