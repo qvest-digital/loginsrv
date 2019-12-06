@@ -3,11 +3,12 @@ package oauth2
 import (
 	"crypto/tls"
 	"errors"
-	. "github.com/stretchr/testify/assert"
-	"github.com/tarent/loginsrv/model"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
+	"github.com/tarent/loginsrv/model"
 )
 
 func Test_Manager_Positive_Flow(t *testing.T) {
@@ -48,9 +49,10 @@ func Test_Manager_Positive_Flow(t *testing.T) {
 		"redirect_uri":  expectedConfig.RedirectURI,
 	})
 
-	m.startFlow = func(cfg Config, w http.ResponseWriter) {
+	m.startFlow = func(cfg Config, w http.ResponseWriter) error {
 		startFlowCalled = true
 		startFlowReceivedConfig = cfg
+		return nil
 	}
 
 	m.authenticate = func(cfg Config, r *http.Request) (TokenInfo, error) {
@@ -233,8 +235,9 @@ func Test_Manager_RedirectURI_Generation(t *testing.T) {
 		"scope":         "bazz",
 	})
 
-	m.startFlow = func(cfg Config, w http.ResponseWriter) {
+	m.startFlow = func(cfg Config, w http.ResponseWriter) error {
 		startFlowReceivedConfig = cfg
+		return nil
 	}
 
 	callURL := "http://example.com/login/github"
