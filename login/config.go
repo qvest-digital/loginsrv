@@ -1,11 +1,12 @@
 package login
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -17,8 +18,11 @@ import (
 var jwtDefaultSecret string
 
 func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
-	jwtDefaultSecret = randStringBytes(32)
+	var err error
+	jwtDefaultSecret, err = randStringBytes(32)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // DefaultConfig for the loginsrv handler
@@ -231,14 +235,13 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 	return config, err
 }
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func randStringBytes(n int) string {
+func randStringBytes(n int) (string, error) {
 	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
 	}
-	return string(b)
+	return hex.EncodeToString(b), nil
 }
 
 func envName(flagName string) string {
