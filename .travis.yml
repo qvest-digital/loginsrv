@@ -31,6 +31,7 @@ deploy:
   skip_cleanup: true
   on:
     branch: master
+    go: "1.13"
 
 after_success:
   - ./.generate_coverage.sh
