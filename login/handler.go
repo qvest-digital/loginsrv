@@ -289,6 +289,9 @@ func (h *Handler) createToken(userInfo model.UserInfo) (string, error) {
 		return "", err
 	}
 	token := jwt.NewWithClaims(signingMethod, claims)
+	if h.config.JwtKeyID != "" {
+		token.Header["kid"] = h.config.JwtKeyID
+	}
 	return token.SignedString(key)
 }
 
