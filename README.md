@@ -85,7 +85,6 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line                |
 | -simple                     | value       |              | X     | Simple login backend opts: user1=password,user2=password,..                                           |
 | -success-url                | string      | "/"          | X     | URL to redirect to after login                                                                        |
-| -prevent-external-redirects | boolean     | true         | X     | Prevent dynamic redirects to external domains                                                         |
 | -template                   | string      |              | X     | An alternative template for the login form                                                            |
 | -text-logging               | boolean     | true         | -     | Log in text format instead of JSON                                                                    |
 | -jwt-refreshes              | int         | 0            | X     | The maximum number of JWT refreshes                                                                   |
