@@ -42,7 +42,7 @@ var githubTestUserResponse = `{
 
 func Test_Github_getUserInfo(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Equal(t, "secret", r.FormValue("access_token"))
+		Equal(t, "token secret", r.Header.Get("Authorization"))
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write([]byte(githubTestUserResponse))
 	}))
