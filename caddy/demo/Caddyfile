@@ -1,11 +1,11 @@
 
 http://localhost:8080 {
 
-  log stdout  
+  log stdout
   root {$PWD}/webroot
   ext .html
   header /private Cache-Control "no-cache, no-store, must-revalidate"
-  
+
   jwt {
     path /private
     redirect /login
@@ -20,5 +20,5 @@ http://localhost:8080 {
         # for testing, where no https is available, don't set the secure flag for the.
         cookie_secure false
   }
-  
+
 }

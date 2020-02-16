@@ -13,6 +13,7 @@ import (
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/model"
 	"github.com/tarent/loginsrv/oauth2"
+	"github.com/tarent/loginsrv/saml"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -37,7 +38,13 @@ type Handler struct {
 // NewHandler creates a login handler based on the supplied configuration.
 func NewHandler(config *Config) (*Handler, error) {
 	if len(config.Backends) == 0 && len(config.Oauth) == 0 {
-		return nil, errors.New("No login backends or oauth provider configured")
+		errMsg := "No login backends or oauth provider configured"
+		if config.Azure == nil {
+			return nil, errors.New(errMsg)
+		}
+		if !config.Azure.Enabled {
+			return nil, errors.New(errMsg)
+		}
 	}
 
 	backends := []Backend{}
@@ -162,6 +169,25 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 				Authenticated: valid,
 				UserInfo:      userInfo,
 			})
+		return
+	}
+
+	// Handle Azure AD authorization
+	if r.Method == "POST" && (strings.Contains(r.Header.Get("Origin"), "login.microsoftonline.com") || strings.Contains(r.Header.Get("Referer"), "windowsazure.com")) {
+		if h.config.Azure.Enabled == false {
+			err := fmt.Errorf("SAML Provider for Azure AD is not enabled")
+			logging.Logger.WithError(err).Error()
+			h.respondBadRequest(w, r)
+			return
+		}
+		userInfo, err := saml.Authenticate(h.config.Azure.ServiceProvider, r)
+		if err != nil {
+			logging.Logger.WithError(err).Error()
+			h.respondAuthFailure(w, r)
+			return
+		}
+
+		h.respondAuthenticated(w, r, userInfo)
 		return
 	}
 

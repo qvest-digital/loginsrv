@@ -90,6 +90,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		UserEndpoint:        "http://test.io/claims",
 		UserEndpointToken:   "token",
 		UserEndpointTimeout: time.Second,
+		Azure:               &AzureConfig{},
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), input)
@@ -215,6 +216,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 		UserEndpoint:        "http://test.io/claims",
 		UserEndpointToken:   "token",
 		UserEndpointTimeout: time.Second,
+		Azure:               &AzureConfig{},
 	}
 
 	cfg, err := readConfig(flag.NewFlagSet("", flag.ContinueOnError), []string{})

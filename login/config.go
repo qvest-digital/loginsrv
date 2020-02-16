@@ -7,10 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
+	samllib "github.com/crewjam/saml"
 	"github.com/tarent/loginsrv/logging"
 	"github.com/tarent/loginsrv/oauth2"
 )
@@ -52,6 +54,7 @@ func DefaultConfig() *Config {
 		UserEndpoint:           "",
 		UserEndpointToken:      "",
 		UserEndpointTimeout:    5 * time.Second,
+		Azure:                  &AzureConfig{},
 	}
 }
 
@@ -88,6 +91,22 @@ type Config struct {
 	UserEndpoint           string
 	UserEndpointToken      string
 	UserEndpointTimeout    time.Duration
+	Azure                  *AzureConfig
+}
+
+// AzureConfig holds Azure AD related configurations
+type AzureConfig struct {
+	Enabled             bool
+	ServiceProvider     *samllib.ServiceProvider
+	IdpMetadataLocation string
+	IdpMetadataURL      *url.URL
+	IdpSignCertLocation string
+	TenantID            string
+	ApplicationID       string
+	ApplicationName     string
+	LoginURL            string
+	MetadataURL         string
+	AcsURL              string
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -152,6 +171,15 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.RedirectQueryParameter, "redirect-query-parameter", c.RedirectQueryParameter, "URL parameter for the redirect target")
 	f.BoolVar(&c.RedirectCheckReferer, "redirect-check-referer", c.RedirectCheckReferer, "When redirecting check that the referer is the same domain")
 	f.StringVar(&c.RedirectHostFile, "redirect-host-file", c.RedirectHostFile, "A file containing a list of domains that redirects are allowed to, one domain per line")
+
+	f.BoolVar(&c.Azure.Enabled, "azure-enabled", c.Azure.Enabled, "Enable Azure AD")
+	f.StringVar(&c.Azure.IdpMetadataLocation, "azure-idp-metadata-location", c.Azure.IdpMetadataLocation, "The url or path to Azure IdP Metadata")
+	f.StringVar(&c.Azure.IdpSignCertLocation, "azure-idp-sign-cert-location", c.Azure.IdpSignCertLocation, "The path to Azure IdP Signing Certificate")
+	f.StringVar(&c.Azure.TenantID, "azure-tenant-id", c.Azure.TenantID, "Azure AD Tenant ID")
+	f.StringVar(&c.Azure.ApplicationID, "azure-application-id", c.Azure.ApplicationID, "Azure AD Application ID")
+	f.StringVar(&c.Azure.ApplicationName, "azure-application-name", c.Azure.ApplicationName, "Azure AD Application Name")
+	f.StringVar(&c.Azure.AcsURL, "azure-acs-url", c.Azure.AcsURL, "Azure AD ACS URL")
+	f.StringVar(&c.Azure.MetadataURL, "azure-metadata-url", c.Azure.MetadataURL, "Azure AD Metadata URL")
 
 	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")

@@ -69,7 +69,13 @@ const partials = `
                 </a>
               {{end}}
 
-              {{if and (not (eq (len .Config.Backends) 0)) (not (eq (len .Config.Oauth) 0))}}
+			  {{ if .Config.Azure.Enabled }}
+				<a class="btn btn-block btn-lg btn-social btn-microsoft" href="{{ .Config.Azure.LoginURL }}">
+                  <span class="fa fa-windows"></span> Sign in with Office 365
+                </a>
+              {{ end }}
+
+              {{if and (not (eq (len .Config.Backends) 0)) (not (eq (len .Config.Oauth) 0)) (not .Config.Azure.Enabled) }}
                 <div class="login-or-container">
                   <hr class="login-or-hr">
                   <div class="login-or lead">or</div>

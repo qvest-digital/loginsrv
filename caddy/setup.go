@@ -1,8 +1,15 @@
 package caddy
 
 import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/xml"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,6 +25,10 @@ import (
 	_ "github.com/tarent/loginsrv/httpupstream"
 	_ "github.com/tarent/loginsrv/oauth2"
 	_ "github.com/tarent/loginsrv/osiam"
+	_ "github.com/tarent/loginsrv/saml"
+	// Import SAML library
+	"github.com/crewjam/saml"
+	"github.com/crewjam/saml/samlsp"
 )
 
 func init() {
@@ -110,5 +121,147 @@ func parseConfig(c *caddy.Controller) (*login.Config, error) {
 		os.Setenv("JWT_SECRET", cfg.JwtSecret)
 	}
 
+	if cfg.Azure.Enabled {
+
+		if cfg.Azure.TenantID == "" {
+			return cfg, fmt.Errorf("Azure AD Tenant ID not found")
+		}
+
+		logging.Logger.Infof("plugin/login/config: Azure AD Tenant ID => %s", cfg.Azure.TenantID)
+
+		if cfg.Azure.ApplicationID == "" {
+			return cfg, fmt.Errorf("Azure AD Application ID not found")
+		}
+
+		logging.Logger.Infof("plugin/login/config: Azure AD Application ID => %s", cfg.Azure.ApplicationID)
+
+		if cfg.Azure.ApplicationName == "" {
+			return cfg, fmt.Errorf("Azure AD Application Name not found")
+		}
+
+		logging.Logger.Infof("plugin/login/config: Azure AD Application Name => %s", cfg.Azure.ApplicationName)
+
+		if cfg.Azure.IdpMetadataLocation == "" {
+			cfg.Azure.IdpMetadataLocation = fmt.Sprintf(
+				"https://login.microsoftonline.com/%s/federationmetadata/2007-06/federationmetadata.xml",
+				cfg.Azure.TenantID,
+			)
+		}
+
+		logging.Logger.Infof("plugin/login/config: Azure AD IdP Metadata Location => %s", cfg.Azure.IdpMetadataLocation)
+
+		if cfg.Azure.IdpSignCertLocation == "" {
+			return cfg, fmt.Errorf("Azure AD IdP Signing Certificate not found")
+		}
+
+		logging.Logger.Infof("plugin/login/config: Azure AD IdP Signing Certificate => %s", cfg.Azure.IdpSignCertLocation)
+
+		idpSignCert, err := readCertFile(cfg.Azure.IdpSignCertLocation)
+		if err != nil {
+			return cfg, err
+		}
+
+		cfg.Azure.LoginURL = fmt.Sprintf(
+			"https://account.activedirectory.windowsazure.com/applications/signin/%s/%s?tenantId=%s",
+			cfg.Azure.ApplicationName, cfg.Azure.ApplicationID, cfg.Azure.TenantID,
+		)
+
+		logging.Logger.Infof("plugin/login/config: Azure AD Login URL => %s", cfg.Azure.LoginURL)
+
+		azureOptions := samlsp.Options{}
+
+		if strings.HasPrefix(cfg.Azure.IdpMetadataLocation, "http") {
+			idpMetadataURL, err := url.Parse(cfg.Azure.IdpMetadataLocation)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Azure.IdpMetadataURL = idpMetadataURL
+			azureOptions.URL = *idpMetadataURL
+			idpMetadata, err := samlsp.FetchMetadata(
+				context.Background(),
+				http.DefaultClient,
+				*idpMetadataURL,
+			)
+			if err != nil {
+				return cfg, err
+			}
+			azureOptions.IDPMetadata = idpMetadata
+
+		} else {
+			metadataFileContent, err := ioutil.ReadFile(cfg.Azure.IdpMetadataLocation)
+			if err != nil {
+				return cfg, err
+			}
+			idpMetadata, err := samlsp.ParseMetadata(metadataFileContent)
+			if err != nil {
+				return cfg, err
+			}
+			azureOptions.IDPMetadata = idpMetadata
+		}
+		sp := samlsp.DefaultServiceProvider(azureOptions)
+		sp.AllowIDPInitiated = true
+		//sp.EntityID = sp.IDPMetadata.EntityID
+
+		cfgAcsURL, _ := url.Parse(cfg.Azure.AcsURL)
+		sp.AcsURL = *cfgAcsURL
+		cfgMetadataURL, _ := url.Parse(cfg.Azure.MetadataURL)
+		sp.MetadataURL = *cfgMetadataURL
+
+		if cfg.Azure.IdpMetadataURL != nil {
+			sp.MetadataURL = *cfg.Azure.IdpMetadataURL
+		}
+
+		for i := range sp.IDPMetadata.IDPSSODescriptors {
+			idpSSODescriptor := &sp.IDPMetadata.IDPSSODescriptors[i]
+			keyDescriptor := &saml.KeyDescriptor{
+				Use: "signing",
+				KeyInfo: saml.KeyInfo{
+					XMLName: xml.Name{
+						Space: "http://www.w3.org/2000/09/xmldsig#",
+						Local: "KeyInfo",
+					},
+					Certificate: idpSignCert,
+				},
+			}
+			idpSSODescriptor.KeyDescriptors = append(idpSSODescriptor.KeyDescriptors, *keyDescriptor)
+			break
+		}
+
+		cfg.Azure.ServiceProvider = &sp
+	}
+
 	return cfg, nil
+}
+
+func readCertFile(filePath string) (string, error) {
+	var buffer bytes.Buffer
+	var RecordingEnabled bool
+	fileHandle, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer fileHandle.Close()
+
+	scanner := bufio.NewScanner(fileHandle)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "-----") {
+			if strings.Contains(line, "BEGIN CERTIFICATE") {
+				RecordingEnabled = true
+				continue
+			}
+			if strings.Contains(line, "END CERTIFICATE") {
+				break
+			}
+		}
+		if RecordingEnabled {
+			buffer.WriteString(strings.TrimSpace(line))
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return buffer.String(), nil
 }

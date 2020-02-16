@@ -17,6 +17,7 @@ func Test_form(t *testing.T) {
 		Config: &Config{
 			LoginPath: "/login",
 			Backends:  Options{"simple": {}},
+			Azure:     &AzureConfig{},
 		},
 	})
 	Contains(t, recorder.Body.String(), `<form`)
@@ -30,6 +31,7 @@ func Test_form(t *testing.T) {
 		Config: &Config{
 			LoginPath: "/login",
 			Backends:  Options{"simple": {}},
+			Azure:     &AzureConfig{},
 		},
 	})
 	Contains(t, recorder.Body.String(), `<form`)
@@ -43,6 +45,7 @@ func Test_form(t *testing.T) {
 		Config: &Config{
 			LoginPath: "/login",
 			Oauth:     Options{"github": {}},
+			Azure:     &AzureConfig{},
 		},
 	})
 	NotContains(t, recorder.Body.String(), `<form`)
@@ -57,6 +60,7 @@ func Test_form(t *testing.T) {
 			LoginPath: "/login",
 			Backends:  Options{"simple": {}},
 			Oauth:     Options{"github": {}},
+			Azure:     &AzureConfig{},
 		},
 	})
 	Contains(t, recorder.Body.String(), `<form`)
@@ -73,6 +77,7 @@ func Test_form(t *testing.T) {
 			LoginPath: "/login",
 			Backends:  Options{"simple": {}},
 			Oauth:     Options{"github": {}},
+			Azure:     &AzureConfig{},
 		},
 	})
 	NotContains(t, recorder.Body.String(), `<form`)
@@ -101,6 +106,7 @@ func Test_form_customTemplate(t *testing.T) {
 			LoginPath: "/login",
 			Backends:  Options{"simple": {}},
 			Template:  f.Name(),
+			Azure:     &AzureConfig{},
 		},
 	})
 	Contains(t, recorder.Body.String(), `My custom template`)
