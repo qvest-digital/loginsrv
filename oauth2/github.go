@@ -33,8 +33,7 @@ var providerGithub = Provider{
 		url := githubAPI + "/user"
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("Authorization", "token " + token.AccessToken)
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
