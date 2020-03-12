@@ -30,8 +30,10 @@ var providerGithub = Provider{
 	TokenURL: "https://github.com/login/oauth/access_token",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
 		gu := GithubUser{}
-		url := fmt.Sprintf("%v/user?access_token=%v", githubAPI, token.AccessToken)
-		resp, err := http.Get(url)
+		url := githubAPI + "/user"
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", "token " + token.AccessToken)
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
