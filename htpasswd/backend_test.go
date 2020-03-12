@@ -46,30 +46,6 @@ func TestSetupTwoFiles(t *testing.T) {
 		backend.(*Backend).auth.filenames)
 }
 
-func TestSetupTwoConfigs(t *testing.T) {
-	p, exist := login.GetProvider(ProviderName)
-	True(t, exist)
-	NotNil(t, p)
-
-	configFiles := writeTmpfile(testfile, testfile)
-	configFile := writeTmpfile(testfile, testfile)
-
-	var morphed []File
-	for _, curFile := range append(configFiles, configFile...) {
-		morphed = append(morphed, File{curFile, modTime(curFile)})
-	}
-
-	backend, err := p(map[string]string{
-		"files": strings.Join(configFiles, ";"),
-		"file":  strings.Join(configFile, ";"),
-	})
-
-	NoError(t, err)
-	Equal(t,
-		morphed,
-		backend.(*Backend).auth.filenames)
-}
-
 func TestSetup_Error(t *testing.T) {
 	p, exist := login.GetProvider(ProviderName)
 	True(t, exist)

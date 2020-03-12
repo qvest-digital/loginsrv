@@ -262,7 +262,7 @@ Parameters for the provider:
 
 | Parameter-Name    | Description                |
 | ------------------|----------------------------|
-| file              | Path to the password file  |
+| file              | Path to the password file (multiple files can be used by separating them with ';')  |
 
 Example:
 ```
