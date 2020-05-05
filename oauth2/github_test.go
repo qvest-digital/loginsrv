@@ -1,10 +1,11 @@
 package oauth2
 
 import (
-	. "github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/stretchr/testify/assert"
 )
 
 var githubTestUserResponse = `{
@@ -56,4 +57,57 @@ func Test_Github_getUserInfo(t *testing.T) {
 	Equal(t, "octocat@github.com", u.Email)
 	Equal(t, "monalisa octocat", u.Name)
 	Equal(t, githubTestUserResponse, rawJSON)
+}
+
+func Test_Github_getUserInfoNegative(t *testing.T) {
+	t.Run("server connection failed", func(t *testing.T) {
+		_, rawJSON, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
+		Error(t, err)
+		Equal(t, "", rawJSON)
+	})
+
+	t.Run("server respond with error", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Equal(t, "token secret", r.Header.Get("Authorization"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer server.Close()
+
+		githubAPI = server.URL
+
+		_, rawJSON, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
+		Error(t, err)
+		Equal(t, "", rawJSON)
+	})
+
+	t.Run("server respond not with json", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Equal(t, "token secret", r.Header.Get("Authorization"))
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		githubAPI = server.URL
+
+		_, rawJSON, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
+		Error(t, err)
+		Equal(t, "", rawJSON)
+	})
+
+	t.Run("server respond with invalid json", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Equal(t, "token secret", r.Header.Get("Authorization"))
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		githubAPI = server.URL
+
+		_, rawJSON, err := providerGithub.GetUserInfo(TokenInfo{AccessToken: "secret"})
+		Error(t, err)
+		Equal(t, "", rawJSON)
+	})
 }
