@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/tarent/loginsrv/model"
 )
@@ -93,10 +92,6 @@ var providerLinkedIn = Provider{
 	AuthURL:  "https://www.linkedin.com/oauth/v2/authorization",
 	TokenURL: "https://www.linkedin.com/oauth/v2/accessToken",
 	GetUserInfo: func(token TokenInfo) (model.UserInfo, string, error) {
-		cli := &http.Client{
-			Timeout: time.Second * 30,
-		}
-
 		// get user info
 		lu := &LinkedInUser{}
 		url := fmt.Sprintf("%v/me?projection=(id,firstName,lastName,profilePicture(displayImage~:playableStreams))", linkedinAPI)
@@ -106,7 +101,7 @@ var providerLinkedIn = Provider{
 		}
 		req.Header.Add("Authorization", "Bearer "+token.AccessToken)
 
-		respUser, err := cli.Do(req)
+		respUser, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
@@ -139,7 +134,7 @@ var providerLinkedIn = Provider{
 		}
 		req.Header.Add("Authorization", "Bearer "+token.AccessToken)
 
-		respEmail, err := cli.Do(req)
+		respEmail, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return model.UserInfo{}, "", err
 		}
