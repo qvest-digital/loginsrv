@@ -64,7 +64,7 @@ const partials = `
 
 {{define "login"}}
               {{ range $providerName, $opts := .Config.Oauth }}
-                <a class="btn btn-block btn-lg btn-social btn-{{ $providerName }}" href="{{ $.Config.LoginPath }}/{{ $providerName }}">
+                <a class="btn btn-block btn-lg btn-social btn-{{ $providerName }}" href="{{ trimRight $.Config.LoginPath "/" }}/{{ $providerName }}">
                   <span class="fa fa-{{ $providerName }}"></span> Sign in with {{ $providerName | ucfirst }}
                 </a>
               {{end}}
@@ -145,7 +145,8 @@ type loginFormData struct {
 
 func writeLoginForm(w http.ResponseWriter, params loginFormData) {
 	funcMap := template.FuncMap{
-		"ucfirst": ucfirst,
+		"ucfirst":   ucfirst,
+		"trimRight": strings.TrimRight,
 	}
 	templateName := "loginForm"
 	if params.Config != nil && params.Config.Template != "" {
