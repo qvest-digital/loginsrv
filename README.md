@@ -439,7 +439,7 @@ information on an authenticated user. After successful authentication
 against a backend system, the endpoint gets called and the provided
 information is used to enhance the user JWT claim parameters.
 
-loginsrv passes these paramters to the endpoint:
+loginsrv passes these parameters to the endpoint:
 * `sub` - the username (all backends)
 * `origin` - the provider or backend name (all backends)
 * `email` - the mail address (the OAuth provider)
