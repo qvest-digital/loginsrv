@@ -101,7 +101,7 @@ So e.g. `jwt-secret` can be set by environment variable `LOGINSRV_JWT_SECRET`.
 ### Startup Examples
 The simplest way to use loginsrv is by the provided docker container.
 E.g. configured with the simple provider:
-```
+```sh
 $ docker run -d -p 8080:8080 tarent/loginsrv -cookie-secure=false -jwt-secret my_secret -simple bob=secret
 
 $ curl --data "username=bob&password=secret" 127.0.0.1:8080/login
@@ -109,7 +109,7 @@ eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.uWoJkSXTLA_RvfLKe12pb4Cy
 ```
 
 The same configuration could be written with environment variables this way:
-```
+```sh
 $ docker run -d -p 8080:8080 -E COOKIE_SECURE=false -e LOGINSRV_JWT_SECRET=my_secret -e LOGINSRV_BACKEND=provider=simple,bob=secret tarent/loginsrv
 ```
 
@@ -175,7 +175,7 @@ For simple usage in web applications, this can also be called by `GET|POST /logi
 
 #### Example:
 Default is to return the token as Content-Type application/jwt within the body.
-```
+```sh
 curl -i --data "username=bob&password=secret" http://127.0.0.1:6789/login
 HTTP/1.1 200 OK
 Content-Type: application/jwt
@@ -187,7 +187,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBcz
 
 #### Example: Credentials as JSON
 The credentials can also be sent JSON encoded.
-```
+```sh
 curl -i -H 'Content-Type: application/json'  --data '{"username": "bob", "password": "secret"}' http://127.0.0.1:6789/login
 HTTP/1.1 200 OK
 Content-Type: application/jwt
@@ -199,7 +199,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-51G5JQmpJleARHp8rIljBcz
 
 #### Example: web based flow with 'Accept: text/html'
 Sets the JWT as a cookie and redirects to a web page.
-```
+```sh
 curl -i -H 'Accept: text/html' --data "username=bob&password=secret" http://127.0.0.1:6789/login
 HTTP/1.1 303 See Other
 Location: /
@@ -208,7 +208,7 @@ Set-Cookie: jwt_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2IifQ.-5
 
 #### Example: AJAX call with JQuery to fetch a JWT token and create a cookie from it
 Creates a cookie from a successful API call to login.
-```
+```js
 $.ajax({
 	url: "http://localhost:8080/login",
 	type: 'POST',
@@ -226,7 +226,7 @@ $.ajax({
 });
 ```
 Make sure your main page has JQuery:
-```
+```html
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 ```
 
@@ -243,7 +243,7 @@ for allowed external domains with `--redirect-host-file=/some/domains.txt`.
 
 ## The JWT Token
 Depending on the provider, the token may look as follows:
-```
+```json
 {
   "sub": "smancke",
   "picture": "https://avatars2.githubusercontent.com/u/4291379?v=3",
@@ -265,7 +265,7 @@ Parameters for the provider:
 | file              | Path to the password file (multiple files can be used by separating them with ';')  |
 
 Example:
-```
+```sh
 loginsrv -htpasswd file=users
 ```
 
@@ -281,7 +281,7 @@ Parameters for the provider:
 | timeout           | Request timeout (optional 1m by default, go duration syntax is supported) |
 
 Example:
-```
+```sh
 loginsrv -httpupstream upstream=https://google.com,timeout=1s
 ```
 
@@ -290,7 +290,7 @@ loginsrv -httpupstream upstream=https://google.com,timeout=1s
 It implements the multiple OAuth2 flows, as well as SCIM for managing the user data.
 
 To start loginsrv against the default OSIAM configuration on the same machine, use the following example.
-```
+```sh
 loginsrv --jwt-secret=jwtsecret --text-logging -osiam endpoint=http://localhost:8080,client_id=example-client,client_secret=secret'
 ```
 
@@ -300,7 +300,7 @@ Then go to http://127.0.0.1:6789/login and login with `admin/koala`.
 Simple is a demo provider for testing only. It holds a user/password table in memory.
 
 Example
-```
+```sh
 loginsrv -simple bob=secret
 ```
 
@@ -329,7 +329,7 @@ If not supplied, the OAuth redirect URI is calculated out of the current URL. Th
 if loginsrv is routed through a reverse proxy, if the headers `X-Forwarded-Host` and `X-Forwarded-Proto` are set correctly.
 
 ### GitHub Startup Example
-```
+```sh
 $ docker run -p 80:80 tarent/loginsrv -github client_id=xxx,client_secret=yyy
 ```
 
@@ -342,7 +342,7 @@ The templating uses the Golang template package. A short intro can be found [her
 
 When you specify a custom template, only the layout of the original template is replaced. The partials of the original are still loaded into the template context and can be used by your template. So a minimal unstyled login template could look like this:
 
-```
+```html
 <!DOCTYPE html>
 <html>
   <head>
@@ -368,7 +368,7 @@ When you specify a custom template, only the layout of the original template is 
       {{end}}
 
       <!-- your footer -->
-</body>
+  </body>
 </html>
 ```
 
@@ -401,7 +401,7 @@ Example:
 * All other Gitlab users with group `example/subgroup` and `othergroup` will become `"role": "admin"`.
 * All others will become `"role": "unknown"`, independent of the authentication provider
 
-```
+```yaml
 - sub: bob
   origin: htpasswd
   claims:
@@ -448,7 +448,7 @@ loginsrv passes these parameters to the endpoint:
 
 An interaction looks like this
 
-```
+```http
 GET /claims?origin=google&sub=test@example.com&email=test@example.com HTTP/1.1
 Host: localhost:8080
 Accept: */*
