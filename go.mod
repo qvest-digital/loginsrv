@@ -14,5 +14,5 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/tarent/lib-compose v0.0.0-20170829113806-69430f91d1d6
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c
 )

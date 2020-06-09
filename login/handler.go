@@ -32,11 +32,12 @@ type Handler struct {
 	signingKey       interface{}
 	signingVerifyKey interface{}
 	userClaims       userClaimsFunc
+	vhosts           map[string]*Handler
 }
 
 // NewHandler creates a login handler based on the supplied configuration.
 func NewHandler(config *Config) (*Handler, error) {
-	if len(config.Backends) == 0 && len(config.Oauth) == 0 {
+	if len(config.Backends) == 0 && len(config.Oauth) == 0 && len(config.VHosts) == 0 {
 		return nil, errors.New("No login backends or oauth provider configured")
 	}
 
@@ -66,21 +67,45 @@ func NewHandler(config *Config) (*Handler, error) {
 		return nil, err
 	}
 
-	return &Handler{
+	h := &Handler{
 		backends:   backends,
 		config:     config,
 		oauth:      oauth,
 		userClaims: userClaims.Claims,
-	}, nil
+	}
+	if len(config.VHosts) > 0 {
+		vhosts := make(map[string]*Handler, len(config.VHosts))
+		for _, vhost := range config.VHosts {
+			handler, err := vhost.makeHandler(config)
+			if err != nil {
+				return nil, err
+			}
+			vhosts[vhost.Config.Hostname] = handler
+		}
+		h.vhosts = vhosts
+	}
+	return h, nil
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == h.config.HealthCheckPath {
+		w.Write([]byte("OK"))
+		return
+	}
+
 	if !strings.HasPrefix(r.URL.Path, h.config.LoginPath) {
 		h.respondNotFound(w, r)
 		return
 	}
 
 	h.setRedirectCookie(w, r)
+
+	if h.vhosts != nil {
+		hpieces := strings.SplitN(strings.Split(r.URL.Host, ":")[0], ".", 2)
+		if vhandler, exists := h.vhosts[hpieces[0]]; exists {
+			h = vhandler
+		}
+	}
 
 	_, err := h.oauth.GetConfigFromRequest(r)
 	if err == nil {

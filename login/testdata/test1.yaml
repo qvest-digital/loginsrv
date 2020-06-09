@@ -1,0 +1,18 @@
+login-path: /auth/login
+health-check-path: /
+vhosts:
+  - name: foo
+    hostname: foohost
+    cookie-domain: foo.domain.com
+    backends:
+      - name: simple
+        bob: secret
+    oauth:
+      - provider: google
+        client_id: foo@bar.com
+        client_secret: deadbeef
+    template: foo.html.tmpl
+    users:
+      - origin: simple
+        claims:
+          project: foo

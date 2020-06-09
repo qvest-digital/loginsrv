@@ -88,6 +88,9 @@ type Config struct {
 	UserEndpoint           string
 	UserEndpointToken      string
 	UserEndpointTimeout    time.Duration
+	HealthCheckPath        string
+	ConfigFile             string
+	VHosts                 []VirtualHost
 }
 
 // Options is the configuration structure for oauth and backend provider
@@ -161,6 +164,8 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.UserEndpoint, "user-endpoint", c.UserEndpoint, "URL of an endpoint providing user specific data for the tokens")
 	f.StringVar(&c.UserEndpointToken, "user-endpoint-token", c.UserEndpointToken, "Authentication token used when communicating with the user endpoint")
 	f.DurationVar(&c.UserEndpointTimeout, "user-endpoint-timeout", c.UserEndpointTimeout, "Timeout used when communicating with the user endpoint")
+	f.StringVar(&c.HealthCheckPath, "health-check-path", c.HealthCheckPath, "When set, respond with 200 to a GET request on this (absolute) path")
+	f.StringVar(&c.ConfigFile, "config", c.ConfigFile, "YAML configuration file")
 
 	// the -backends is deprecated, but we support it for backwards compatibility
 	deprecatedBackends := setFunc(func(optsKvList string) error {
@@ -232,6 +237,9 @@ func readConfig(f *flag.FlagSet, args []string) (*Config, error) {
 		return nil, err
 	}
 
+	if err := parseConfigFile(config); err != nil {
+		return nil, err
+	}
 	return config, err
 }
 
