@@ -3,11 +3,12 @@ package logging
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var Logger *logrus.Logger
@@ -95,7 +96,7 @@ func access(r *http.Request, start time.Time, statusCode int, err error) *logrus
 	cookies := map[string]string{}
 	for _, c := range r.Cookies() {
 		if !contains(AccessLogCookiesBlacklist, c.Name) {
-			cookies[c.Name] = c.Value
+			cookies[c.Name] = "..." // c.Value
 		}
 	}
 	if len(cookies) > 0 {
