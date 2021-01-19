@@ -107,13 +107,13 @@ func Test_Gitlab_getUserInfo(t *testing.T) {
 }
 
 func Test_Gitlab_getUserInfo_NoServer(t *testing.T) {
-	gitlabAPI = "http://localhost"
+	gitlabAPI = "http://localhost:1234"
 
 	u, rawJSON, err := providerGitlab.GetUserInfo(TokenInfo{AccessToken: "secret"})
 	Equal(t, model.UserInfo{}, u)
 	Empty(t, rawJSON)
 	Error(t, err)
-	Regexp(t, regexp.MustCompile(`connection refused$`), err.Error())
+	Regexp(t, regexp.MustCompile(`(connection refused$)|(actively refused it.$)`), err.Error())
 }
 
 func Test_Gitlab_getUserInfo_UserContentTypeNegative(t *testing.T) {
