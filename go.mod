@@ -1,6 +1,6 @@
 module github.com/tarent/loginsrv
 
-go 1.12
+go 1.14
 
 require (
 	github.com/BTBurke/caddy-jwt v3.7.1+incompatible

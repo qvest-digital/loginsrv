@@ -7,8 +7,8 @@ jobs:
       fail-fast: false
       matrix:
         go: [
-            1.12.x,
-            1.13.x,
+            1.14.x,
+            1.15.x,
         ]
         os: [
             ubuntu-latest,
@@ -31,6 +31,6 @@ jobs:
         run: go test -v -race -coverprofile="coverage.txt" -covermode=atomic ./...
       - name: Upload code coverage
         uses: shogo82148/actions-goveralls@v1
-        if: matrix.go == '1.13.x' && matrix.os == 'ubuntu-latest'
+        if: matrix.go == '1.15.x' && matrix.os == 'ubuntu-latest'
         with:
           path-to-profile: coverage.txt
