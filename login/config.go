@@ -35,6 +35,7 @@ func DefaultConfig() *Config {
 		JwtAlgo:                "HS512",
 		JwtExpiry:              24 * time.Hour,
 		JwtRefreshes:           0,
+		JwtKeyID:               "",
 		SuccessURL:             "/",
 		Redirect:               true,
 		RedirectQueryParameter: "backTo",
@@ -68,6 +69,7 @@ type Config struct {
 	JwtAlgo                string
 	JwtExpiry              time.Duration
 	JwtRefreshes           int
+	JwtKeyID               string
 	SuccessURL             string
 	Redirect               bool
 	RedirectQueryParameter string
@@ -139,9 +141,10 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.BoolVar(&c.TextLogging, "text-logging", c.TextLogging, "Log in text format instead of json")
 	f.StringVar(&c.JwtSecret, "jwt-secret", c.JwtSecret, "The secret to sign the jwt token")
 	f.StringVar(&c.JwtSecretFile, "jwt-secret-file", c.JwtSecretFile, "Path to a file containing the secret to sign the jwt token (overrides jwt-secret)")
-	f.StringVar(&c.JwtAlgo, "jwt-algo", c.JwtAlgo, "The singing algorithm to use (ES256, ES384, ES512, RS256, RS384, RS512, HS256, HS384, HS512")
+	f.StringVar(&c.JwtAlgo, "jwt-algo", c.JwtAlgo, "The signing algorithm to use (ES256, ES384, ES512, RS256, RS384, RS512, HS256, HS384, HS512)")
 	f.DurationVar(&c.JwtExpiry, "jwt-expiry", c.JwtExpiry, "The expiry duration for the jwt token, e.g. 2h or 3h30m")
 	f.IntVar(&c.JwtRefreshes, "jwt-refreshes", c.JwtRefreshes, "The maximum amount of jwt refreshes. 0 by Default")
+	f.StringVar(&c.JwtKeyID, "jwt-key-id", c.JwtKeyID, "The key id to use, added to the jwt header as kid if set")
 	f.StringVar(&c.CookieName, "cookie-name", c.CookieName, "The name of the jwt cookie")
 	f.BoolVar(&c.CookieHTTPOnly, "cookie-http-only", c.CookieHTTPOnly, "Set the cookie with the http only flag")
 	f.BoolVar(&c.CookieSecure, "cookie-secure", c.CookieSecure, "Set the cookie with the secure flag")
