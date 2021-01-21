@@ -145,7 +145,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		userInfo, valid := h.GetToken(r)
+		userInfo, _, valid := h.GetToken(r)
 		if wantJSON(r) {
 			if valid {
 				w.Header().Set("Content-Type", contentTypeJSON)
@@ -176,7 +176,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 			h.handleAuthentication(w, r, username, password)
 			return
 		}
-		userInfo, valid := h.GetToken(r)
+		userInfo, _, valid := h.GetToken(r)
 		if valid {
 			h.handleRefresh(w, r, userInfo)
 			return
@@ -296,10 +296,10 @@ func (h *Handler) createToken(userInfo model.UserInfo) (string, error) {
 	return token.SignedString(key)
 }
 
-func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool) {
+func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, headers map[string]interface{}, valid bool) {
 	c, err := r.Cookie(h.config.CookieName)
 	if err != nil {
-		return model.UserInfo{}, false
+		return model.UserInfo{}, nil, false
 	}
 
 	token, err := jwt.ParseWithClaims(c.Value, &model.UserInfo{}, func(*jwt.Token) (interface{}, error) {
@@ -307,15 +307,15 @@ func (h *Handler) GetToken(r *http.Request) (userInfo model.UserInfo, valid bool
 		return verifyKey, err
 	})
 	if err != nil {
-		return model.UserInfo{}, false
+		return model.UserInfo{}, nil, false
 	}
 
 	u, ok := token.Claims.(*model.UserInfo)
 	if !ok {
-		return model.UserInfo{}, false
+		return model.UserInfo{}, nil, false
 	}
 
-	return *u, u.Valid() == nil
+	return *u, token.Header, u.Valid() == nil
 }
 
 func (h *Handler) signingInfo() (signingMethod jwt.SigningMethod, key, verifyKey interface{}, err error) {

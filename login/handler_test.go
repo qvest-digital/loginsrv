@@ -455,9 +455,28 @@ func TestHandler_getToken_Valid(t *testing.T) {
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
-	userInfo, valid := h.GetToken(r)
+	userInfo, _, valid := h.GetToken(r)
 	True(t, valid)
 	Equal(t, input, userInfo)
+}
+
+func TestHandler_getToken_Key_ID(t *testing.T) {
+	h := testHandler()
+	h.config.JwtKeyID = "some-id"
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+	token, err := h.createToken(input)
+	NoError(t, err)
+	r := &http.Request{
+		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
+	}
+	userInfo, headers, valid := h.GetToken(r)
+	True(t, valid)
+	Equal(t, input, userInfo)
+	Equal(t, map[string]interface{}{
+		"alg": "HS512",
+		"kid": "some-id",
+		"typ": "JWT",
+	}, headers)
 }
 
 func TestHandler_ReturnUserInfoJSON(t *testing.T) {
@@ -515,7 +534,7 @@ func TestHandler_signAndVerify_ES256(t *testing.T) {
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
-	userInfo, valid := h.GetToken(r)
+	userInfo, _, valid := h.GetToken(r)
 	True(t, valid)
 	Equal(t, input, userInfo)
 }
@@ -549,7 +568,7 @@ func TestHandler_signAndVerify_RSA(t *testing.T) {
 			r := &http.Request{
 				Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 			}
-			userInfo, valid := h.GetToken(r)
+			userInfo, _, valid := h.GetToken(r)
 			True(t, valid)
 			Equal(t, input, userInfo)
 		})
@@ -579,7 +598,7 @@ func TestHandler_signAndVerify_RSA(t *testing.T) {
 		r := &http.Request{
 			Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 		}
-		userInfo, valid := h.GetToken(r)
+		userInfo, _, valid := h.GetToken(r)
 		True(t, valid)
 		Equal(t, input, userInfo)
 	})
@@ -605,7 +624,7 @@ func TestHandler_getToken_InvalidSecret(t *testing.T) {
 	}
 	// modify secret
 	h.config.JwtSecret = "foobar"
-	_, valid := h.GetToken(r)
+	_, _, valid := h.GetToken(r)
 	False(t, valid)
 }
 
@@ -615,13 +634,13 @@ func TestHandler_getToken_InvalidToken(t *testing.T) {
 		Header: http.Header{"Cookie": {h.config.CookieName + "=asdcsadcsadc"}},
 	}
 
-	_, valid := h.GetToken(r)
+	_, _, valid := h.GetToken(r)
 	False(t, valid)
 }
 
 func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 	h := testHandler()
-	_, valid := h.GetToken(&http.Request{})
+	_, _, valid := h.GetToken(&http.Request{})
 	False(t, valid)
 }
 
@@ -637,7 +656,7 @@ func TestHandler_getToken_WithUserClaims(t *testing.T) {
 	r := &http.Request{
 		Header: http.Header{"Cookie": {h.config.CookieName + "=" + token + ";"}},
 	}
-	userInfo, valid := h.GetToken(r)
+	userInfo, _, valid := h.GetToken(r)
 	True(t, valid)
 	Equal(t, "Zappod", userInfo.Sub)
 	Equal(t, "fake", userInfo.Origin)
