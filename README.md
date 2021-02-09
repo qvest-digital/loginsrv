@@ -3,7 +3,7 @@
 loginsrv is a standalone minimalistic login server providing a [JWT](https://jwt.io/) login for multiple login backends.
 
 [![Docker](https://img.shields.io/docker/pulls/tarent/loginsrv.svg)](https://hub.docker.com/r/tarent/loginsrv/)
-[![Build Status](https://api.travis-ci.org/tarent/loginsrv.svg?branch=master)](https://travis-ci.org/tarent/loginsrv)
+[![Build Status](https://github.com/tarent/loginsrv/workflows/test/badge.svg)](https://github.com/tarent/loginsrv/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tarent/loginsrv)](https://goreportcard.com/report/github.com/tarent/loginsrv)
 [![Coverage Status](https://coveralls.io/repos/github/tarent/loginsrv/badge.svg?branch=master)](https://coveralls.io/github/tarent/loginsrv?branch=master)
 [![Join the chat at https://gitter.im/tarent/loginsrv](https://badges.gitter.im/tarent/loginsrv.svg)](https://gitter.im/tarent/loginsrv?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
