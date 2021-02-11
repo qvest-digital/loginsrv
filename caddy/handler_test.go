@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/caddyserver/caddy/caddyhttp/httpserver"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/tarent/loginsrv/login"
 	"github.com/tarent/loginsrv/model"
 )
@@ -63,7 +63,7 @@ func Test_ServeHTTP_200(t *testing.T) {
 	r.AddCookie(&cookie)
 
 	//Test that cookie is a valid token
-	_, valid := loginh.GetToken(r)
+	_, _, valid := loginh.GetToken(r)
 	if !valid {
 		t.Errorf("loginHandler cookie is not valid")
 	}

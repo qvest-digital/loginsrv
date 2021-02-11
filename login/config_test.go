@@ -31,6 +31,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		"--jwt-secret=jwtsecret",
 		"--jwt-algo=algo",
 		"--jwt-expiry=42h42m",
+		"--jwt-key-id=id",
 		"--success-url=successurl",
 		"--redirect=false",
 		"--redirect-query-parameter=comingFrom",
@@ -62,6 +63,7 @@ func TestConfig_ReadConfig(t *testing.T) {
 		JwtSecret:              "jwtsecret",
 		JwtAlgo:                "algo",
 		JwtExpiry:              42*time.Hour + 42*time.Minute,
+		JwtKeyID:               "id",
 		SuccessURL:             "successurl",
 		Redirect:               false,
 		RedirectQueryParameter: "comingFrom",
@@ -159,6 +161,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 	NoError(t, os.Setenv("LOGINSRV_JWT_SECRET", "jwtsecret"))
 	NoError(t, os.Setenv("LOGINSRV_JWT_ALGO", "algo"))
 	NoError(t, os.Setenv("LOGINSRV_JWT_EXPIRY", "42h42m"))
+	NoError(t, os.Setenv("LOGINSRV_JWT_KEY_ID", "id"))
 	NoError(t, os.Setenv("LOGINSRV_SUCCESS_URL", "successurl"))
 	NoError(t, os.Setenv("LOGINSRV_REDIRECT", "false"))
 	NoError(t, os.Setenv("LOGINSRV_REDIRECT_QUERY_PARAMETER", "comingFrom"))
@@ -188,6 +191,7 @@ func TestConfig_ReadConfigFromEnv(t *testing.T) {
 		JwtSecret:              "jwtsecret",
 		JwtAlgo:                "algo",
 		JwtExpiry:              42*time.Hour + 42*time.Minute,
+		JwtKeyID:               "id",
 		SuccessURL:             "successurl",
 		Redirect:               false,
 		RedirectQueryParameter: "comingFrom",
