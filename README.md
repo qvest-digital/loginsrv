@@ -74,6 +74,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -jwt-secret                 | string      | "random key" | X     | Secret used to sign the JWT token. (See [caddy/README.md](./caddy/README.md) for details.)            |
 | -jwt-secret-file            | string      |              | X     | File to load the jwt-secret from, e.g. `/run/secrets/some.key`. **Takes precedence over jwt-secret!** |
 | -jwt-algo                   | string      | "HS512"      | X     | Signing algorithm to use (ES256, ES384, ES512, RS256, RS384, RS512, HS256, HS384, HS512)              |
+| -jwt-key-id                 | string      |              | X     | The key id to use if using RSA algorithms, added to the jwt header as kid                             |
 | -log-level                  | string      | "info"       | -     | Log level                                                                                             |
 | -login-path                 | string      | "/login"     | X     | Path of the login resource                                                                            |
 | -logout-url                 | string      |              | X     | URL or path to redirect to after logout                                                               |
