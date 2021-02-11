@@ -111,6 +111,8 @@ func TestConfig_ReadConfig_SecretFile(t *testing.T) {
 	_, err = file.WriteString(testSecret)
 	NoError(t, err)
 
+	NoError(t, file.Close())
+
 	// -----------
 
 	input := []string{
@@ -235,6 +237,8 @@ func TestConfig_ReadConfigFromEnv_SecretFile(t *testing.T) {
 
 	_, err = file.WriteString(testSecret)
 	NoError(t, err)
+
+	NoError(t, file.Close())
 
 	// -----------
 

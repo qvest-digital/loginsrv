@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"github.com/tarent/lib-compose/util"
+	"github.com/tarent/lib-compose/v2/util"
 	"math/rand"
 	"net/http"
 	"time"

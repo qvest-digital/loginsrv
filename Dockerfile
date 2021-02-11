@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine3.11 as builder
+FROM golang:1.15-alpine3.13 as builder
 RUN apk --update --no-cache add g++
 
 WORKDIR /build
@@ -15,7 +15,7 @@ RUN go build -a --ldflags '-linkmode external -extldflags "-static"' .
 
 # ----------
 
-FROM alpine:3.11
+FROM alpine:3.13
 RUN apk --update --no-cache add ca-certificates \
     && addgroup -S loginsrv && adduser -S -g loginsrv loginsrv
 USER loginsrv
