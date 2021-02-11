@@ -1,5 +1,6 @@
 FROM golang:1.15-alpine3.13 as builder
-RUN apk --update --no-cache add g++
+RUN apk --update --no-cache add ca-certificates
+RUN addgroup -S loginsrv && adduser -S -g loginsrv loginsrv
 
 WORKDIR /build
 
@@ -11,17 +12,17 @@ RUN go mod download
 # Copy code
 COPY . .
 
-RUN go build -a --ldflags '-linkmode external -extldflags "-static"' .
+RUN CGO_ENABLED=0 go build -ldflags="-w -s" .
 
 # ----------
 
-FROM alpine:3.13
-RUN apk --update --no-cache add ca-certificates \
-    && addgroup -S loginsrv && adduser -S -g loginsrv loginsrv
-USER loginsrv
-
+FROM scratch
 ENV LOGINSRV_HOST=0.0.0.0 LOGINSRV_PORT=8080
-ENTRYPOINT ["/loginsrv"]
 EXPOSE 8080
+ENTRYPOINT ["./loginsrv"]
+
+COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/
+COPY --from=builder /etc/passwd /etc/passwd
+USER loginsrv
 
 COPY --from=builder /build/loginsrv /
