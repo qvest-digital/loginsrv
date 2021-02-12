@@ -485,6 +485,45 @@ func TestHandler_ReturnUserInfoJSON(t *testing.T) {
 	Equal(t, input, output)
 }
 
+func callWithHandler(h *Handler, req *http.Request) *httptest.ResponseRecorder {
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, req)
+	return recorder
+}
+
+func TestHandler_ReturnUserInfoJSON_CustomClaims(t *testing.T) {
+	h := testHandler()
+	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
+	claims := customClaims{"sub": "marvin", "exp": json.Number(strconv.FormatInt(input.Expiry, 10)), "foo": "bar"}
+	h.UserClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
+		return claims, nil
+	}
+	token, err := h.createToken(input)
+	NoError(t, err)
+	url, _ := url.Parse("/context/login")
+	r := &http.Request{
+		Method: "GET",
+		URL:    url,
+		Header: http.Header{
+			"Cookie": {h.config.CookieName + "=" + token + ";"},
+			"Accept": {"application/json"},
+		},
+	}
+
+	recorder := callWithHandler(h, r)
+	Equal(t, 200, recorder.Code)
+	Equal(t, "application/json", recorder.Header().Get("Content-Type"))
+
+	d := json.NewDecoder(strings.NewReader(recorder.Body.String()))
+	d.UseNumber()
+	var output customClaims
+	if err := d.Decode(&output); err != nil {
+		t.Error(err)
+	}
+
+	Equal(t, claims, output)
+}
+
 func TestHandler_ReturnUserInfoJSON_InvalidToken(t *testing.T) {
 	h := testHandler()
 	url, _ := url.Parse("/context/login")
@@ -628,7 +667,7 @@ func TestHandler_getToken_InvalidNoToken(t *testing.T) {
 func TestHandler_getToken_WithUserClaims(t *testing.T) {
 	h := testHandler()
 	input := model.UserInfo{Sub: "marvin", Expiry: time.Now().Add(time.Second).Unix()}
-	h.userClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
+	h.UserClaims = func(userInfo model.UserInfo) (jwt.Claims, error) {
 		return customClaims{"sub": "Zappod", "origin": "fake", "exp": userInfo.Expiry}, nil
 	}
 	token, err := h.createToken(input)
