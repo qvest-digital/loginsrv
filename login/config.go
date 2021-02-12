@@ -40,6 +40,7 @@ func DefaultConfig() *Config {
 		RedirectQueryParameter: "backTo",
 		RedirectCheckReferer:   true,
 		RedirectHostFile:       "",
+		RedirectAllowSubdomain: false,
 		LogoutURL:              "",
 		LoginPath:              "/login",
 		CookieName:             "jwt_token",
@@ -73,6 +74,7 @@ type Config struct {
 	RedirectQueryParameter string
 	RedirectCheckReferer   bool
 	RedirectHostFile       string
+	RedirectAllowSubdomain bool
 	LogoutURL              string
 	Template               string
 	LoginPath              string
@@ -152,6 +154,7 @@ func (c *Config) ConfigureFlagSet(f *flag.FlagSet) {
 	f.StringVar(&c.RedirectQueryParameter, "redirect-query-parameter", c.RedirectQueryParameter, "URL parameter for the redirect target")
 	f.BoolVar(&c.RedirectCheckReferer, "redirect-check-referer", c.RedirectCheckReferer, "When redirecting check that the referer is the same domain")
 	f.StringVar(&c.RedirectHostFile, "redirect-host-file", c.RedirectHostFile, "A file containing a list of domains that redirects are allowed to, one domain per line")
+	f.BoolVar(&c.RedirectAllowSubdomain, "redirect-allow-subdomain", c.RedirectAllowSubdomain, "If true a redirect is allowed if the target is a different subdomain than loginsrv")
 
 	f.StringVar(&c.LogoutURL, "logout-url", c.LogoutURL, "The url or path to redirect after logout")
 	f.StringVar(&c.Template, "template", c.Template, "An alternative template for the login form")

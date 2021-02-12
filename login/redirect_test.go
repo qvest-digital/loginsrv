@@ -1,6 +1,7 @@
 package login
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -120,6 +121,76 @@ func TestRedirect_Whitelisting(t *testing.T) {
 	// still permit access to domains which are not in the whitelist
 	recorder = httptest.NewRecorder()
 	h.ServeHTTP(recorder, req("POST", "/login?backTo=https://evildomain.com/website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "/", recorder.Header().Get("Location"))
+}
+
+func TestRemoveSubDomain(t *testing.T) {
+	tests := []struct {
+		input  string
+		output string
+	}{
+		{input: "sub.home.com", output: "home.com"},
+		{input: "tld", output: "tld"},
+		{input: "home.com", output: "com"},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s should be %s", tt.input, tt.output), func(t *testing.T) {
+			Equal(t, tt.output, removeSubdomain(tt.input))
+		})
+	}
+}
+
+func TestHaveSubdomain(t *testing.T) {
+	tests := []struct {
+		input  string
+		expect bool
+	}{
+		{input: "sub.home.com", expect: true},
+		{input: "tld", expect: false},
+		{input: "home.com", expect: false},
+		{input: "home.com.", expect: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s should be %v", tt.input, tt.expect), func(t *testing.T) {
+			Equal(t, tt.expect, haveSubdomain(tt.input))
+		})
+	}
+}
+
+func TestRedirect_Subdomain(t *testing.T) {
+
+	cfg := DefaultConfig()
+	cfg.RedirectAllowSubdomain = true
+	h := &Handler{
+		backends: []Backend{
+			NewSimpleBackend(map[string]string{"bob": "secret"}),
+		},
+		oauth:  oauth2.NewManager(),
+		config: cfg,
+	}
+	recorder := httptest.NewRecorder()
+	h.ServeHTTP(recorder, req("POST", "http://auth.home.com/login?backTo=https://sub.home.com/website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "https://sub.home.com/website", recorder.Header().Get("Location"))
+
+	// need at least one subdomain
+	recorder = httptest.NewRecorder()
+	h.ServeHTTP(recorder, req("POST", "http://home.com/login?backTo=https://google.com/website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "/", recorder.Header().Get("Location"))
+
+	// make sure extra . is ignored
+	recorder = httptest.NewRecorder()
+	h.ServeHTTP(recorder, req("POST", "http://home.com./login?backTo=https://google.com./website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
+	Equal(t, 303, recorder.Code)
+	Equal(t, "/", recorder.Header().Get("Location"))
+
+	// not allowed if current host is unknown
+	recorder = httptest.NewRecorder()
+	h.ServeHTTP(recorder, req("POST", "/login?backTo=https://sub.home.com/website", "username=bob&password=secret", TypeForm, AcceptHTML, BadReferer))
 	Equal(t, 303, recorder.Code)
 	Equal(t, "/", recorder.Header().Get("Location"))
 

@@ -80,6 +80,7 @@ _Note for Caddy users_: Not all parameters are available in Caddy. See the table
 | -osiam                      | value       |              | X     | OSIAM login backend opts: endpoint=..,client_id=..,client_secret=..                                   |
 | -port                       | string      | "6789"       | -     | Port to listen on                                                                                     |
 | -redirect                   | boolean     | true         | X     | Allow dynamic overwriting of the the success by query parameter                                       |
+| -redirect-allow-subdomain   | bool        | false        | X     | If true redirect is allowed when the target is on a different subdomain                               |
 | -redirect-query-parameter   | string      | "backTo"     | X     | URL parameter for the redirect target                                                                 |
 | -redirect-check-referer     | boolean     | true         | X     | Check the referer header to ensure it matches the host header on dynamic redirects                    |
 | -redirect-host-file         | string      | ""           | X     | A file containing a list of domains that redirects are allowed to, one domain per line                |

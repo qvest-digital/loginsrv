@@ -43,6 +43,7 @@ func TestSetup(t *testing.T) {
                                         redirect_query_parameter comingFrom
                                         redirect_check_referer true
                                         redirect_host_file domainWhitelist.txt
+                                        redirect_allow_subdomain true
                                         cookie_name cookiename
                                         cookie_http_only false
                                         cookie_domain example.com
@@ -60,6 +61,7 @@ func TestSetup(t *testing.T) {
 				Equal(t, cfg.RedirectQueryParameter, "comingFrom")
 				Equal(t, cfg.RedirectCheckReferer, true)
 				Equal(t, cfg.RedirectHostFile, "domainWhitelist.txt")
+				Equal(t, cfg.RedirectAllowSubdomain, true)
 				Equal(t, cfg.CookieName, "cookiename")
 				Equal(t, cfg.CookieHTTPOnly, false)
 				Equal(t, cfg.CookieDomain, "example.com")
